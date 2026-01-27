@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nutrify
+
+A nutrition management platform connecting nutritionists with their patients.
+
+## Overview
+
+Nutrify is a multi-role application that enables:
+- **Admins** to manage the platform and nutritionists
+- **Nutritionists** to manage their patients and create nutrition plans
+- **Patients** to track their progress and follow meal plans
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Database**: PostgreSQL with Drizzle ORM
+- **UI**: shadcn/ui + Tailwind CSS
+- **Language**: TypeScript
+
+## Documentation
+
+Complete documentation is available in the [`/docs`](./docs) folder:
+
+- [Project Overview](./docs/PROJECT_OVERVIEW.md) - App features and roadmap
+- [Authentication System](./docs/AUTHENTICATION.md) - User roles and auth flows
+- [Database Schema](./docs/DATABASE_SCHEMA.md) - Database design
+- [CLI Scripts](./docs/CLI_SCRIPTS.md) - Admin command-line tools
+- [Routes](./docs/ROUTES.md) - Application routing structure
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 20+
+- PostgreSQL database
+
+### Installation
+
+1. Clone and install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Edit `.env.local` and add your PostgreSQL connection string:
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/nutrify
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Push the database schema:
+```bash
+npm run db:push
+```
 
-## Learn More
+4. Create an admin user:
+```bash
+npm run create:admin
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Start the development server:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Available Scripts
 
-## Deploy on Vercel
+### Development
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Database
+- `npm run db:generate` - Generate migrations
+- `npm run db:migrate` - Run migrations
+- `npm run db:push` - Push schema to database
+- `npm run db:studio` - Open Drizzle Studio
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### User Management
+- `npm run create:admin` - Create admin user (CLI)
+- `npm run create:nutritionist` - Create nutritionist user (CLI)
+
+## Project Status
+
+🟡 **In Development** - Phase 1: Authentication & User Management
+
+See [docs/README.md](./docs/README.md) for detailed status and progress tracking.
