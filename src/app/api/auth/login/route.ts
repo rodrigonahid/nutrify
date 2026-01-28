@@ -4,7 +4,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth";
 import { createSession } from "@/lib/session";
-import { emailSchema, passwordSchema } from "@/lib/validation";
+import { emailSchema } from "@/lib/validation";
 import { z } from "zod";
 
 const loginSchema = z.object({

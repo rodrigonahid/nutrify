@@ -17,9 +17,6 @@ export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
   .max(100, "Password is too long")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number");
 
 /**
  * User creation validation
@@ -27,7 +24,7 @@ export const passwordSchema = z
 export const createUserSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  role: z.enum(["admin", "nutritionist", "patient"]),
+  role: z.enum(["admin", "professional", "patient"]),
 });
 
 /**
@@ -51,9 +48,9 @@ export const patientProfileSchema = z.object({
 });
 
 /**
- * Invite code validation
+ * Invite code validation - 8 digits
  */
 export const inviteCodeSchema = z
   .string()
-  .uuid("Invalid invite code format")
-  .or(z.string().length(36, "Invalid invite code format"));
+  .regex(/^\d{8}$/, "Invite code must be 8 digits")
+  .length(8, "Invite code must be exactly 8 digits");

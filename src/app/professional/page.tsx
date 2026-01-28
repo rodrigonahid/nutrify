@@ -27,21 +27,27 @@ export default async function ProfessionalDashboard() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="p-6 border rounded-lg">
+          <a
+            href="/professional/patients"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
             <h2 className="text-lg font-semibold mb-2">My Patients</h2>
             <p className="text-muted-foreground text-sm">
               View and manage your patients
             </p>
-          </div>
+          </a>
 
-          <div className="p-6 border rounded-lg">
+          <a
+            href="/professional/invite-codes"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
             <h2 className="text-lg font-semibold mb-2">Invite Codes</h2>
             <p className="text-muted-foreground text-sm">
               Generate codes for new patients
             </p>
-          </div>
+          </a>
 
-          <div className="p-6 border rounded-lg">
+          <div className="p-6 border rounded-lg opacity-50">
             <h2 className="text-lg font-semibold mb-2">Meal Plans</h2>
             <p className="text-muted-foreground text-sm">
               Create and manage nutrition plans

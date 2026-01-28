@@ -11,15 +11,20 @@
 ### `/login`
 **Unified Login**
 - Email and password fields
-- Role detection based on email or dropdown
+- Role detection based on database user role
 - Redirects to appropriate dashboard based on role
+- Includes "Create Account" link for patient signup
 
 ### `/signup`
-**Patient Signup (with invite code)**
-- Query param: `?code={invite-code}`
-- Validates invite code
-- Registration form (email, password, basic info)
+**Patient Signup (Simplified)**
+- Accessible from login page "Create Account" link
+- No query parameters needed
+- Form fields:
+  - 8-digit invite code (validates instantly)
+  - Email and password
+  - Optional: date of birth, height, weight
 - Creates patient account linked to nutritionist
+- Auto-login after successful signup
 
 ---
 
@@ -162,8 +167,8 @@
 - `GET /api/patient/nutritionist` - Get assigned nutritionist
 
 ### Invite Codes
-- `GET /api/invite-codes/validate?code={code}` - Validate code
-- `POST /api/invite-codes/use` - Mark code as used (internal)
+- `GET /api/invite-codes/validate?code={code}` - Validate 8-digit code
+  - Returns: `{ valid: true/false, professional: {...}, error?: string }`
 
 ---
 

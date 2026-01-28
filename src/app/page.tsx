@@ -13,8 +13,8 @@ export default async function Home() {
   switch (user.role) {
     case "admin":
       redirect("/admin");
-    case "nutritionist":
-      redirect("/nutritionist");
+    case "professional":
+      redirect("/professional");
     case "patient":
       redirect("/patient");
     default:

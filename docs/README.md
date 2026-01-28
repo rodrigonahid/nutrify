@@ -27,6 +27,13 @@ Command-line tools for user management:
 - Create nutritionist user
 - Future admin tools
 
+### [Simplified Signup Flow](./SIMPLIFIED_SIGNUP_FLOW.md)
+New simplified patient signup process:
+- 8-digit invite codes instead of UUIDs
+- Direct signup from login page
+- Easy code sharing via SMS/verbal communication
+- Implementation guide and migration strategy
+
 ### [Application Routes](./ROUTES.md)
 Complete routing structure:
 - Public routes

@@ -5,7 +5,7 @@ import chalk from "chalk";
 import { db } from "../src/db";
 import { users, professionals } from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth";
-import { emailSchema, passwordSchema } from "../src/lib/validation";
+import { emailSchema } from "../src/lib/validation";
 import { eq } from "drizzle-orm";
 
 async function createProfessional() {
@@ -38,8 +38,10 @@ async function createProfessional() {
       message: "Password:",
       mask: "*",
       validate: (value) => {
-        const result = passwordSchema.safeParse(value);
-        return result.success ? true : result.error.issues[0].message;
+        if (!value || value.length === 0) {
+          return "Password is required";
+        }
+        return true;
       },
     });
 

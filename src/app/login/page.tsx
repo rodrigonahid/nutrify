@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,8 +47,8 @@ function LoginForm() {
       const role = data.user.role;
       if (role === "admin") {
         router.push("/admin");
-      } else if (role === "nutritionist") {
-        router.push("/nutritionist");
+      } else if (role === "professional") {
+        router.push("/professional");
       } else if (role === "patient") {
         router.push("/patient");
       } else {
@@ -105,6 +106,13 @@ function LoginForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </Button>
+
+            <p className="text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/signup" className="text-primary hover:underline">
+                Create account
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

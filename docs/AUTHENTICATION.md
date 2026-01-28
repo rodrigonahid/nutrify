@@ -62,14 +62,17 @@
 3. Session created with nutritionist privileges
 4. Redirect to nutritionist dashboard
 
-### Patient Onboarding
-1. Nutritionist generates unique invite code
-2. Patient receives code from nutritionist (external communication)
-3. Patient navigates to `/signup?code={invite-code}`
-4. Code is validated and linked to nutritionist
-5. Patient enters email, password, and basic info
-6. Account created and code stored as cookie
-7. Patient logged in and redirected to dashboard
+### Patient Onboarding (Simplified Flow)
+1. Nutritionist generates 8-digit invite code (e.g., `12345678`)
+2. Patient receives code from nutritionist (SMS, WhatsApp, verbal, etc.)
+3. Patient navigates to `/login` → clicks "Create Account"
+4. Patient redirected to `/signup`
+5. Patient enters 8-digit code (validates instantly)
+6. Patient enters email, password, and optional personal info
+7. Account created and linked to nutritionist
+8. Patient logged in and redirected to dashboard
+
+**Note:** See [Simplified Signup Flow](./SIMPLIFIED_SIGNUP_FLOW.md) for detailed implementation guide.
 
 ---
 
@@ -81,10 +84,12 @@
 - No plain text password storage
 
 ### Invite Codes
-- Generated as secure random tokens (UUID or similar)
+- Generated as 8-digit random numbers (e.g., `12345678`)
+- Easy to share via SMS, verbal, or any communication method
 - One-time use (marked as used after signup)
-- Expiration time (optional: 7 days)
+- Expiration time (default: 30 days, configurable)
 - Tied to specific nutritionist
+- Validated instantly during signup
 
 ### Session Management
 - HTTP-only cookies for session tokens
@@ -131,22 +136,25 @@
 
 ## Implementation Checklist
 
-- [ ] Database schema creation
-- [ ] User authentication (email/password)
-- [ ] Password hashing utility
-- [ ] CLI script: create admin user
-- [ ] CLI script: create nutritionist user
-- [ ] Invite code generation system
-- [ ] Patient signup with invite code validation
-- [ ] Session management
-- [ ] Role-based middleware
-- [ ] Admin dashboard: nutritionist list
-- [ ] Admin: create nutritionist UI
-- [ ] Nutritionist dashboard
-- [ ] Nutritionist: generate invite codes
-- [ ] Nutritionist: patient list view
-- [ ] Patient dashboard (basic)
+- [x] Database schema creation
+- [x] User authentication (email/password)
+- [x] Password hashing utility (Argon2)
+- [x] CLI script: create admin user
+- [x] CLI script: create professional user
+- [x] Invite code generation system
+- [x] Patient signup with invite code validation
+- [x] Session management
+- [x] Role-based middleware
+- [x] Admin dashboard: professional list
+- [x] Admin: create professional UI
+- [x] Professional dashboard
+- [x] Professional: generate invite codes
+- [x] Professional: patient list view
+- [x] Patient dashboard (basic)
+- [x] Patient signup page
+- [ ] Patient profile editing
+- [ ] Professional: patient detail view
 
 ---
 
-Last Updated: 2026-01-26
+Last Updated: 2026-01-27

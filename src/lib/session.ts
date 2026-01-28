@@ -113,7 +113,7 @@ export async function requireAuth(): Promise<User> {
  * Require specific role - throws if not authorized
  */
 export async function requireRole(
-  allowedRoles: Array<"admin" | "nutritionist" | "patient">
+  allowedRoles: Array<"admin" | "professional" | "patient">
 ): Promise<User> {
   const user = await requireAuth();
   if (!allowedRoles.includes(user.role)) {
