@@ -142,14 +142,79 @@ users (1) ---- (1) patients
 
 ---
 
+---
+
+### progress
+Patient progress tracking with detailed body composition and measurements.
+
+```typescript
+{
+  id: serial (PK)
+  patientId: integer (FK -> patients.id, not null)
+
+  // Body Composition
+  bodyFatPercentage: decimal(4,2)
+  height: decimal(5,2)
+  totalWeight: decimal(5,2)
+  bmi: decimal(4,2)
+
+  // Perimeters - Trunk (cm)
+  perimeterChest: decimal(5,2)
+  perimeterShoulder: decimal(5,2)
+  perimeterWaist: decimal(5,2)
+  perimeterAbdomen: decimal(5,2)
+  perimeterHip: decimal(5,2)
+
+  // Perimeters - Upper Limbs (cm)
+  perimeterBicepsLeftRelaxed: decimal(5,2)
+  perimeterBicepsLeftContracted: decimal(5,2)
+  perimeterBicepsRightRelaxed: decimal(5,2)
+  perimeterBicepsRightContracted: decimal(5,2)
+  perimeterForearmLeft: decimal(5,2)
+  perimeterForearmRight: decimal(5,2)
+
+  // Perimeters - Lower Limbs (cm)
+  perimeterThighProximalLeft: decimal(5,2)
+  perimeterThighProximalRight: decimal(5,2)
+  perimeterThighMedialLeft: decimal(5,2)
+  perimeterThighMedialRight: decimal(5,2)
+  perimeterThighDistalLeft: decimal(5,2)
+  perimeterThighDistalRight: decimal(5,2)
+  perimeterCalfLeft: decimal(5,2)
+  perimeterCalfRight: decimal(5,2)
+
+  // Skinfolds (mm)
+  skinfoldBiceps: decimal(5,2)
+  skinfoldTriceps: decimal(5,2)
+  skinfoldAxillary: decimal(5,2)
+  skinfoldSuprailiac: decimal(5,2)
+  skinfoldAbdominal: decimal(5,2)
+  skinfoldSubscapular: decimal(5,2)
+  skinfoldChest: decimal(5,2)
+  skinfoldThigh: decimal(5,2)
+  skinfoldCalf: decimal(5,2)
+
+  createdAt: timestamp (default: now)
+  updatedAt: timestamp (default: now)
+}
+```
+
+**Indexes:**
+- patientId
+- createdAt
+
+**Relationships:**
+- Belongs to `patients`
+
+---
+
 ## Future Tables (Planned)
 
 - `mealPlans` - Nutrition plans created by nutritionists
 - `meals` - Individual meals logged by patients
-- `measurements` - Patient weight/body composition tracking
 - `appointments` - Scheduled consultations
 - `messages` - Communication between nutritionist and patient
 
 ---
 
-Last Updated: 2026-01-26
+Last Updated: 2026-01-28

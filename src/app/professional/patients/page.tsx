@@ -118,36 +118,41 @@ export default function PatientsListPage() {
             {patients.map((patient) => {
               const age = calculateAge(patient.dateOfBirth);
               return (
-                <Card key={patient.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">{patient.email}</CardTitle>
-                    {age !== null && (
-                      <CardDescription>{age} years old</CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {patient.height && (
-                      <p className="text-sm text-muted-foreground">
-                        Height: {patient.height} cm
+                <Link
+                  key={patient.id}
+                  href={`/professional/patients/${patient.id}`}
+                >
+                  <Card className="cursor-pointer hover:border-primary transition-colors">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{patient.email}</CardTitle>
+                      {age !== null && (
+                        <CardDescription>{age} years old</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {patient.height && (
+                        <p className="text-sm text-muted-foreground">
+                          Height: {patient.height} cm
+                        </p>
+                      )}
+                      {patient.weight && (
+                        <p className="text-sm text-muted-foreground">
+                          Weight: {patient.weight} kg
+                        </p>
+                      )}
+                      {patient.medicalNotes && (
+                        <p className="text-sm text-muted-foreground">
+                          Notes: {patient.medicalNotes.substring(0, 100)}
+                          {patient.medicalNotes.length > 100 && "..."}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground pt-2">
+                        Patient since:{" "}
+                        {new Date(patient.userCreatedAt).toLocaleDateString()}
                       </p>
-                    )}
-                    {patient.weight && (
-                      <p className="text-sm text-muted-foreground">
-                        Weight: {patient.weight} kg
-                      </p>
-                    )}
-                    {patient.medicalNotes && (
-                      <p className="text-sm text-muted-foreground">
-                        Notes: {patient.medicalNotes.substring(0, 100)}
-                        {patient.medicalNotes.length > 100 && "..."}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground pt-2">
-                      Patient since:{" "}
-                      {new Date(patient.userCreatedAt).toLocaleDateString()}
-                    </p>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>

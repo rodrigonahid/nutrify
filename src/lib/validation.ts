@@ -54,3 +54,179 @@ export const inviteCodeSchema = z
   .string()
   .regex(/^\d{8}$/, "Invite code must be 8 digits")
   .length(8, "Invite code must be exactly 8 digits");
+
+/**
+ * Progress entry validation
+ * All measurements are optional to allow partial data entry
+ */
+export const progressSchema = z.object({
+  // Body Composition
+  bodyFatPercentage: z
+    .number()
+    .min(0, "Body fat percentage cannot be negative")
+    .max(60, "Body fat percentage must be less than 60")
+    .optional(),
+  height: z
+    .number()
+    .min(0.5, "Height must be at least 0.5 meters")
+    .max(2.5, "Height must be less than 2.5 meters")
+    .optional(),
+  totalWeight: z
+    .number()
+    .min(20, "Weight must be at least 20 kg")
+    .max(300, "Weight must be less than 300 kg")
+    .optional(),
+  bmi: z
+    .number()
+    .min(10, "BMI must be at least 10")
+    .max(60, "BMI must be less than 60")
+    .optional(),
+
+  // Perimeters - Trunk (cm)
+  perimeterChest: z
+    .number()
+    .min(40, "Chest perimeter must be at least 40 cm")
+    .max(200, "Chest perimeter must be less than 200 cm")
+    .optional(),
+  perimeterShoulder: z
+    .number()
+    .min(40, "Shoulder perimeter must be at least 40 cm")
+    .max(200, "Shoulder perimeter must be less than 200 cm")
+    .optional(),
+  perimeterWaist: z
+    .number()
+    .min(40, "Waist perimeter must be at least 40 cm")
+    .max(200, "Waist perimeter must be less than 200 cm")
+    .optional(),
+  perimeterAbdomen: z
+    .number()
+    .min(40, "Abdomen perimeter must be at least 40 cm")
+    .max(200, "Abdomen perimeter must be less than 200 cm")
+    .optional(),
+  perimeterHip: z
+    .number()
+    .min(50, "Hip perimeter must be at least 50 cm")
+    .max(200, "Hip perimeter must be less than 200 cm")
+    .optional(),
+
+  // Perimeters - Upper Limbs (cm)
+  perimeterBicepsLeftRelaxed: z
+    .number()
+    .min(15, "Biceps perimeter must be at least 15 cm")
+    .max(80, "Biceps perimeter must be less than 80 cm")
+    .optional(),
+  perimeterBicepsLeftContracted: z
+    .number()
+    .min(15, "Biceps perimeter must be at least 15 cm")
+    .max(80, "Biceps perimeter must be less than 80 cm")
+    .optional(),
+  perimeterBicepsRightRelaxed: z
+    .number()
+    .min(15, "Biceps perimeter must be at least 15 cm")
+    .max(80, "Biceps perimeter must be less than 80 cm")
+    .optional(),
+  perimeterBicepsRightContracted: z
+    .number()
+    .min(15, "Biceps perimeter must be at least 15 cm")
+    .max(80, "Biceps perimeter must be less than 80 cm")
+    .optional(),
+  perimeterForearmLeft: z
+    .number()
+    .min(15, "Forearm perimeter must be at least 15 cm")
+    .max(60, "Forearm perimeter must be less than 60 cm")
+    .optional(),
+  perimeterForearmRight: z
+    .number()
+    .min(15, "Forearm perimeter must be at least 15 cm")
+    .max(60, "Forearm perimeter must be less than 60 cm")
+    .optional(),
+
+  // Perimeters - Lower Limbs (cm)
+  perimeterThighProximalLeft: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterThighProximalRight: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterThighMedialLeft: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterThighMedialRight: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterThighDistalLeft: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterThighDistalRight: z
+    .number()
+    .min(30, "Thigh perimeter must be at least 30 cm")
+    .max(120, "Thigh perimeter must be less than 120 cm")
+    .optional(),
+  perimeterCalfLeft: z
+    .number()
+    .min(20, "Calf perimeter must be at least 20 cm")
+    .max(70, "Calf perimeter must be less than 70 cm")
+    .optional(),
+  perimeterCalfRight: z
+    .number()
+    .min(20, "Calf perimeter must be at least 20 cm")
+    .max(70, "Calf perimeter must be less than 70 cm")
+    .optional(),
+
+  // Skinfolds (mm)
+  skinfoldBiceps: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldTriceps: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldAxillary: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldSuprailiac: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldAbdominal: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldSubscapular: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldChest: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldThigh: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+  skinfoldCalf: z
+    .number()
+    .min(0, "Skinfold cannot be negative")
+    .max(50, "Skinfold must be less than 50 mm")
+    .optional(),
+});

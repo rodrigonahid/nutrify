@@ -10,7 +10,7 @@ Nutrify is a nutrition management platform that connects nutritionists with thei
 
 ## Core Features
 
-### Phase 1: Authentication & User Management (Current)
+### Phase 1: Authentication & User Management (Completed)
 - Multi-role authentication system (Admin, Nutritionist, Patient)
 - Admin user creation via CLI
 - Nutritionist user creation via CLI script
@@ -18,10 +18,17 @@ Nutrify is a nutrition management platform that connects nutritionists with thei
 - Patient onboarding via invite codes
 - Role-based access control
 
+### Phase 2: Progress Tracking (Current)
+- Detailed body composition tracking
+- Perimeter measurements (trunk, arms, legs)
+- Skinfold measurements (9 points)
+- Professional recording interface
+- Patient progress viewing
+- Historical comparison
+
 ### Future Phases
 - Patient nutrition plans
 - Meal tracking
-- Progress monitoring
 - Analytics and reporting
 - Communication tools
 
@@ -33,6 +40,6 @@ Nutrify is a nutrition management platform that connects nutritionists with thei
 - **Language**: TypeScript
 
 ## Project Status
-🟡 In Development - Phase 1: Authentication System
+🟡 In Development - Phase 2: Progress Tracking
 
-Last Updated: 2026-01-26
+Last Updated: 2026-01-28

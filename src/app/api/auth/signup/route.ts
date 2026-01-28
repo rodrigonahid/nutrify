@@ -12,8 +12,6 @@ const signupSchema = z.object({
   password: passwordSchema,
   inviteCode: z.string().regex(/^\d{8}$/, "Invite code must be 8 digits"),
   dateOfBirth: z.string().optional(),
-  height: z.string().optional(),
-  weight: z.string().optional(),
 });
 
 /**
@@ -26,15 +24,14 @@ export async function POST(request: Request) {
 
     // Validate input
     const validation = signupSchema.safeParse(body);
-    console.log('validation :>> ', validation);
     if (!validation.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: validation.error.errors },
+        { error: "Validation failed", details: validation.error },
         { status: 400 }
       );
     }
 
-    const { email, password, inviteCode: code, dateOfBirth, height, weight } = validation.data;
+    const { email, password, inviteCode: code, dateOfBirth } = validation.data;
 
     // Check if user already exists
     const existingUser = await db
@@ -106,8 +103,6 @@ export async function POST(request: Request) {
           userId: user.id,
           professionalId: inviteCodeData.professionals.id,
           dateOfBirth: dateOfBirth || null,
-          height: height || null,
-          weight: weight || null,
         })
         .returning();
 

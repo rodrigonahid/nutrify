@@ -79,8 +79,14 @@
 ### `/nutritionist/patients/[id]`
 - Patient profile
 - Medical notes
-- Nutrition plans
-- Progress tracking
+- Progress list (full width)
+- Action buttons: Subscription, Diet, Pictures (disabled)
+- Add New Progress button
+
+### `/nutritionist/patients/[id]/progress/create`
+- Form to create new progress entry
+- All body composition, perimeter, and skinfold fields
+- Submit and redirect to patient detail
 
 ### `/nutritionist/invite-codes`
 - View all generated codes
@@ -121,9 +127,16 @@
 - Daily/weekly goals
 
 ### `/patient/progress`
-- Weight tracking
-- Measurement history
-- Progress photos
+- List all progress entries
+- Display creation dates
+- Click to view details
+
+### `/patient/progress/[id]`
+- View single progress entry
+- Body composition metrics
+- All perimeter measurements
+- All skinfold measurements
+- Comparison with previous entry
 
 ### `/patient/nutritionist`
 - View nutritionist profile
@@ -160,11 +173,16 @@
 - `POST /api/nutritionist/invite-codes` - Generate invite code
 - `GET /api/nutritionist/invite-codes` - List own codes
 - `PATCH /api/nutritionist/patients/[id]` - Update patient
+- `GET /api/professional/patients/[patientId]/progress` - List patient progress
+- `POST /api/professional/patients/[patientId]/progress` - Create progress entry
+- `GET /api/professional/patients/[patientId]/progress/[id]` - Get progress entry
 
 ### Patient
 - `GET /api/patient/profile` - Get own profile
 - `PATCH /api/patient/profile` - Update profile
 - `GET /api/patient/nutritionist` - Get assigned nutritionist
+- `GET /api/patient/progress` - List own progress entries
+- `GET /api/patient/progress/[id]` - Get own progress entry
 
 ### Invite Codes
 - `GET /api/invite-codes/validate?code={code}` - Validate 8-digit code
@@ -189,4 +207,4 @@
 
 ---
 
-Last Updated: 2026-01-26
+Last Updated: 2026-01-28

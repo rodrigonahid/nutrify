@@ -29,8 +29,6 @@ export default function SignupPage() {
     confirmPassword: "",
     inviteCode: "",
     dateOfBirth: "",
-    height: "",
-    weight: "",
   });
 
   // Validate code when user finishes typing 8 digits
@@ -89,8 +87,6 @@ export default function SignupPage() {
           password: formData.password,
           inviteCode: formData.inviteCode,
           dateOfBirth: formData.dateOfBirth || undefined,
-          height: formData.height || undefined,
-          weight: formData.weight || undefined,
         }),
       });
 
@@ -224,7 +220,7 @@ export default function SignupPage() {
             <div className="border-t pt-6 space-y-4">
               <h3 className="font-medium text-sm">Personal Information (Optional)</h3>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
                   <Input
@@ -238,35 +234,6 @@ export default function SignupPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="height">Height (cm)</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    step="0.01"
-                    placeholder="170"
-                    value={formData.height}
-                    onChange={(e) =>
-                      setFormData({ ...formData, height: e.target.value })
-                    }
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.01"
-                    placeholder="70"
-                    value={formData.weight}
-                    onChange={(e) =>
-                      setFormData({ ...formData, weight: e.target.value })
-                    }
-                    disabled={loading}
-                  />
-                </div>
               </div>
             </div>
 

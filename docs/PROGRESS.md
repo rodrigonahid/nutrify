@@ -116,6 +116,32 @@ Track the implementation status of all features and tasks.
 
 ---
 
+## Phase 2: Progress Tracking
+
+### Database
+- ✅ Progress table schema
+- ✅ Progress-Patient relationships
+
+### API Routes
+| Method | Endpoint | Description | Status |
+|--------|----------|-------------|--------|
+| POST | `/api/professional/patients/:patientId/progress` | Create progress entry | ✅ |
+| GET | `/api/professional/patients/:patientId/progress` | List patient progress | ✅ |
+| GET | `/api/professional/patients/:patientId/progress/:id` | Get progress entry | ✅ |
+| GET | `/api/patient/progress` | List own progress | ✅ |
+| GET | `/api/patient/progress/:id` | Get own progress entry | ✅ |
+
+### Professional Features
+- ✅ Patient detail page with progress list
+- ✅ Create progress entry form
+- ✅ Progress detail modal
+
+### Patient Features
+- ✅ Progress list page
+- ✅ Progress detail page with comparison
+
+---
+
 ## Next Steps
 
 1. ✅ ~~Session management~~
@@ -126,10 +152,15 @@ Track the implementation status of all features and tasks.
 6. ✅ ~~Professional: Generate invite codes~~
 7. ✅ ~~Patient signup with invite code~~
 8. ✅ ~~Simplified signup flow (8-digit codes)~~
-9. ⏳ Professional: Patient detail view and editing
-10. ⏳ Admin: Professional detail view
-11. ⏳ Patient: Profile editing
+9. ⏳ **Progress Tracking Feature (Current)**
+   - Database schema
+   - API endpoints
+   - Professional UI
+   - Patient UI
+10. ⏳ Professional: Patient detail view and editing
+11. ⏳ Admin: Professional detail view
+12. ⏳ Patient: Profile editing
 
 ---
 
-Last Updated: 2026-01-27
+Last Updated: 2026-01-28
