@@ -107,20 +107,18 @@ export default function InviteCodesPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/professional"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              ← Back to Dashboard
-            </Link>
-            <h1 className="text-xl font-bold">Invite Codes</h1>
-          </div>
+          <h1 className="text-xl font-bold">Invite Codes</h1>
           <LogoutButton />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
+        <Link
+          href="/professional"
+          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Dashboard
+        </Link>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold">Patient Invite Codes</h2>

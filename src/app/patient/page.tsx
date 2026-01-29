@@ -25,14 +25,17 @@ export default async function PatientDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="p-6 border rounded-lg opacity-50">
+          <a
+            href="/patient/meal-plan"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
             <h2 className="text-lg font-semibold mb-2">My Meal Plan</h2>
             <p className="text-muted-foreground text-sm">
               View your current nutrition plan
             </p>
-          </div>
+          </a>
 
           <a
             href="/patient/progress"

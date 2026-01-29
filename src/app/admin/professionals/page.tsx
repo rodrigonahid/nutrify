@@ -43,12 +43,7 @@ export default async function ProfessionalsListPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Back to Dashboard
-            </Link>
-            <h1 className="text-xl font-bold">Professionals</h1>
-          </div>
+          <h1 className="text-xl font-bold">Professionals</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">{user.email}</span>
             <LogoutButton />
@@ -56,7 +51,13 @@ export default async function ProfessionalsListPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
+        <Link
+          href="/admin"
+          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Dashboard
+        </Link>
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold">Manage Professionals</h2>

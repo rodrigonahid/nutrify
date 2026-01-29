@@ -80,13 +80,24 @@
 - Patient profile
 - Medical notes
 - Progress list (full width)
-- Action buttons: Subscription, Diet, Pictures (disabled)
+- Action buttons: Subscription, Meal Plan, Pictures
 - Add New Progress button
 
 ### `/nutritionist/patients/[id]/progress/create`
 - Form to create new progress entry
 - All body composition, perimeter, and skinfold fields
 - Submit and redirect to patient detail
+
+### `/nutritionist/patients/[id]/meal-plan`
+- List all meal plans for patient
+- Create, activate/deactivate, delete actions
+- View active status
+
+### `/nutritionist/patients/[id]/meal-plan/create`
+- Dynamic form to create meal plans
+- Add/remove meals, options, and ingredients
+- Time selection for each meal
+- Save as draft or activate
 
 ### `/nutritionist/invite-codes`
 - View all generated codes
@@ -138,6 +149,19 @@
 - All skinfold measurements
 - Comparison with previous entry
 
+### `/patient/meal-plan`
+- List all meal plans
+- Show active plan badge
+- Display creation date and nutritionist
+- Click to view full plan
+
+### `/patient/meal-plan/[id]`
+- View detailed meal plan
+- All meals organized by time
+- Multiple options per meal
+- Ingredients with weights
+- Preparation notes
+
 ### `/patient/nutritionist`
 - View nutritionist profile
 - Contact information
@@ -176,6 +200,12 @@
 - `GET /api/professional/patients/[patientId]/progress` - List patient progress
 - `POST /api/professional/patients/[patientId]/progress` - Create progress entry
 - `GET /api/professional/patients/[patientId]/progress/[id]` - Get progress entry
+- `GET /api/professional/patients/[patientId]/meal-plan` - List meal plans
+- `POST /api/professional/patients/[patientId]/meal-plan` - Create meal plan
+- `GET /api/professional/patients/[patientId]/meal-plan/[id]` - Get meal plan details
+- `PUT /api/professional/patients/[patientId]/meal-plan/[id]` - Update meal plan
+- `DELETE /api/professional/patients/[patientId]/meal-plan/[id]` - Delete meal plan
+- `PATCH /api/professional/patients/[patientId]/meal-plan/[id]` - Toggle active status
 
 ### Patient
 - `GET /api/patient/profile` - Get own profile
@@ -183,6 +213,8 @@
 - `GET /api/patient/nutritionist` - Get assigned nutritionist
 - `GET /api/patient/progress` - List own progress entries
 - `GET /api/patient/progress/[id]` - Get own progress entry
+- `GET /api/patient/meal-plan` - List own meal plans
+- `GET /api/patient/meal-plan/[id]` - Get meal plan details
 
 ### Invite Codes
 - `GET /api/invite-codes/validate?code={code}` - Validate 8-digit code
@@ -208,3 +240,29 @@
 ---
 
 Last Updated: 2026-01-28
+
+---
+
+## Route Structure Summary
+
+```
+/
+├── login
+├── signup
+├── admin/
+│   ├── professionals/
+│   │   └── create
+├── professional/ (nutritionist)
+│   ├── patients/
+│   │   └── [id]/
+│   │       ├── progress/
+│   │       │   └── create
+│   │       └── meal-plan/
+│   │           └── create
+│   └── invite-codes/
+└── patient/
+    ├── progress/
+    │   └── [id]
+    └── meal-plan/
+        └── [id]
+```

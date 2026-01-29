@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField, FormTextArea } from "@/components/ui/form-field";
 import {
   Card,
   CardContent,
@@ -13,30 +15,41 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  emailSchema,
+  passwordSchema,
+  nutritionistProfileSchema,
+} from "@/lib/validation";
+
+const createProfessionalSchema = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .merge(nutritionistProfileSchema)
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type CreateProfessionalFormData = z.infer<typeof createProfessionalSchema>;
 
 export default function CreateProfessionalPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    professionalLicense: "",
-    specialization: "",
-    bio: "",
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<CreateProfessionalFormData>({
+    resolver: zodResolver(createProfessionalSchema),
   });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: CreateProfessionalFormData) {
     setError("");
-
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -44,18 +57,18 @@ export default function CreateProfessionalPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          professionalLicense: formData.professionalLicense || undefined,
-          specialization: formData.specialization || undefined,
-          bio: formData.bio || undefined,
+          email: data.email,
+          password: data.password,
+          professionalLicense: data.professionalLicense || undefined,
+          specialization: data.specialization || undefined,
+          bio: data.bio || undefined,
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to create professional");
+        setError(result.error || "Failed to create professional");
         return;
       }
 
@@ -70,18 +83,13 @@ export default function CreateProfessionalPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            href="/admin/professionals"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to Professionals
-          </Link>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
+        <Link
+          href="/admin/professionals"
+          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Professionals
+        </Link>
         <Card>
           <CardHeader>
             <CardTitle>Create Professional Account</CardTitle>
@@ -90,7 +98,7 @@ export default function CreateProfessionalPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
                 <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
                   {error}
@@ -100,57 +108,33 @@ export default function CreateProfessionalPage() {
               <div className="space-y-4">
                 <h3 className="font-medium text-sm">Account Credentials</h3>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="professional@example.com"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                </div>
+                <FormField
+                  label="Email"
+                  type="email"
+                  placeholder="professional@example.com"
+                  registration={register("email")}
+                  error={errors.email}
+                  disabled={loading}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Must be at least 8 characters with uppercase, lowercase, and
-                    number
-                  </p>
-                </div>
+                <FormField
+                  label="Password"
+                  type="password"
+                  placeholder="••••••••"
+                  registration={register("password")}
+                  error={errors.password}
+                  hint="At least 8 characters with uppercase, lowercase, and number"
+                  disabled={loading}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                </div>
+                <FormField
+                  label="Confirm Password"
+                  type="password"
+                  placeholder="••••••••"
+                  registration={register("confirmPassword")}
+                  error={errors.confirmPassword}
+                  disabled={loading}
+                />
               </div>
 
               <div className="border-t pt-6 space-y-4">
@@ -158,55 +142,33 @@ export default function CreateProfessionalPage() {
                   Professional Information (Optional)
                 </h3>
 
-                <div className="space-y-2">
-                  <Label htmlFor="professionalLicense">
-                    Professional License
-                  </Label>
-                  <Input
-                    id="professionalLicense"
-                    type="text"
-                    placeholder="License number"
-                    value={formData.professionalLicense}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        professionalLicense: e.target.value,
-                      })
-                    }
-                    disabled={loading}
-                  />
-                </div>
+                <FormField
+                  label="Professional License"
+                  type="text"
+                  placeholder="License number"
+                  registration={register("professionalLicense")}
+                  error={errors.professionalLicense}
+                  disabled={loading}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="specialization">Specialization</Label>
-                  <Input
-                    id="specialization"
-                    type="text"
-                    placeholder="e.g., Sports Nutrition, Weight Management"
-                    value={formData.specialization}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        specialization: e.target.value,
-                      })
-                    }
-                    disabled={loading}
-                  />
-                </div>
+                <FormField
+                  label="Specialization"
+                  type="text"
+                  placeholder="e.g., Sports Nutrition, Weight Management"
+                  registration={register("specialization")}
+                  error={errors.specialization}
+                  hint="Maximum 255 characters"
+                  disabled={loading}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <textarea
-                    id="bio"
-                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Brief professional biography..."
-                    value={formData.bio}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bio: e.target.value })
-                    }
-                    disabled={loading}
-                  />
-                </div>
+                <FormTextArea
+                  label="Bio"
+                  placeholder="Brief professional biography..."
+                  registration={register("bio")}
+                  error={errors.bio}
+                  hint="Maximum 2000 characters"
+                  disabled={loading}
+                />
               </div>
 
               <div className="flex gap-4 pt-4">

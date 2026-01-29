@@ -62,6 +62,7 @@ export const professionalsRelations = relations(
     }),
     patients: many(patients),
     inviteCodes: many(inviteCodes),
+    mealPlans: many(mealPlans),
   })
 );
 
@@ -97,6 +98,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
     references: [inviteCodes.usedBy],
   }),
   progressEntries: many(progress),
+  mealPlans: many(mealPlans),
 }));
 
 // Invite codes table - for patient signup
@@ -250,3 +252,90 @@ export const progressRelations = relations(progress, ({ one }) => ({
     references: [patients.id],
   }),
 }));
+
+// Meal Plans - nutrition meal plans for patients
+export const mealPlans = pgTable("meal_plans", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  professionalId: integer("professional_id")
+    .notNull()
+    .references(() => professionals.id, { onDelete: "restrict" }),
+  name: text("name").notNull(),
+  isActive: boolean("is_active").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const mealPlansRelations = relations(mealPlans, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [mealPlans.patientId],
+    references: [patients.id],
+  }),
+  professional: one(professionals, {
+    fields: [mealPlans.professionalId],
+    references: [professionals.id],
+  }),
+  meals: many(meals),
+}));
+
+// Meals - individual meals within a meal plan
+export const meals = pgTable("meals", {
+  id: serial("id").primaryKey(),
+  mealPlanId: integer("meal_plan_id")
+    .notNull()
+    .references(() => mealPlans.id, { onDelete: "cascade" }),
+  timeOfDay: text("time_of_day").notNull(), // HH:MM format
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const mealsRelations = relations(meals, ({ one, many }) => ({
+  mealPlan: one(mealPlans, {
+    fields: [meals.mealPlanId],
+    references: [mealPlans.id],
+  }),
+  options: many(mealOptions),
+}));
+
+// Meal Options - alternative options for a meal
+export const mealOptions = pgTable("meal_options", {
+  id: serial("id").primaryKey(),
+  mealId: integer("meal_id")
+    .notNull()
+    .references(() => meals.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const mealOptionsRelations = relations(mealOptions, ({ one, many }) => ({
+  meal: one(meals, {
+    fields: [mealOptions.mealId],
+    references: [meals.id],
+  }),
+  ingredients: many(mealIngredients),
+}));
+
+// Meal Ingredients - ingredients within a meal option
+export const mealIngredients = pgTable("meal_ingredients", {
+  id: serial("id").primaryKey(),
+  mealOptionId: integer("meal_option_id")
+    .notNull()
+    .references(() => mealOptions.id, { onDelete: "cascade" }),
+  ingredientName: text("ingredient_name").notNull(),
+  weightGrams: decimal("weight_grams", { precision: 7, scale: 2 }).notNull(),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const mealIngredientsRelations = relations(
+  mealIngredients,
+  ({ one }) => ({
+    mealOption: one(mealOptions, {
+      fields: [mealIngredients.mealOptionId],
+      references: [mealOptions.id],
+    }),
+  })
+);

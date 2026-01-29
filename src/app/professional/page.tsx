@@ -25,7 +25,7 @@ export default async function ProfessionalDashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <a
             href="/professional/patients"

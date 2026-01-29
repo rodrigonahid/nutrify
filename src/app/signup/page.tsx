@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import {
   Card,
   CardContent,
@@ -13,6 +15,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { signupSchema } from "@/lib/validation";
+
+const signupFormSchema = signupSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type SignupFormData = z.infer<typeof signupFormSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,13 +37,17 @@ export default function SignupPage() {
     specialization: string | null;
   } | null>(null);
   const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    inviteCode: "",
-    dateOfBirth: "",
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupFormSchema),
   });
+
+  const inviteCode = watch("inviteCode");
 
   // Validate code when user finishes typing 8 digits
   async function validateCode(code: string) {
@@ -60,22 +78,8 @@ export default function SignupPage() {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: SignupFormData) {
     setError("");
-
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    // Validate code format
-    if (!/^\d{8}$/.test(formData.inviteCode)) {
-      setError("Invite code must be 8 digits");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -83,17 +87,17 @@ export default function SignupPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          inviteCode: formData.inviteCode,
-          dateOfBirth: formData.dateOfBirth || undefined,
+          email: data.email,
+          password: data.password,
+          inviteCode: data.inviteCode,
+          dateOfBirth: data.dateOfBirth || undefined,
         }),
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Signup failed");
+        setError(result.error || "Signup failed");
         return;
       }
 
@@ -106,9 +110,18 @@ export default function SignupPage() {
     }
   }
 
+  // Validate invite code when it reaches 8 digits
+  useEffect(() => {
+    if (inviteCode && inviteCode.length === 8) {
+      validateCode(inviteCode);
+    } else {
+      setProfessionalInfo(null);
+    }
+  }, [inviteCode]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full max-w-[1200px]">
         <CardHeader>
           <CardTitle>Create Your Account</CardTitle>
           <CardDescription>
@@ -116,7 +129,7 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && (
               <div className="p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
                 {error}
@@ -124,117 +137,81 @@ export default function SignupPage() {
             )}
 
             {/* Invite Code - First */}
-            <div className="space-y-2">
-              <Label htmlFor="inviteCode">Invite Code *</Label>
-              <Input
-                id="inviteCode"
-                type="text"
-                placeholder="12345678"
-                maxLength={8}
-                value={formData.inviteCode}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, ""); // Only digits
-                  setFormData({ ...formData, inviteCode: value });
-                  if (value.length === 8) {
-                    validateCode(value);
-                  } else {
-                    setProfessionalInfo(null);
-                  }
-                }}
-                required
-                disabled={loading}
-                className="text-center text-lg tracking-wider font-mono"
-              />
-              <p className="text-xs text-muted-foreground">
-                8-digit code provided by your nutritionist
+            <FormField
+              label="Invite Code"
+              type="text"
+              placeholder="12345678"
+              registration={register("inviteCode", {
+                onChange: (e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  e.target.value = value;
+                },
+              })}
+              error={errors.inviteCode}
+              hint="8-digit code provided by your nutritionist"
+              disabled={loading}
+              className="text-center text-lg tracking-wider font-mono"
+              maxLength={8}
+            />
+            {validating && (
+              <p className="text-xs text-muted-foreground -mt-3">
+                Validating...
               </p>
-              {validating && (
-                <p className="text-xs text-muted-foreground">Validating...</p>
-              )}
-              {professionalInfo && (
-                <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
-                  ✓ Valid code from {professionalInfo.email}
-                  {professionalInfo.specialization && ` (${professionalInfo.specialization})`}
-                </div>
-              )}
-            </div>
+            )}
+            {professionalInfo && (
+              <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 -mt-3">
+                ✓ Valid code from {professionalInfo.email}
+                {professionalInfo.specialization &&
+                  ` (${professionalInfo.specialization})`}
+              </div>
+            )}
 
             <div className="space-y-4">
               <h3 className="font-medium text-sm">Account Information</h3>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  required
+              <FormField
+                label="Email"
+                type="email"
+                placeholder="your@email.com"
+                registration={register("email")}
+                error={errors.email}
+                disabled={loading}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  label="Password"
+                  type="password"
+                  placeholder="••••••••"
+                  registration={register("password")}
+                  error={errors.password}
+                  hint="At least 8 characters with uppercase, lowercase, and number"
+                  disabled={loading}
+                />
+
+                <FormField
+                  label="Confirm Password"
+                  type="password"
+                  placeholder="••••••••"
+                  registration={register("confirmPassword")}
+                  error={errors.confirmPassword}
                   disabled={loading}
                 />
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        confirmPassword: e.target.value,
-                      })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Password must be at least 8 characters with uppercase, lowercase, and number
-              </p>
             </div>
 
             <div className="border-t pt-6 space-y-4">
-              <h3 className="font-medium text-sm">Personal Information (Optional)</h3>
+              <h3 className="font-medium text-sm">
+                Personal Information (Optional)
+              </h3>
 
-              <div className="gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) =>
-                      setFormData({ ...formData, dateOfBirth: e.target.value })
-                    }
-                    disabled={loading}
-                  />
-                </div>
-
-              </div>
+              <FormField
+                label="Date of Birth"
+                type="date"
+                registration={register("dateOfBirth")}
+                error={errors.dateOfBirth}
+                disabled={loading}
+              />
             </div>
 
             <div className="flex gap-4 pt-4">

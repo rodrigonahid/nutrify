@@ -17,6 +17,18 @@ export const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
   .max(100, "Password is too long")
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+  )
+
+/**
+ * Invite code validation - 8 digits
+ */
+export const inviteCodeSchema = z
+  .string()
+  .regex(/^\d{8}$/, "Invite code must be 8 digits")
+  .length(8, "Invite code must be exactly 8 digits");
 
 /**
  * User creation validation
@@ -25,6 +37,16 @@ export const createUserSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   role: z.enum(["admin", "professional", "patient"]),
+});
+
+/**
+ * Signup validation (patient registration)
+ */
+export const signupSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+  inviteCode: inviteCodeSchema,
+  dateOfBirth: z.string().optional(),
 });
 
 /**
@@ -46,14 +68,6 @@ export const patientProfileSchema = z.object({
   weight: z.string().optional(),
   medicalNotes: z.string().max(5000).optional(),
 });
-
-/**
- * Invite code validation - 8 digits
- */
-export const inviteCodeSchema = z
-  .string()
-  .regex(/^\d{8}$/, "Invite code must be 8 digits")
-  .length(8, "Invite code must be exactly 8 digits");
 
 /**
  * Progress entry validation
@@ -230,3 +244,65 @@ export const progressSchema = z.object({
     .max(50, "Skinfold must be less than 50 mm")
     .optional(),
 });
+
+/**
+ * Meal plan validation schemas
+ */
+
+// Ingredient validation
+export const mealIngredientSchema = z.object({
+  ingredientName: z
+    .string()
+    .min(1, "Ingredient name is required")
+    .max(255, "Ingredient name is too long"),
+  weightGrams: z
+    .number()
+    .min(0.01, "Weight must be at least 0.01 grams")
+    .max(9999.99, "Weight must be less than 10000 grams"),
+  orderIndex: z.number().int().min(0),
+});
+
+// Meal option validation
+export const mealOptionSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Option name is required")
+    .max(255, "Option name is too long"),
+  notes: z.string().max(2000, "Notes are too long").optional(),
+  ingredients: z
+    .array(mealIngredientSchema)
+    .min(1, "Each option must have at least one ingredient"),
+});
+
+// Meal validation
+export const mealSchema = z.object({
+  timeOfDay: z
+    .string()
+    .regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
+  orderIndex: z.number().int().min(0),
+  options: z
+    .array(mealOptionSchema)
+    .min(1, "Each meal must have at least one option"),
+});
+
+// Meal plan validation (for API - includes isActive)
+export const mealPlanSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Meal plan name is required")
+    .max(255, "Meal plan name is too long"),
+  isActive: z.boolean().default(false),
+  meals: z.array(mealSchema).min(1, "Meal plan must have at least one meal"),
+});
+
+// Meal plan form validation (for client-side - excludes isActive since it's set on submit)
+export const mealPlanFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Meal plan name is required")
+    .max(255, "Meal plan name is too long"),
+  meals: z.array(mealSchema).min(1, "Meal plan must have at least one meal"),
+});
+
+// Update meal plan (partial)
+export const updateMealPlanSchema = mealPlanSchema.partial();

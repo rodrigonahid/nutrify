@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
     if (!userValidation.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: userValidation.error.errors },
+        { error: "Validation failed", details: userValidation.error },
         { status: 400 }
       );
     }

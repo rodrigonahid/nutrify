@@ -144,6 +144,85 @@ users (1) ---- (1) patients
 
 ---
 
+### meal_plans
+Nutrition meal plans created by professionals for patients.
+
+```typescript
+{
+  id: serial (PK)
+  patientId: integer (FK -> patients.id, not null)
+  professionalId: integer (FK -> professionals.id, not null)
+  name: text (not null)
+  isActive: boolean (default: false)
+  createdAt: timestamp (default: now)
+  updatedAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `patients`
+- Belongs to `professionals`
+- Has many `meals`
+
+---
+
+### meals
+Individual meals within a meal plan (e.g., breakfast, lunch).
+
+```typescript
+{
+  id: serial (PK)
+  mealPlanId: integer (FK -> meal_plans.id, not null)
+  timeOfDay: text (not null) // HH:MM format
+  orderIndex: integer (not null)
+  createdAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `meal_plans`
+- Has many `meal_options`
+
+---
+
+### meal_options
+Alternative options for a meal (allows variety).
+
+```typescript
+{
+  id: serial (PK)
+  mealId: integer (FK -> meals.id, not null)
+  name: text (not null)
+  notes: text (nullable)
+  createdAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `meals`
+- Has many `meal_ingredients`
+
+---
+
+### meal_ingredients
+Individual ingredients within a meal option.
+
+```typescript
+{
+  id: serial (PK)
+  mealOptionId: integer (FK -> meal_options.id, not null)
+  ingredientName: text (not null)
+  weightGrams: decimal(7,2) (not null)
+  orderIndex: integer (not null)
+  createdAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `meal_options`
+
+---
+
 ### progress
 Patient progress tracking with detailed body composition and measurements.
 

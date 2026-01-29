@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { patients, professionals, progress } from "@/db/schema";
+import {
+  patients,
+  professionals,
+  mealPlans,
+  meals,
+  mealOptions,
+  mealIngredients,
+} from "@/db/schema";
 import { requireRole } from "@/lib/session";
-import { progressSchema } from "@/lib/validation";
-import { eq, and, desc } from "drizzle-orm";
+import { mealPlanSchema } from "@/lib/validation";
+import { eq, and, sql } from "drizzle-orm";
 
 /**
- * GET /api/professional/patients/[patientId]/progress
- * List all progress entries for a patient
+ * GET /api/professional/patients/[patientId]/meal-plan
+ * List all meal plans for a patient
  */
 export async function GET(
   request: NextRequest,
@@ -50,14 +57,22 @@ export async function GET(
       );
     }
 
-    // Get all progress entries for this patient, newest first
-    const progressList = await db
-      .select()
-      .from(progress)
-      .where(eq(progress.patientId, patient.id))
-      .orderBy(desc(progress.createdAt));
+    // Get all meal plans for this patient with meal count
+    const mealPlansList = await db
+      .select({
+        id: mealPlans.id,
+        name: mealPlans.name,
+        isActive: mealPlans.isActive,
+        createdAt: mealPlans.createdAt,
+        mealCount: sql<number>`count(distinct ${meals.id})`,
+      })
+      .from(mealPlans)
+      .leftJoin(meals, eq(meals.mealPlanId, mealPlans.id))
+      .where(eq(mealPlans.patientId, patient.id))
+      .groupBy(mealPlans.id)
+      .orderBy(sql`${mealPlans.createdAt} desc`);
 
-    return NextResponse.json({ progress: progressList });
+    return NextResponse.json({ mealPlans: mealPlansList });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -65,7 +80,7 @@ export async function GET(
     if (error instanceof Error && error.message === "Forbidden") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error("Error fetching progress:", error);
+    console.error("Error fetching meal plans:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -74,8 +89,8 @@ export async function GET(
 }
 
 /**
- * POST /api/professional/patients/[patientId]/progress
- * Create a new progress entry for a patient
+ * POST /api/professional/patients/[patientId]/meal-plan
+ * Create a new meal plan with nested meals, options, and ingredients
  */
 export async function POST(
   request: NextRequest,
@@ -87,11 +102,10 @@ export async function POST(
     const body = await request.json();
 
     // Validate the request body
-    const validationResult = progressSchema.safeParse(body);
-    console.log('validationResult :>> ', validationResult);
+    const validationResult = mealPlanSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: validationResult.error },
+        { error: "Validation failed", details: validationResult.error.issues },
         { status: 400 }
       );
     }
@@ -129,26 +143,69 @@ export async function POST(
       );
     }
 
-    // Convert numbers to strings for decimal fields (database expects strings)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const progressData: any = {
-      patientId: patient.id,
-    };
+    const data = validationResult.data;
 
-    // Convert all numeric values to strings for database decimal fields
-    Object.entries(validationResult.data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        progressData[key] = typeof value === 'number' ? value.toString() : value;
+    // If isActive is true, deactivate all other meal plans
+    if (data.isActive) {
+      await db
+        .update(mealPlans)
+        .set({ isActive: false })
+        .where(
+          and(eq(mealPlans.patientId, patient.id), eq(mealPlans.isActive, true))
+        );
+    }
+
+    // Create meal plan with all nested data in a transaction
+    const result = await db.transaction(async (tx) => {
+      // Create meal plan
+      const [newMealPlan] = await tx
+        .insert(mealPlans)
+        .values({
+          patientId: patient.id,
+          professionalId: professional.id,
+          name: data.name,
+          isActive: data.isActive,
+        })
+        .returning();
+
+      // Create meals with options and ingredients
+      for (const mealData of data.meals) {
+        const [newMeal] = await tx
+          .insert(meals)
+          .values({
+            mealPlanId: newMealPlan.id,
+            timeOfDay: mealData.timeOfDay,
+            orderIndex: mealData.orderIndex,
+          })
+          .returning();
+
+        // Create meal options
+        for (const optionData of mealData.options) {
+          const [newOption] = await tx
+            .insert(mealOptions)
+            .values({
+              mealId: newMeal.id,
+              name: optionData.name,
+              notes: optionData.notes || null,
+            })
+            .returning();
+
+          // Create ingredients
+          const ingredientValues = optionData.ingredients.map((ing) => ({
+            mealOptionId: newOption.id,
+            ingredientName: ing.ingredientName,
+            weightGrams: ing.weightGrams.toString(),
+            orderIndex: ing.orderIndex,
+          }));
+
+          await tx.insert(mealIngredients).values(ingredientValues);
+        }
       }
+
+      return newMealPlan;
     });
 
-    // Create the progress entry
-    const [newProgress] = await db
-      .insert(progress)
-      .values(progressData)
-      .returning();
-
-    return NextResponse.json({ progress: newProgress }, { status: 201 });
+    return NextResponse.json({ mealPlan: result }, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -156,7 +213,7 @@ export async function POST(
     if (error instanceof Error && error.message === "Forbidden") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    console.error("Error creating progress:", error);
+    console.error("Error creating meal plan:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

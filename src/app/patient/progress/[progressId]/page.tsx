@@ -153,20 +153,18 @@ export default function PatientProgressDetailPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/patient/progress"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              ← Back to Progress
-            </Link>
-            <h1 className="text-xl font-bold">Progress Details</h1>
-          </div>
+          <h1 className="text-xl font-bold">Progress Details</h1>
           <LogoutButton />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
+        <Link
+          href="/patient/progress"
+          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Progress
+        </Link>
         {error && (
           <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
             {error}

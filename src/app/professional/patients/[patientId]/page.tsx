@@ -92,20 +92,18 @@ export default function PatientDetailPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link
-              href="/professional/patients"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              ← Back to Patients
-            </Link>
-            <h1 className="text-xl font-bold">Patient Details</h1>
-          </div>
+          <h1 className="text-xl font-bold">Patient Details</h1>
           <LogoutButton />
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
+        <Link
+          href="/professional/patients"
+          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to Patients
+        </Link>
         {error && (
           <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
             {error}
@@ -120,8 +118,13 @@ export default function PatientDetailPage() {
             </Button>
           </div>
           <div className="col-span-4">
-            <Button className="w-full" disabled>
-              Diet
+            <Button
+              className="w-full"
+              onClick={() =>
+                router.push(`/professional/patients/${patientId}/meal-plan`)
+              }
+            >
+              Meal Plan
             </Button>
           </div>
           <div className="col-span-4">
