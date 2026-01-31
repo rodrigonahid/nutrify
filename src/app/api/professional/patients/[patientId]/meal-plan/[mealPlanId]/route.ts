@@ -269,7 +269,8 @@ export async function PUT(
           const ingredientValues = optionData.ingredients.map((ing) => ({
             mealOptionId: newOption.id,
             ingredientName: ing.ingredientName,
-            weightGrams: ing.weightGrams.toString(),
+            quantity: ing.quantity.toString(),
+            unit: ing.unit ?? "g",
             orderIndex: ing.orderIndex,
           }));
 

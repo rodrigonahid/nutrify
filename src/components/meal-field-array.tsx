@@ -114,7 +114,8 @@ function OptionFieldArray({
   function addIngredient() {
     appendIngredient({
       ingredientName: "",
-      weightGrams: 0,
+      quantity: 0,
+      unit: "g",
       orderIndex: ingredients.length,
     });
   }
@@ -188,22 +189,37 @@ function OptionFieldArray({
                 </p>
               )}
             </div>
-            <div className="w-32">
+            <div className="w-24">
               <Input
                 type="number"
                 step="0.01"
                 {...register(
-                  `meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.weightGrams`,
+                  `meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.quantity`,
                   { valueAsNumber: true }
                 )}
-                placeholder="Weight (g)"
+                placeholder="Qty"
                 className="h-9"
               />
-              {optionErrors?.ingredients?.[ingIdx]?.weightGrams && (
+              {optionErrors?.ingredients?.[ingIdx]?.quantity && (
                 <p className="text-xs text-destructive mt-0.5">
-                  {optionErrors.ingredients[ingIdx]?.weightGrams?.message}
+                  {optionErrors.ingredients[ingIdx]?.quantity?.message}
                 </p>
               )}
+            </div>
+            <div className="w-24">
+              <select
+                {...register(
+                  `meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.unit`
+                )}
+                className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+              >
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+                <option value="cups">cups</option>
+                <option value="spoons">spoons</option>
+                <option value="scoops">scoops</option>
+                <option value="units">units</option>
+              </select>
             </div>
             {/* Hidden orderIndex field */}
             <input

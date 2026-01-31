@@ -10,9 +10,6 @@ const PUBLIC_ROUTES = [
   "/api/invite-codes/validate",
 ];
 
-// Auth routes that logged-in users shouldn't access
-const AUTH_ROUTES = ["/login", "/signup"];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -24,18 +21,16 @@ export async function middleware(request: NextRequest) {
 
   // Check for session cookie
   const sessionToken = request.cookies.get("session")?.value;
-  const isLoggedIn = !!sessionToken;
+  const hasSessionCookie = !!sessionToken;
 
   // Check if this is a public page route
   const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 
-  // // Logged-in users trying to access auth routes (login/signup) - redirect to home
-  // if (isLoggedIn && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
-  //   return NextResponse.redirect(new URL("/", request.url));
-  // }
-
   // Not logged in trying to access protected routes - redirect to login
-  if (!isLoggedIn && !isPublicRoute) {
+  // Note: We only check cookie presence here. The actual session validity
+  // is verified server-side by getSession(). If the cookie exists but the
+  // session is invalid, the page will clear it and redirect to login.
+  if (!hasSessionCookie && !isPublicRoute) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);

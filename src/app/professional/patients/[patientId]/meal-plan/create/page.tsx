@@ -39,7 +39,21 @@ export default function CreateMealPlanPage() {
     resolver: zodResolver(mealPlanFormSchema),
     defaultValues: {
       name: "",
-      meals: [],
+      meals: [
+        {
+          timeOfDay: "08:00",
+          orderIndex: 0,
+          options: [
+            {
+              name: "",
+              notes: "",
+              ingredients: [
+                { ingredientName: "", quantity: 0, unit: "g" as const, orderIndex: 0 },
+              ],
+            },
+          ],
+        },
+      ],
     },
   });
 

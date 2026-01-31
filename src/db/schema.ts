@@ -325,7 +325,8 @@ export const mealIngredients = pgTable("meal_ingredients", {
     .notNull()
     .references(() => mealOptions.id, { onDelete: "cascade" }),
   ingredientName: text("ingredient_name").notNull(),
-  weightGrams: decimal("weight_grams", { precision: 7, scale: 2 }).notNull(),
+  quantity: decimal("quantity", { precision: 7, scale: 2 }).notNull(),
+  unit: text("unit").default("g").notNull(),
   orderIndex: integer("order_index").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

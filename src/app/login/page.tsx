@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -32,6 +32,23 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Check if user is already authenticated (also clears stale cookies via /api/auth/me)
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) {
+          const roleRedirects: Record<string, string> = {
+            admin: "/admin",
+            professional: "/professional",
+            patient: "/patient",
+          };
+          window.location.href = roleRedirects[data.user.role] || "/";
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -58,17 +75,21 @@ function LoginForm() {
         return;
       }
 
-      // Redirect based on user role
-      const role = result.user.role;
-      if (role === "admin") {
-        router.push("/admin");
-      } else if (role === "professional") {
-        router.push("/professional");
-      } else if (role === "patient") {
-        router.push("/patient");
-      } else {
-        router.push(redirect);
-      }
+      // Redirect based on user role returned from API
+      // This avoids the redirect chain through the root page
+      const roleRedirects: Record<string, string> = {
+        admin: "/admin",
+        professional: "/professional",
+        patient: "/patient",
+      };
+
+      const destination = roleRedirects[result.user.role] || "/";
+
+      // If there was a specific redirect requested, use that instead
+      // But only if it's not the default "/" which would create a loop
+      const finalDestination = redirect !== "/" ? redirect : destination;
+
+      window.location.href = finalDestination;
     } catch {
       setError("An error occurred. Please try again.");
     } finally {

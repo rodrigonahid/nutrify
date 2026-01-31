@@ -255,10 +255,11 @@ export const mealIngredientSchema = z.object({
     .string()
     .min(1, "Ingredient name is required")
     .max(255, "Ingredient name is too long"),
-  weightGrams: z
+  quantity: z
     .number()
-    .min(0.01, "Weight must be at least 0.01 grams")
-    .max(9999.99, "Weight must be less than 10000 grams"),
+    .min(0.01, "Quantity must be at least 0.01")
+    .max(9999.99, "Quantity must be less than 10000"),
+  unit: z.enum(["g", "scoops", "spoons", "cups", "ml", "units"]).default("g"),
   orderIndex: z.number().int().min(0),
 });
 

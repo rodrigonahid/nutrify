@@ -15,7 +15,8 @@ import { LogoutButton } from "@/components/logout-button";
 interface Ingredient {
   id: number;
   ingredientName: string;
-  weightGrams: string;
+  quantity: string;
+  unit: string;
   orderIndex: number;
 }
 
@@ -186,7 +187,7 @@ export default function PatientMealPlanDetailPage() {
                                   {ingredient.ingredientName}
                                 </span>
                                 <span className="text-muted-foreground">
-                                  ({ingredient.weightGrams}g)
+                                  ({ingredient.quantity} {ingredient.unit})
                                 </span>
                               </li>
                             ))}

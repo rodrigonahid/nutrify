@@ -6,7 +6,10 @@ export async function GET() {
     const { user } = await getSession();
 
     if (!user) {
-      return NextResponse.json({ user: null }, { status: 401 });
+      const response = NextResponse.json({ user: null }, { status: 401 });
+      // Clear stale session cookie if it exists but the session is invalid
+      response.cookies.delete("session");
+      return response;
     }
 
     return NextResponse.json({

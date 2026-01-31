@@ -86,8 +86,11 @@ export async function POST(
     const { patientId } = await params;
     const body = await request.json();
 
+    // Extract the updatePatientProfile flag
+    const { updatePatientProfile, ...progressDataBody } = body;
+
     // Validate the request body
-    const validationResult = progressSchema.safeParse(body);
+    const validationResult = progressSchema.safeParse(progressDataBody);
     console.log('validationResult :>> ', validationResult);
     if (!validationResult.success) {
       return NextResponse.json(
@@ -147,6 +150,32 @@ export async function POST(
       .insert(progress)
       .values(progressData)
       .returning();
+
+    // Update patient profile if requested
+    if (updatePatientProfile === true) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const patientUpdateData: any = {};
+
+      // Update height if provided (convert from meters to cm)
+      if (validationResult.data.height !== undefined && validationResult.data.height !== null) {
+        patientUpdateData.height = (validationResult.data.height * 100).toString();
+      }
+
+      // Update weight if provided
+      if (validationResult.data.totalWeight !== undefined && validationResult.data.totalWeight !== null) {
+        patientUpdateData.weight = validationResult.data.totalWeight.toString();
+      }
+
+      // Only update if there's data to update
+      if (Object.keys(patientUpdateData).length > 0) {
+        patientUpdateData.updatedAt = new Date();
+
+        await db
+          .update(patients)
+          .set(patientUpdateData)
+          .where(eq(patients.id, patient.id));
+      }
+    }
 
     return NextResponse.json({ progress: newProgress }, { status: 201 });
   } catch (error) {
