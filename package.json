@@ -11,14 +11,20 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:reset": "bash scripts/reset-db.sh",
     "create:admin": "tsx scripts/create-admin.ts",
-    "create:professional": "tsx scripts/create-professional.ts"
+    "create:professional": "tsx scripts/create-professional.ts",
+    "generate:progress": "tsx scripts/generate-progress.ts",
+    "generate:appointments": "tsx scripts/generate-appointments.ts",
+    "generate:meals": "tsx scripts/generate-meal-plans.ts",
+    "seed": "tsx scripts/seed-database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@inquirer/prompts": "^8.2.0",
     "@node-rs/argon2": "^2.0.2",
     "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
     "chalk": "^5.6.2",
     "class-variance-authority": "^0.7.1",

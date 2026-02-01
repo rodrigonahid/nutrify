@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
 import { mealPlanFormSchema } from "@/lib/validation";
 import { MealFieldArray } from "@/components/meal-field-array";
 
@@ -109,12 +110,7 @@ export default function CreateMealPlanPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Create Meal Plan</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="Create Meal Plan" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -124,7 +120,7 @@ export default function CreateMealPlanPage() {
           ← Back to Meal Plans
         </Link>
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}

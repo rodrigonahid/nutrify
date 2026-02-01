@@ -1,6 +1,6 @@
 "use client";
 
-import { UseFormRegister, FieldErrors } from "react-hook-form";
+import { UseFormRegister, FieldErrors, UseFormWatch } from "react-hook-form";
 import { FormField } from "@/components/ui/form-field";
 import {
   Card,
@@ -11,20 +11,29 @@ import {
 } from "@/components/ui/card";
 import { z } from "zod";
 import { progressSchema } from "@/lib/validation";
+import { Progress } from "@/types/progress";
 
 type ProgressFormData = z.infer<typeof progressSchema>;
+
 
 interface ProgressFormFieldsProps {
   register: UseFormRegister<ProgressFormData>;
   errors: FieldErrors<ProgressFormData>;
   disabled?: boolean;
+  previousProgress?: Progress | null;
+  watch: UseFormWatch<ProgressFormData>;
 }
 
 export function ProgressFormFields({
   register,
   errors,
   disabled = false,
+  previousProgress,
+  watch,
 }: ProgressFormFieldsProps) {
+  // Watch all form values
+  const formValues = watch();
+
   return (
     <>
       {/* Body Composition */}
@@ -43,19 +52,23 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.bodyFatPercentage}
-            hint="0-60%"
+            previousValue={previousProgress?.bodyFatPercentage ? `${previousProgress.bodyFatPercentage}%` : null}
+            currentValue={formValues.bodyFatPercentage}
+            unit="%"
             disabled={disabled}
           />
           <FormField
-            label="Height (m)"
+            label="Height (cm)"
             type="number"
-            step="0.01"
-            placeholder="e.g., 1.75"
+            step="1"
+            placeholder="e.g., 175"
             registration={register("height", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.height}
-            hint="0.5-2.5 meters"
+            previousValue={previousProgress?.height ? `${previousProgress.height} cm` : null}
+            currentValue={formValues.height}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
@@ -67,7 +80,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.totalWeight}
-            hint="20-300 kg"
+            previousValue={previousProgress?.totalWeight ? `${previousProgress.totalWeight} kg` : null}
+            currentValue={formValues.totalWeight}
+            unit="kg"
             disabled={disabled}
           />
           <FormField
@@ -79,7 +94,8 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.bmi}
-            hint="10-60"
+            previousValue={previousProgress?.bmi || null}
+            currentValue={formValues.bmi}
             disabled={disabled}
           />
         </CardContent>
@@ -94,61 +110,71 @@ export function ProgressFormFields({
           <FormField
             label="Chest"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 95"
             registration={register("perimeterChest", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterChest}
-            hint="40-200 cm"
+            previousValue={previousProgress?.perimeterChest ? `${previousProgress.perimeterChest} cm` : null}
+            currentValue={formValues.perimeterChest}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Shoulder"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 110"
             registration={register("perimeterShoulder", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterShoulder}
-            hint="40-200 cm"
+            previousValue={previousProgress?.perimeterShoulder ? `${previousProgress.perimeterShoulder} cm` : null}
+            currentValue={formValues.perimeterShoulder}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Waist"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 80"
             registration={register("perimeterWaist", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterWaist}
-            hint="40-200 cm"
+            previousValue={previousProgress?.perimeterWaist ? `${previousProgress.perimeterWaist} cm` : null}
+            currentValue={formValues.perimeterWaist}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Abdomen"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 85"
             registration={register("perimeterAbdomen", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterAbdomen}
-            hint="40-200 cm"
+            previousValue={previousProgress?.perimeterAbdomen ? `${previousProgress.perimeterAbdomen} cm` : null}
+            currentValue={formValues.perimeterAbdomen}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Hip"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 95"
             registration={register("perimeterHip", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterHip}
-            hint="50-200 cm"
+            previousValue={previousProgress?.perimeterHip ? `${previousProgress.perimeterHip} cm` : null}
+            currentValue={formValues.perimeterHip}
+            unit="cm"
             disabled={disabled}
           />
         </CardContent>
@@ -163,73 +189,85 @@ export function ProgressFormFields({
           <FormField
             label="Biceps Left (Relaxed)"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 30"
             registration={register("perimeterBicepsLeftRelaxed", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterBicepsLeftRelaxed}
-            hint="15-80 cm"
+            previousValue={previousProgress?.perimeterBicepsLeftRelaxed ? `${previousProgress.perimeterBicepsLeftRelaxed} cm` : null}
+            currentValue={formValues.perimeterBicepsLeftRelaxed}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Biceps Right (Relaxed)"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 30"
             registration={register("perimeterBicepsRightRelaxed", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterBicepsRightRelaxed}
-            hint="15-80 cm"
+            previousValue={previousProgress?.perimeterBicepsRightRelaxed ? `${previousProgress.perimeterBicepsRightRelaxed} cm` : null}
+            currentValue={formValues.perimeterBicepsRightRelaxed}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Biceps Left (Contracted)"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 32"
             registration={register("perimeterBicepsLeftContracted", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterBicepsLeftContracted}
-            hint="15-80 cm"
+            previousValue={previousProgress?.perimeterBicepsLeftContracted ? `${previousProgress.perimeterBicepsLeftContracted} cm` : null}
+            currentValue={formValues.perimeterBicepsLeftContracted}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Biceps Right (Contracted)"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 32"
             registration={register("perimeterBicepsRightContracted", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterBicepsRightContracted}
-            hint="15-80 cm"
+            previousValue={previousProgress?.perimeterBicepsRightContracted ? `${previousProgress.perimeterBicepsRightContracted} cm` : null}
+            currentValue={formValues.perimeterBicepsRightContracted}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Forearm Left"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 26"
             registration={register("perimeterForearmLeft", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterForearmLeft}
-            hint="15-60 cm"
+            previousValue={previousProgress?.perimeterForearmLeft ? `${previousProgress.perimeterForearmLeft} cm` : null}
+            currentValue={formValues.perimeterForearmLeft}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Forearm Right"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 26"
             registration={register("perimeterForearmRight", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterForearmRight}
-            hint="15-60 cm"
+            previousValue={previousProgress?.perimeterForearmRight ? `${previousProgress.perimeterForearmRight} cm` : null}
+            currentValue={formValues.perimeterForearmRight}
+            unit="cm"
             disabled={disabled}
           />
         </CardContent>
@@ -244,97 +282,113 @@ export function ProgressFormFields({
           <FormField
             label="Thigh Proximal Left"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 55"
             registration={register("perimeterThighProximalLeft", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighProximalLeft}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighProximalLeft ? `${previousProgress.perimeterThighProximalLeft} cm` : null}
+            currentValue={formValues.perimeterThighProximalLeft}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Thigh Proximal Right"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 55"
             registration={register("perimeterThighProximalRight", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighProximalRight}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighProximalRight ? `${previousProgress.perimeterThighProximalRight} cm` : null}
+            currentValue={formValues.perimeterThighProximalRight}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Thigh Medial Left"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 50"
             registration={register("perimeterThighMedialLeft", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighMedialLeft}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighMedialLeft ? `${previousProgress.perimeterThighMedialLeft} cm` : null}
+            currentValue={formValues.perimeterThighMedialLeft}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Thigh Medial Right"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 50"
             registration={register("perimeterThighMedialRight", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighMedialRight}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighMedialRight ? `${previousProgress.perimeterThighMedialRight} cm` : null}
+            currentValue={formValues.perimeterThighMedialRight}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Thigh Distal Left"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 45"
             registration={register("perimeterThighDistalLeft", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighDistalLeft}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighDistalLeft ? `${previousProgress.perimeterThighDistalLeft} cm` : null}
+            currentValue={formValues.perimeterThighDistalLeft}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Thigh Distal Right"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 45"
             registration={register("perimeterThighDistalRight", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterThighDistalRight}
-            hint="30-120 cm"
+            previousValue={previousProgress?.perimeterThighDistalRight ? `${previousProgress.perimeterThighDistalRight} cm` : null}
+            currentValue={formValues.perimeterThighDistalRight}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Calf Left"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 36"
             registration={register("perimeterCalfLeft", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterCalfLeft}
-            hint="20-70 cm"
+            previousValue={previousProgress?.perimeterCalfLeft ? `${previousProgress.perimeterCalfLeft} cm` : null}
+            currentValue={formValues.perimeterCalfLeft}
+            unit="cm"
             disabled={disabled}
           />
           <FormField
             label="Calf Right"
             type="number"
-            step="0.1"
+            step="1"
             placeholder="e.g., 36"
             registration={register("perimeterCalfRight", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.perimeterCalfRight}
-            hint="20-70 cm"
+            previousValue={previousProgress?.perimeterCalfRight ? `${previousProgress.perimeterCalfRight} cm` : null}
+            currentValue={formValues.perimeterCalfRight}
+            unit="cm"
             disabled={disabled}
           />
         </CardContent>
@@ -355,7 +409,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldBiceps}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldBiceps ? `${previousProgress.skinfoldBiceps} mm` : null}
+            currentValue={formValues.skinfoldBiceps}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -367,7 +423,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldTriceps}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldTriceps ? `${previousProgress.skinfoldTriceps} mm` : null}
+            currentValue={formValues.skinfoldTriceps}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -379,7 +437,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldAxillary}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldAxillary ? `${previousProgress.skinfoldAxillary} mm` : null}
+            currentValue={formValues.skinfoldAxillary}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -391,7 +451,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldSuprailiac}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldSuprailiac ? `${previousProgress.skinfoldSuprailiac} mm` : null}
+            currentValue={formValues.skinfoldSuprailiac}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -403,7 +465,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldAbdominal}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldAbdominal ? `${previousProgress.skinfoldAbdominal} mm` : null}
+            currentValue={formValues.skinfoldAbdominal}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -415,7 +479,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldSubscapular}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldSubscapular ? `${previousProgress.skinfoldSubscapular} mm` : null}
+            currentValue={formValues.skinfoldSubscapular}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -427,7 +493,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldChest}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldChest ? `${previousProgress.skinfoldChest} mm` : null}
+            currentValue={formValues.skinfoldChest}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -439,7 +507,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldThigh}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldThigh ? `${previousProgress.skinfoldThigh} mm` : null}
+            currentValue={formValues.skinfoldThigh}
+            unit="mm"
             disabled={disabled}
           />
           <FormField
@@ -451,7 +521,9 @@ export function ProgressFormFields({
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
             error={errors.skinfoldCalf}
-            hint="0-50 mm"
+            previousValue={previousProgress?.skinfoldCalf ? `${previousProgress.skinfoldCalf} mm` : null}
+            currentValue={formValues.skinfoldCalf}
+            unit="mm"
             disabled={disabled}
           />
         </CardContent>

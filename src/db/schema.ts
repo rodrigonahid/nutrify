@@ -18,6 +18,14 @@ export const userRoleEnum = pgEnum("user_role", [
   "patient",
 ]);
 
+export const appointmentStatusEnum = pgEnum("appointment_status", [
+  "pending",
+  "confirmed",
+  "requested",
+  "cancelled",
+  "completed",
+]);
+
 // Users table - core authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -46,6 +54,7 @@ export const professionals = pgTable("professionals", {
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name"),
   professionalLicense: text("professional_license"),
   specialization: text("specialization"),
   bio: text("bio"),
@@ -63,6 +72,7 @@ export const professionalsRelations = relations(
     patients: many(patients),
     inviteCodes: many(inviteCodes),
     mealPlans: many(mealPlans),
+    appointments: many(appointments),
   })
 );
 
@@ -76,6 +86,7 @@ export const patients = pgTable("patients", {
   professionalId: integer("professional_id")
     .notNull()
     .references(() => professionals.id, { onDelete: "restrict" }),
+  name: text("name"),
   dateOfBirth: date("date_of_birth"),
   height: decimal("height", { precision: 5, scale: 2 }), // in cm
   weight: decimal("weight", { precision: 5, scale: 2 }), // in kg
@@ -99,6 +110,7 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   }),
   progressEntries: many(progress),
   mealPlans: many(mealPlans),
+  appointments: many(appointments),
 }));
 
 // Invite codes table - for patient signup
@@ -108,6 +120,7 @@ export const inviteCodes = pgTable("invite_codes", {
   professionalId: integer("professional_id")
     .notNull()
     .references(() => professionals.id, { onDelete: "cascade" }),
+  patientName: text("patient_name").notNull(),
   used: boolean("used").default(false).notNull(),
   usedBy: integer("used_by").references(() => patients.id, {
     onDelete: "set null",
@@ -340,3 +353,41 @@ export const mealIngredientsRelations = relations(
     }),
   })
 );
+
+// Appointments - scheduling system for professional-patient appointments
+export const appointments = pgTable("appointments", {
+  id: serial("id").primaryKey(),
+  professionalId: integer("professional_id")
+    .notNull()
+    .references(() => professionals.id, { onDelete: "cascade" }),
+  patientId: integer("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  appointmentDate: date("appointment_date").notNull(), // YYYY-MM-DD
+  appointmentTime: text("appointment_time").notNull(), // HH:MM (24-hour format)
+  durationMinutes: integer("duration_minutes").default(60).notNull(),
+  status: appointmentStatusEnum("status").default("pending").notNull(),
+  notes: text("notes"),
+  cancelledBy: integer("cancelled_by").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  cancellationReason: text("cancellation_reason"),
+  cancelledAt: timestamp("cancelled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  professional: one(professionals, {
+    fields: [appointments.professionalId],
+    references: [professionals.id],
+  }),
+  patient: one(patients, {
+    fields: [appointments.patientId],
+    references: [patients.id],
+  }),
+  cancelledByUser: one(users, {
+    fields: [appointments.cancelledBy],
+    references: [users.id],
+  }),
+}));

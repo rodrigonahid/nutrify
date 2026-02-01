@@ -11,44 +11,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
+import { DeltaIndicator } from "@/components/delta-indicator";
+import { Progress } from "@/types/progress";
 
-interface Progress {
-  id: number;
-  patientId: number;
-  bodyFatPercentage: string | null;
-  height: string | null;
-  totalWeight: string | null;
-  bmi: string | null;
-  perimeterChest: string | null;
-  perimeterShoulder: string | null;
-  perimeterWaist: string | null;
-  perimeterAbdomen: string | null;
-  perimeterHip: string | null;
-  perimeterBicepsLeftRelaxed: string | null;
-  perimeterBicepsLeftContracted: string | null;
-  perimeterBicepsRightRelaxed: string | null;
-  perimeterBicepsRightContracted: string | null;
-  perimeterForearmLeft: string | null;
-  perimeterForearmRight: string | null;
-  perimeterThighProximalLeft: string | null;
-  perimeterThighProximalRight: string | null;
-  perimeterThighMedialLeft: string | null;
-  perimeterThighMedialRight: string | null;
-  perimeterThighDistalLeft: string | null;
-  perimeterThighDistalRight: string | null;
-  perimeterCalfLeft: string | null;
-  perimeterCalfRight: string | null;
-  skinfoldBiceps: string | null;
-  skinfoldTriceps: string | null;
-  skinfoldAxillary: string | null;
-  skinfoldSuprailiac: string | null;
-  skinfoldAbdominal: string | null;
-  skinfoldSubscapular: string | null;
-  skinfoldChest: string | null;
-  skinfoldThigh: string | null;
-  skinfoldCalf: string | null;
-  createdAt: string;
-}
 
 export default function PatientProgressDetailPage() {
   const params = useParams();
@@ -88,45 +54,29 @@ export default function PatientProgressDetailPage() {
     });
   }
 
-  function calculateDelta(
-    current: string | null,
-    prev: string | null
-  ): string | null {
-    if (!current || !prev) return null;
-    const delta = parseFloat(current) - parseFloat(prev);
-    const sign = delta > 0 ? "+" : "";
-    return `${sign}${delta.toFixed(2)}`;
-  }
-
   function renderMeasurement(
     label: string,
     current: string | null,
     previous: string | null,
     unit: string
   ) {
-    if (!current) return null;
-
-    const delta = calculateDelta(current, previous);
-
     return (
       <div className="flex justify-between items-center py-2 border-b last:border-0">
         <span className="text-sm font-medium">{label}</span>
-        <div className="text-sm">
-          <span className="font-semibold">
-            {current} {unit}
-          </span>
-          {delta && (
-            <span
-              className={`ml-2 text-xs ${
-                parseFloat(delta) > 0
-                  ? "text-orange-600"
-                  : parseFloat(delta) < 0
-                  ? "text-green-600"
-                  : "text-muted-foreground"
-              }`}
-            >
-              ({delta})
-            </span>
+        <div className="text-sm flex items-center gap-2">
+          {current ? (
+            <>
+              <span className="font-semibold">
+                {current} {unit}
+              </span>
+              <DeltaIndicator
+                current={current}
+                previous={previous}
+                unit={unit}
+              />
+            </>
+          ) : (
+            <span className="text-muted-foreground text-xs">Not recorded</span>
           )}
         </div>
       </div>
@@ -151,12 +101,7 @@ export default function PatientProgressDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Progress Details</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="Progress Details" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -166,7 +111,7 @@ export default function PatientProgressDetailPage() {
           ← Back to Progress
         </Link>
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -199,7 +144,7 @@ export default function PatientProgressDetailPage() {
                 "Height",
                 progress.height,
                 previous?.height || null,
-                "m"
+                "cm"
               )}
               {renderMeasurement(
                 "Weight",
@@ -217,12 +162,7 @@ export default function PatientProgressDetailPage() {
           </Card>
 
           {/* Perimeters - Trunk */}
-          {(progress.perimeterChest ||
-            progress.perimeterShoulder ||
-            progress.perimeterWaist ||
-            progress.perimeterAbdomen ||
-            progress.perimeterHip) && (
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle>Perimeters - Trunk</CardTitle>
                 <CardDescription>Measurements in centimeters</CardDescription>
@@ -260,21 +200,14 @@ export default function PatientProgressDetailPage() {
                 )}
               </CardContent>
             </Card>
-          )}
 
           {/* Perimeters - Upper Limbs */}
-          {(progress.perimeterBicepsLeftRelaxed ||
-            progress.perimeterBicepsLeftContracted ||
-            progress.perimeterBicepsRightRelaxed ||
-            progress.perimeterBicepsRightContracted ||
-            progress.perimeterForearmLeft ||
-            progress.perimeterForearmRight) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Perimeters - Upper Limbs (Arms)</CardTitle>
-                <CardDescription>Measurements in centimeters</CardDescription>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader>
+              <CardTitle>Perimeters - Upper Limbs (Arms)</CardTitle>
+              <CardDescription>Measurements in centimeters</CardDescription>
+            </CardHeader>
+            <CardContent>
                 {renderMeasurement(
                   "Biceps Left (Relaxed)",
                   progress.perimeterBicepsLeftRelaxed,
@@ -313,18 +246,9 @@ export default function PatientProgressDetailPage() {
                 )}
               </CardContent>
             </Card>
-          )}
 
           {/* Perimeters - Lower Limbs */}
-          {(progress.perimeterThighProximalLeft ||
-            progress.perimeterThighProximalRight ||
-            progress.perimeterThighMedialLeft ||
-            progress.perimeterThighMedialRight ||
-            progress.perimeterThighDistalLeft ||
-            progress.perimeterThighDistalRight ||
-            progress.perimeterCalfLeft ||
-            progress.perimeterCalfRight) && (
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle>Perimeters - Lower Limbs (Legs)</CardTitle>
                 <CardDescription>Measurements in centimeters</CardDescription>
@@ -380,19 +304,9 @@ export default function PatientProgressDetailPage() {
                 )}
               </CardContent>
             </Card>
-          )}
 
           {/* Skinfolds */}
-          {(progress.skinfoldBiceps ||
-            progress.skinfoldTriceps ||
-            progress.skinfoldAxillary ||
-            progress.skinfoldSuprailiac ||
-            progress.skinfoldAbdominal ||
-            progress.skinfoldSubscapular ||
-            progress.skinfoldChest ||
-            progress.skinfoldThigh ||
-            progress.skinfoldCalf) && (
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle>Skinfolds</CardTitle>
                 <CardDescription>Measurements in millimeters</CardDescription>
@@ -454,7 +368,6 @@ export default function PatientProgressDetailPage() {
                 )}
               </CardContent>
             </Card>
-          )}
         </div>
       </main>
     </div>

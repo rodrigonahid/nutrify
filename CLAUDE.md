@@ -34,6 +34,7 @@ npm run db:studio        # Open Drizzle Studio GUI for database inspection
 ```bash
 npm run create:admin            # Interactive CLI to create admin user
 npm run create:professional     # Interactive CLI to create nutritionist user
+npm run generate:progress       # Interactive CLI to generate 5 progressive test entries for a patient
 ```
 
 ## Architecture Overview

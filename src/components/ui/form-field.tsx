@@ -5,12 +5,16 @@ import { UseFormRegisterReturn, FieldError } from "react-hook-form";
 import { Label } from "./label";
 import { Input } from "./input";
 import { cn } from "@/lib/utils";
+import { DeltaIndicator } from "../delta-indicator";
 
 interface FormFieldProps extends React.ComponentProps<"input"> {
   label: string;
   registration: UseFormRegisterReturn;
   error?: FieldError;
   hint?: string;
+  previousValue?: string | null;
+  currentValue?: string | number | null;
+  unit?: string;
 }
 
 export function FormField({
@@ -18,10 +22,17 @@ export function FormField({
   registration,
   error,
   hint,
+  previousValue,
+  currentValue,
+  unit = "",
   className,
   ...props
 }: FormFieldProps) {
   const id = registration.name;
+
+  // Extract numeric value from previousValue if it exists
+  const previousNumeric = previousValue ? parseFloat(previousValue.toString().replace(/[^\d.-]/g, '')) : null;
+  const currentNumeric = currentValue ? parseFloat(currentValue.toString()) : null;
 
   return (
     <div className="space-y-1.5">
@@ -30,13 +41,25 @@ export function FormField({
         id={id}
         aria-invalid={error ? "true" : "false"}
         aria-describedby={
-          error ? `${id}-error` : hint ? `${id}-hint` : undefined
+          error ? `${id}-error` : previousValue ? `${id}-previous` : hint ? `${id}-hint` : undefined
         }
         className={className}
         {...registration}
         {...props}
       />
-      {hint && !error && (
+      {previousValue && !error && (
+        <div id={`${id}-previous`} className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Last: {previousValue}</span>
+          {currentNumeric && previousNumeric && (
+            <DeltaIndicator
+              current={currentNumeric.toString()}
+              previous={previousNumeric.toString()}
+              unit={unit}
+            />
+          )}
+        </div>
+      )}
+      {!previousValue && hint && !error && (
         <p id={`${id}-hint`} className="text-xs text-muted-foreground">
           {hint}
         </p>

@@ -4,6 +4,7 @@ import { inviteCodes, professionals, patients, users } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { eq } from "drizzle-orm";
 import { randomInt } from "crypto";
+import { createInviteCodeSchema } from "@/lib/validation";
 
 /**
  * Generate a unique 8-digit invite code
@@ -40,6 +41,7 @@ export async function GET() {
       .select({
         id: inviteCodes.id,
         code: inviteCodes.code,
+        patientName: inviteCodes.patientName,
         used: inviteCodes.used,
         usedBy: inviteCodes.usedBy,
         expiresAt: inviteCodes.expiresAt,
@@ -91,7 +93,18 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const expiresInDays = body.expiresInDays || 30; // Default 30 days
+
+    // Validate the request body
+    const validationResult = createInviteCodeSchema.safeParse(body);
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validationResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const { patientName } = validationResult.data;
+    const expiresInDays = 30; // Default 30 days
 
     // Generate unique 8-digit code
     let code: string;
@@ -121,6 +134,7 @@ export async function POST(request: Request) {
       .values({
         code: code!,
         professionalId: professional.id,
+        patientName,
         used: false,
         expiresAt,
       })

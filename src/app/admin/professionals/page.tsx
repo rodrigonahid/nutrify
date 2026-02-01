@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,15 +42,12 @@ export default async function ProfessionalsListPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Professionals</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <LogoutButton />
-          </div>
+      <PageHeader title="Professionals">
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">{user.email}</span>
+          <LogoutButton />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link

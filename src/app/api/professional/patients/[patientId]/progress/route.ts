@@ -156,9 +156,9 @@ export async function POST(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const patientUpdateData: any = {};
 
-      // Update height if provided (convert from meters to cm)
+      // Update height if provided (already in cm)
       if (validationResult.data.height !== undefined && validationResult.data.height !== null) {
-        patientUpdateData.height = (validationResult.data.height * 100).toString();
+        patientUpdateData.height = validationResult.data.height.toString();
       }
 
       // Update weight if provided

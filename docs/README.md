@@ -42,6 +42,14 @@ Complete routing structure:
 - Patient dashboard routes
 - API endpoints
 
+### [UI Design System](./UI_DESIGN_SYSTEM.md)
+Visual design system and theming:
+- Color palette (green and white theme)
+- CSS variables and OKLCH color space
+- Component styling guidelines
+- Layout and spacing standards
+- Accessibility considerations
+
 ### [Progress Tracker](./PROGRESS.md)
 Implementation status and task tracking:
 - Completed features
@@ -89,4 +97,4 @@ Implementation status and task tracking:
 
 ---
 
-Last Updated: 2026-01-26
+Last Updated: 2026-01-31

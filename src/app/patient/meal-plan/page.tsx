@@ -10,18 +10,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
-
-interface MealPlan {
-  id: number;
-  name: string;
-  isActive: boolean;
-  createdAt: string;
-  mealCount: number;
-  professionalEmail: string;
-}
+import { PageHeader } from "@/components/page-header";
+import { MealPlanListItem } from "@/types";
 
 export default function PatientMealPlanListPage() {
-  const [mealPlans, setMealPlans] = useState<MealPlan[]>([]);
+  const [mealPlans, setMealPlans] = useState<MealPlanListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -63,12 +56,7 @@ export default function PatientMealPlanListPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">My Meal Plans</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="My Meal Plans" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -85,7 +73,7 @@ export default function PatientMealPlanListPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -106,7 +94,7 @@ export default function PatientMealPlanListPage() {
                 <Card className="cursor-pointer hover:border-primary transition-colors relative">
                   {plan.isActive && (
                     <div className="absolute top-4 right-4">
-                      <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+                      <span className="px-2 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full">
                         Active
                       </span>
                     </div>

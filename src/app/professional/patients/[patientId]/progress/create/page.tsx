@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
 import { progressSchema } from "@/lib/validation";
 import { ProgressFormFields } from "@/components/progress-form-fields";
 
@@ -22,36 +23,47 @@ export default function CreateProgressPage() {
   const [error, setError] = useState("");
   const [fetchingPatient, setFetchingPatient] = useState(true);
   const [updatePatientProfile, setUpdatePatientProfile] = useState(true);
+  const [lastProgress, setLastProgress] = useState<any>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm<ProgressFormData>({
     resolver: zodResolver(progressSchema),
   });
 
-  // Fetch patient data and pre-fill height/weight
+  // Fetch patient data and last progress entry
   useEffect(() => {
     async function fetchPatientData() {
       try {
         setFetchingPatient(true);
-        const response = await fetch(`/api/professional/patients/${patientId}`);
 
-        if (!response.ok) {
+        // Fetch patient data
+        const patientResponse = await fetch(`/api/professional/patients/${patientId}`);
+        if (!patientResponse.ok) {
           throw new Error("Failed to fetch patient data");
         }
+        const patientData = await patientResponse.json();
+        const patient = patientData.patient;
 
-        const data = await response.json();
-        const patient = data.patient;
+        // Fetch last progress entry
+        const progressResponse = await fetch(`/api/professional/patients/${patientId}/progress`);
+        if (progressResponse.ok) {
+          const progressData = await progressResponse.json();
+          if (progressData.progress && progressData.progress.length > 0) {
+            setLastProgress(progressData.progress[0]); // First item is the most recent
+          }
+        }
 
         // Pre-fill form with patient's height and weight
         const defaultValues: Partial<ProgressFormData> = {};
 
-        // Convert height from cm to meters
+        // Height is now in cm (no conversion needed)
         if (patient.height) {
-          defaultValues.height = parseFloat(patient.height) / 100;
+          defaultValues.height = parseFloat(patient.height);
         }
 
         // Weight is already in kg
@@ -107,12 +119,7 @@ export default function CreateProgressPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Add Progress Entry</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="Add Progress Entry" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -122,7 +129,7 @@ export default function CreateProgressPage() {
           ← Back to Patient
         </Link>
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -139,6 +146,8 @@ export default function CreateProgressPage() {
               register={register}
               errors={errors}
               disabled={loading}
+              previousProgress={lastProgress}
+              watch={watch}
             />
 
             {/* Update Patient Profile Option */}

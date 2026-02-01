@@ -35,6 +35,7 @@ export async function GET(request: Request) {
         used: inviteCodes.used,
         expiresAt: inviteCodes.expiresAt,
         professionalId: inviteCodes.professionalId,
+        patientName: inviteCodes.patientName,
         professionalEmail: users.email,
         specialization: professionals.specialization,
       })
@@ -69,6 +70,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       valid: true,
+      patientName: inviteCode.patientName,
       professional: {
         email: inviteCode.professionalEmail,
         specialization: inviteCode.specialization,

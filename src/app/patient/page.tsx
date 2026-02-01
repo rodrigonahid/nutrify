@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
 
 export default async function PatientDashboard() {
   const { user } = await getSession();
@@ -15,15 +16,12 @@ export default async function PatientDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Patient Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user.email}</span>
-            <LogoutButton />
-          </div>
+      <PageHeader title="Patient Dashboard">
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">{user.email}</span>
+          <LogoutButton />
         </div>
-      </header>
+      </PageHeader>
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

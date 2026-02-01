@@ -10,16 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
+import { PageHeader } from "@/components/page-header";
+import { DeltaIndicator } from "@/components/delta-indicator";
+import { Progress } from "@/types/progress";
 
-interface Progress {
-  id: number;
-  patientId: number;
-  bodyFatPercentage: string | null;
-  height: string | null;
-  totalWeight: string | null;
-  bmi: string | null;
-  createdAt: string;
-}
 
 export default function PatientProgressListPage() {
   const [progress, setProgress] = useState<Progress[]>([]);
@@ -64,12 +58,7 @@ export default function PatientProgressListPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">My Progress</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="My Progress" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -86,7 +75,7 @@ export default function PatientProgressListPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -102,47 +91,79 @@ export default function PatientProgressListPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {progress.map((entry) => (
-              <Link key={entry.id} href={`/patient/progress/${entry.id}`}>
-                <Card className="cursor-pointer hover:border-primary transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {formatDate(entry.createdAt)}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      {entry.totalWeight && (
-                        <div>
-                          <p className="text-muted-foreground">Weight</p>
-                          <p className="font-medium">{entry.totalWeight} kg</p>
-                        </div>
-                      )}
-                      {entry.bmi && (
-                        <div>
-                          <p className="text-muted-foreground">BMI</p>
-                          <p className="font-medium">{entry.bmi}</p>
-                        </div>
-                      )}
-                      {entry.bodyFatPercentage && (
-                        <div>
-                          <p className="text-muted-foreground">Body Fat</p>
-                          <p className="font-medium">
-                            {entry.bodyFatPercentage}%
-                          </p>
-                        </div>
-                      )}
-                      {entry.height && (
-                        <div>
-                          <p className="text-muted-foreground">Height</p>
-                          <p className="font-medium">{entry.height} m</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+            {progress.map((entry, index) => {
+              const previousEntry = progress[index + 1];
+
+              return (
+                <Link key={entry.id} href={`/patient/progress/${entry.id}`}>
+                  <Card className="cursor-pointer hover:border-primary transition-colors">
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {formatDate(entry.createdAt)}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        {entry.totalWeight && (
+                          <div>
+                            <p className="text-muted-foreground">Weight</p>
+                            <div className="flex items-center gap-1">
+                              <p className="font-medium">{entry.totalWeight} kg</p>
+                              <DeltaIndicator
+                                current={entry.totalWeight}
+                                previous={previousEntry?.totalWeight || null}
+                                unit="kg"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {entry.bmi && (
+                          <div>
+                            <p className="text-muted-foreground">BMI</p>
+                            <div className="flex items-center gap-1">
+                              <p className="font-medium">{entry.bmi}</p>
+                              <DeltaIndicator
+                                current={entry.bmi}
+                                previous={previousEntry?.bmi || null}
+                                unit=""
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {entry.bodyFatPercentage && (
+                          <div>
+                            <p className="text-muted-foreground">Body Fat</p>
+                            <div className="flex items-center gap-1">
+                              <p className="font-medium">
+                                {entry.bodyFatPercentage}%
+                              </p>
+                              <DeltaIndicator
+                                current={entry.bodyFatPercentage}
+                                previous={previousEntry?.bodyFatPercentage || null}
+                                unit="%"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {entry.height && (
+                          <div>
+                            <p className="text-muted-foreground">Height</p>
+                            <div className="flex items-center gap-1">
+                              <p className="font-medium">{entry.height} cm</p>
+                              <DeltaIndicator
+                                current={entry.height}
+                                previous={previousEntry?.height || null}
+                                unit="cm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </main>

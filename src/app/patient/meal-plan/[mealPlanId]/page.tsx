@@ -11,36 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
-
-interface Ingredient {
-  id: number;
-  ingredientName: string;
-  quantity: string;
-  unit: string;
-  orderIndex: number;
-}
-
-interface MealOption {
-  id: number;
-  name: string;
-  notes: string | null;
-  ingredients: Ingredient[];
-}
-
-interface Meal {
-  id: number;
-  timeOfDay: string;
-  orderIndex: number;
-  options: MealOption[];
-}
-
-interface MealPlan {
-  id: number;
-  name: string;
-  isActive: boolean;
-  createdAt: string;
-  meals: Meal[];
-}
+import { PageHeader } from "@/components/page-header";
+import { MealPlan, Meal, MealOption, Ingredient } from "@/types";
 
 export default function PatientMealPlanDetailPage() {
   const params = useParams();
@@ -104,12 +76,7 @@ export default function PatientMealPlanDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Meal Plan Details</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="Meal Plan Details" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -119,7 +86,7 @@ export default function PatientMealPlanDetailPage() {
           ← Back to Meal Plans
         </Link>
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -128,7 +95,7 @@ export default function PatientMealPlanDetailPage() {
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-2xl font-bold">{mealPlan.name}</h2>
             {mealPlan.isActive && (
-              <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
+              <span className="px-2 py-1 text-xs font-semibold bg-primary text-primary-foreground rounded-full">
                 Active
               </span>
             )}
@@ -139,8 +106,7 @@ export default function PatientMealPlanDetailPage() {
         </div>
 
         <div className="space-y-6">
-          {mealPlan.meals
-            .sort((a, b) => a.orderIndex - b.orderIndex)
+          {mealPlan.meals?.sort((a, b) => a.orderIndex - b.orderIndex)
             .map((meal) => (
               <Card key={meal.id}>
                 <CardHeader className="pb-4">
@@ -200,7 +166,7 @@ export default function PatientMealPlanDetailPage() {
             ))}
         </div>
 
-        {mealPlan.meals.length === 0 && (
+        {(!mealPlan.meals || mealPlan.meals.length === 0) && (
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">

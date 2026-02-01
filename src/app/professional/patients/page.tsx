@@ -10,18 +10,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LogoutButton } from "@/components/logout-button";
-
-interface Patient {
-  id: number;
-  userId: number;
-  email: string;
-  dateOfBirth: string | null;
-  height: string | null;
-  weight: string | null;
-  medicalNotes: string | null;
-  createdAt: string;
-  userCreatedAt: string;
-}
+import { PageHeader } from "@/components/page-header";
+import { Patient } from "@/types";
 
 export default function PatientsListPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -70,12 +60,7 @@ export default function PatientsListPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">My Patients</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="My Patients" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -92,7 +77,7 @@ export default function PatientsListPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}

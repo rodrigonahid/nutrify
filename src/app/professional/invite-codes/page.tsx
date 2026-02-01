@@ -10,17 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { LogoutButton } from "@/components/logout-button";
-
-interface InviteCode {
-  id: number;
-  code: string;
-  used: boolean;
-  usedBy: number | null;
-  expiresAt: string | null;
-  createdAt: string;
-  patientEmail: string | null;
-}
+import { PageHeader } from "@/components/page-header";
+import { InviteCode } from "@/types";
 
 export default function InviteCodesPage() {
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -28,6 +22,8 @@ export default function InviteCodesPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [patientName, setPatientName] = useState("");
 
   useEffect(() => {
     fetchInviteCodes();
@@ -49,7 +45,14 @@ export default function InviteCodesPage() {
     }
   }
 
-  async function generateCode() {
+  async function generateCode(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!patientName.trim()) {
+      setError("Patient name is required");
+      return;
+    }
+
     setGenerating(true);
     setError("");
 
@@ -57,17 +60,22 @@ export default function InviteCodesPage() {
       const response = await fetch("/api/professional/invite-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expiresInDays: 7 }),
+        body: JSON.stringify({ patientName: patientName.trim() }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate invite code");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate invite code");
       }
 
       // Refresh the list
       await fetchInviteCodes();
+
+      // Close modal and reset form
+      setShowModal(false);
+      setPatientName("");
     } catch (err) {
-      setError("Failed to generate invite code");
+      setError(err instanceof Error ? err.message : "Failed to generate invite code");
       console.error(err);
     } finally {
       setGenerating(false);
@@ -105,12 +113,7 @@ export default function InviteCodesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Invite Codes</h1>
-          <LogoutButton />
-        </div>
-      </header>
+      <PageHeader title="Invite Codes" />
 
       <main className="container mx-auto px-4 py-8 max-w-[1200px]">
         <Link
@@ -126,13 +129,13 @@ export default function InviteCodesPage() {
               Generate codes for new patients to sign up
             </p>
           </div>
-          <Button onClick={generateCode} disabled={generating}>
-            {generating ? "Generating..." : "+ Generate Code"}
+          <Button onClick={() => setShowModal(true)}>
+            + Generate Code
           </Button>
         </div>
 
         {error && (
-          <div className="mb-6 p-3 text-sm text-red-500 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
             {error}
           </div>
         )}
@@ -143,7 +146,7 @@ export default function InviteCodesPage() {
               <p className="text-muted-foreground mb-4">
                 No invite codes yet. Generate your first code to invite patients.
               </p>
-              <Button onClick={generateCode} disabled={generating}>
+              <Button onClick={() => setShowModal(true)}>
                 Generate Invite Code
               </Button>
             </CardContent>
@@ -174,13 +177,16 @@ export default function InviteCodesPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex justify-between items-center">
-                      <div className="text-sm">
+                      <div className="text-sm space-y-1">
+                        <p className="text-muted-foreground">
+                          Patient: <span className="font-medium text-foreground">{inviteCode.patientName}</span>
+                        </p>
                         {inviteCode.used && inviteCode.patientEmail ? (
                           <p className="text-muted-foreground">
                             Used by: <span className="font-medium">{inviteCode.patientEmail}</span>
                           </p>
                         ) : (
-                          <p className="text-muted-foreground">
+                          <p className="text-muted-foreground text-xs">
                             Share this code with your patient to sign up
                           </p>
                         )}
@@ -199,6 +205,63 @@ export default function InviteCodesPage() {
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {/* Generate Code Modal */}
+        {showModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => {
+              setShowModal(false);
+              setPatientName("");
+              setError("");
+            }}
+          >
+            <Card
+              className="max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CardHeader>
+                <CardTitle>Generate Invite Code</CardTitle>
+                <CardDescription>
+                  Enter the patient's name to generate an invite code
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={generateCode} className="space-y-4">
+                  <div>
+                    <Label htmlFor="patient-name">Patient Name</Label>
+                    <Input
+                      id="patient-name"
+                      value={patientName}
+                      onChange={(e) => setPatientName(e.target.value)}
+                      placeholder="e.g., John Doe"
+                      autoFocus
+                      disabled={generating}
+                    />
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button type="submit" disabled={generating} className="flex-1">
+                      {generating ? "Generating..." : "Generate Code"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowModal(false);
+                        setPatientName("");
+                        setError("");
+                      }}
+                      disabled={generating}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
         )}
       </main>

@@ -1,9 +1,17 @@
 "use client";
 
-import { Control, useFieldArray, UseFormRegister, FieldErrors } from "react-hook-form";
+import { Control, useFieldArray, UseFormRegister, FieldErrors, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { X } from "lucide-react";
 import { z } from "zod";
 import { mealPlanFormSchema } from "@/lib/validation";
 
@@ -189,38 +197,47 @@ function OptionFieldArray({
                 </p>
               )}
             </div>
-            <div className="w-24">
+
+            {/* Grouped Quantity + Unit Input */}
+            <div className="inline-flex">
               <Input
                 type="number"
-                step="0.01"
+                step="any"
+                min="0"
                 {...register(
                   `meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.quantity`,
                   { valueAsNumber: true }
                 )}
                 placeholder="Qty"
-                className="h-9"
+                className="h-9 w-20 rounded-r-none border-r-0 focus-visible:z-10"
               />
-              {optionErrors?.ingredients?.[ingIdx]?.quantity && (
-                <p className="text-xs text-destructive mt-0.5">
-                  {optionErrors.ingredients[ingIdx]?.quantity?.message}
-                </p>
-              )}
-            </div>
-            <div className="w-24">
-              <select
-                {...register(
-                  `meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.unit`
+              <Controller
+                control={control}
+                name={`meals.${mealIndex}.options.${optionIndex}.ingredients.${ingIdx}.unit`}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="h-9 w-20 rounded-l-none border-l focus:z-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="g">g</SelectItem>
+                      <SelectItem value="ml">ml</SelectItem>
+                      <SelectItem value="cups">cups</SelectItem>
+                      <SelectItem value="spoons">spoons</SelectItem>
+                      <SelectItem value="scoops">scoops</SelectItem>
+                      <SelectItem value="units">units</SelectItem>
+                    </SelectContent>
+                  </Select>
                 )}
-                className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-              >
-                <option value="g">g</option>
-                <option value="ml">ml</option>
-                <option value="cups">cups</option>
-                <option value="spoons">spoons</option>
-                <option value="scoops">scoops</option>
-                <option value="units">units</option>
-              </select>
+              />
             </div>
+
+            {optionErrors?.ingredients?.[ingIdx]?.quantity && (
+              <p className="text-xs text-destructive mt-0.5 absolute">
+                {optionErrors.ingredients[ingIdx]?.quantity?.message}
+              </p>
+            )}
+
             {/* Hidden orderIndex field */}
             <input
               type="hidden"
@@ -233,11 +250,12 @@ function OptionFieldArray({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => removeIngredient(ingIdx)}
-              className="text-red-600 h-9"
+              className="text-red-600 h-9 w-9 shrink-0"
+              title="Remove ingredient"
             >
-              Remove
+              <X className="h-4 w-4" />
             </Button>
           </div>
         ))}
