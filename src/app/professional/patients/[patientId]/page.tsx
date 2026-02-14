@@ -119,12 +119,12 @@ export default function PatientDetailPage() {
             </p>
           </Link>
           <Link
-            href="/professional/schedules"
+            href={`/professional/patients/${patientId}/appointments`}
             className="p-6 bg-white border rounded-lg hover:border-primary transition-colors"
           >
             <h2 className="text-lg font-semibold mb-2">Appointments</h2>
             <p className="text-muted-foreground text-sm">
-              View and schedule appointments
+              View all appointments for this patient
             </p>
           </Link>
         </div>

@@ -17,7 +17,8 @@
     "generate:progress": "tsx scripts/generate-progress.ts",
     "generate:appointments": "tsx scripts/generate-appointments.ts",
     "generate:meals": "tsx scripts/generate-meal-plans.ts",
-    "seed": "tsx scripts/seed-database.ts"
+    "seed": "tsx scripts/seed-database.ts",
+    "seed:muscle-groups": "tsx scripts/seed-muscle-groups.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -29,12 +30,14 @@
     "chalk": "^5.6.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "lucide-react": "^0.563.0",
     "next": "16.1.5",
     "postgres": "^3.4.8",
     "react": "19.2.3",
+    "react-big-calendar": "^1.19.4",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
     "tailwind-merge": "^3.4.0",
@@ -45,6 +48,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
+    "@types/react-big-calendar": "^1.16.3",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",

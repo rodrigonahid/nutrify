@@ -386,3 +386,51 @@ export const cancelAppointmentSchema = z.object({
     .min(1, "Cancellation reason is required")
     .max(500, "Cancellation reason must be less than 500 characters"),
 });
+
+/**
+ * Training validation schemas
+ */
+
+export const createMuscleGroupSchema = z.object({
+  name: z.string().min(1).max(100),
+});
+
+export const createExerciseSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().max(2000).optional(),
+  muscleGroupId: z.number().int().positive().optional(),
+});
+
+export const createWorkoutSchema = z.object({
+  name: z.string().min(1).max(255),
+  description: z.string().max(2000).optional(),
+  exerciseIds: z
+    .array(z.number().int().positive())
+    .min(1, "At least one exercise required"),
+});
+
+export const createTrainingSessionSchema = z.object({
+  workoutId: z.number().int().positive().optional(),
+  muscleGroupId: z.number().int().positive().optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  notes: z.string().max(2000).optional(),
+  exerciseIds: z
+    .array(z.number().int().positive())
+    .min(1, "At least one exercise required"),
+});
+
+export const addSetSchema = z.object({
+  sessionExerciseId: z.number().int().positive(),
+  weightKg: z.number().min(0).max(9999.99).optional(),
+  reps: z.number().int().min(0).max(9999).optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const createPrSchema = z.object({
+  weightKg: z.number().min(0).max(9999.99),
+  reps: z.number().int().min(1).max(9999).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
+  notes: z.string().max(500).optional(),
+});

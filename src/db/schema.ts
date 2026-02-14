@@ -73,6 +73,8 @@ export const professionalsRelations = relations(
     inviteCodes: many(inviteCodes),
     mealPlans: many(mealPlans),
     appointments: many(appointments),
+    exercises: many(exercises),
+    workouts: many(workouts),
   })
 );
 
@@ -111,6 +113,10 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   progressEntries: many(progress),
   mealPlans: many(mealPlans),
   appointments: many(appointments),
+  muscleGroups: many(muscleGroups),
+  exercises: many(exercises),
+  workouts: many(workouts),
+  trainingSessions: many(trainingSessions),
 }));
 
 // Invite codes table - for patient signup
@@ -389,5 +395,235 @@ export const appointmentsRelations = relations(appointments, ({ one }) => ({
   cancelledByUser: one(users, {
     fields: [appointments.cancelledBy],
     references: [users.id],
+  }),
+}));
+
+// Training Feature Tables
+
+// Muscle Groups — defaults (isDefault=true, patientId=null) + user-custom
+export const muscleGroups = pgTable("muscle_groups", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  isDefault: boolean("is_default").default(false).notNull(),
+  patientId: integer("patient_id").references(() => patients.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const muscleGroupsRelations = relations(
+  muscleGroups,
+  ({ one, many }) => ({
+    patient: one(patients, {
+      fields: [muscleGroups.patientId],
+      references: [patients.id],
+    }),
+    exercises: many(exercises),
+    trainingSessions: many(trainingSessions),
+  })
+);
+
+// Exercises — independent, reusable across workouts
+export const exercises = pgTable("exercises", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  muscleGroupId: integer("muscle_group_id").references(
+    () => muscleGroups.id,
+    { onDelete: "set null" }
+  ),
+  patientId: integer("patient_id").references(() => patients.id, {
+    onDelete: "cascade",
+  }),
+  professionalId: integer("professional_id").references(
+    () => professionals.id,
+    { onDelete: "set null" }
+  ),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const exercisesRelations = relations(exercises, ({ one, many }) => ({
+  muscleGroup: one(muscleGroups, {
+    fields: [exercises.muscleGroupId],
+    references: [muscleGroups.id],
+  }),
+  patient: one(patients, {
+    fields: [exercises.patientId],
+    references: [patients.id],
+  }),
+  professional: one(professionals, {
+    fields: [exercises.professionalId],
+    references: [professionals.id],
+  }),
+  workoutExercises: many(workoutExercises),
+  sessionExercises: many(sessionExercises),
+  prs: many(exercisePrs),
+}));
+
+// Workouts — templates
+export const workouts = pgTable("workouts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  patientId: integer("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  assignedByProfessionalId: integer("assigned_by_professional_id").references(
+    () => professionals.id,
+    { onDelete: "set null" }
+  ),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const workoutsRelations = relations(workouts, ({ one, many }) => ({
+  patient: one(patients, {
+    fields: [workouts.patientId],
+    references: [patients.id],
+  }),
+  assignedByProfessional: one(professionals, {
+    fields: [workouts.assignedByProfessionalId],
+    references: [professionals.id],
+  }),
+  workoutExercises: many(workoutExercises),
+  trainingSessions: many(trainingSessions),
+}));
+
+// Workout Exercises — ordered exercises in a workout
+export const workoutExercises = pgTable("workout_exercises", {
+  id: serial("id").primaryKey(),
+  workoutId: integer("workout_id")
+    .notNull()
+    .references(() => workouts.id, { onDelete: "cascade" }),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "cascade" }),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const workoutExercisesRelations = relations(
+  workoutExercises,
+  ({ one }) => ({
+    workout: one(workouts, {
+      fields: [workoutExercises.workoutId],
+      references: [workouts.id],
+    }),
+    exercise: one(exercises, {
+      fields: [workoutExercises.exerciseId],
+      references: [exercises.id],
+    }),
+  })
+);
+
+// Training Sessions — actual day's training log
+export const trainingSessions = pgTable("training_sessions", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  workoutId: integer("workout_id").references(() => workouts.id, {
+    onDelete: "set null",
+  }),
+  muscleGroupId: integer("muscle_group_id").references(() => muscleGroups.id, {
+    onDelete: "set null",
+  }),
+  date: date("date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const trainingSessionsRelations = relations(
+  trainingSessions,
+  ({ one, many }) => ({
+    patient: one(patients, {
+      fields: [trainingSessions.patientId],
+      references: [patients.id],
+    }),
+    workout: one(workouts, {
+      fields: [trainingSessions.workoutId],
+      references: [workouts.id],
+    }),
+    muscleGroup: one(muscleGroups, {
+      fields: [trainingSessions.muscleGroupId],
+      references: [muscleGroups.id],
+    }),
+    sessionExercises: many(sessionExercises),
+  })
+);
+
+// Session Exercises — exercises within a session
+export const sessionExercises = pgTable("session_exercises", {
+  id: serial("id").primaryKey(),
+  sessionId: integer("session_id")
+    .notNull()
+    .references(() => trainingSessions.id, { onDelete: "cascade" }),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "cascade" }),
+  orderIndex: integer("order_index").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const sessionExercisesRelations = relations(
+  sessionExercises,
+  ({ one, many }) => ({
+    session: one(trainingSessions, {
+      fields: [sessionExercises.sessionId],
+      references: [trainingSessions.id],
+    }),
+    exercise: one(exercises, {
+      fields: [sessionExercises.exerciseId],
+      references: [exercises.id],
+    }),
+    exerciseSets: many(exerciseSets),
+  })
+);
+
+// Exercise Sets — individual sets: weight × reps
+export const exerciseSets = pgTable("exercise_sets", {
+  id: serial("id").primaryKey(),
+  sessionExerciseId: integer("session_exercise_id")
+    .notNull()
+    .references(() => sessionExercises.id, { onDelete: "cascade" }),
+  setNumber: integer("set_number").notNull(),
+  weightKg: decimal("weight_kg", { precision: 6, scale: 2 }),
+  reps: integer("reps"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const exerciseSetsRelations = relations(exerciseSets, ({ one }) => ({
+  sessionExercise: one(sessionExercises, {
+    fields: [exerciseSets.sessionExerciseId],
+    references: [sessionExercises.id],
+  }),
+}));
+
+// Exercise PRs — manually logged personal records
+export const exercisePrs = pgTable("exercise_prs", {
+  id: serial("id").primaryKey(),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id, { onDelete: "cascade" }),
+  patientId: integer("patient_id")
+    .notNull()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  weightKg: decimal("weight_kg", { precision: 6, scale: 2 }).notNull(),
+  reps: integer("reps"),
+  date: date("date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const exercisePrsRelations = relations(exercisePrs, ({ one }) => ({
+  exercise: one(exercises, {
+    fields: [exercisePrs.exerciseId],
+    references: [exercises.id],
+  }),
+  patient: one(patients, {
+    fields: [exercisePrs.patientId],
+    references: [patients.id],
   }),
 }));
