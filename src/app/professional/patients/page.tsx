@@ -2,145 +2,198 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { LogoutButton } from "@/components/logout-button";
-import { PageHeader } from "@/components/page-header";
+import { Search, ChevronRight, Users, KeyRound } from "lucide-react";
 import { Patient } from "@/types";
+
+function calculateAge(dateOfBirth: string | null): number | null {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birth = new Date(dateOfBirth);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+function PatientInitial({ name, email }: { name: string | null; email: string }) {
+  const label = name?.[0] ?? email[0];
+  return (
+    <div className="w-9 h-9 rounded-full bg-[rgba(46,139,90,0.10)] flex items-center justify-center shrink-0">
+      <span className="text-[13px] font-bold text-[#2E8B5A] uppercase">{label}</span>
+    </div>
+  );
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
+      <div className="w-9 h-9 rounded-full bg-[#F3F4F6] shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-36 bg-[#F3F4F6] rounded" />
+        <div className="h-3 w-48 bg-[#F3F4F6] rounded" />
+      </div>
+      <div className="h-3 w-10 bg-[#F3F4F6] rounded" />
+    </div>
+  );
+}
 
 export default function PatientsListPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchPatients();
+    fetch("/api/professional/patients")
+      .then((r) => r.json())
+      .then((data) => setPatients(data.patients ?? []))
+      .catch(() => setError("Failed to load patients"))
+      .finally(() => setLoading(false));
   }, []);
 
-  async function fetchPatients() {
-    try {
-      const response = await fetch("/api/professional/patients");
-      if (!response.ok) {
-        throw new Error("Failed to fetch patients");
-      }
-      const data = await response.json();
-      setPatients(data.patients);
-    } catch (err) {
-      setError("Failed to load patients");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function calculateAge(dateOfBirth: string | null): number | null {
-    if (!dateOfBirth) return null;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  }
-
-  if (loading) {
+  const filtered = patients.filter((p) => {
+    const q = search.toLowerCase();
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
+      p.email.toLowerCase().includes(q) ||
+      (p.name ?? "").toLowerCase().includes(q)
     );
-  }
+  });
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="My Patients" />
+    <div className="p-4 md:p-8 max-w-[900px]">
 
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href="/professional"
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Dashboard
-        </Link>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Patient List</h2>
-          <p className="text-muted-foreground">
-            Manage and view all your patients
-          </p>
+      {/* Page heading */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+            My Patients
+          </h1>
+          {!loading && (
+            <p className="text-sm font-medium text-[#6B7280]">
+              {patients.length === 0
+                ? "No patients yet"
+                : `${patients.length} patient${patients.length !== 1 ? "s" : ""}`}
+            </p>
+          )}
         </div>
+      </div>
 
-        {error && (
-          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
-            {error}
+      {/* Search */}
+      {(loading || patients.length > 0) && (
+        <div className="relative mb-4">
+          <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none">
+            <Search size={15} strokeWidth={2} />
+          </span>
+          <input
+            type="search"
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-[38px] pr-3 bg-white border border-[#E5E7EB] rounded-[10px] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 hover:border-[#D1D5DB] focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.12)]"
+          />
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* Patient list */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+
+        {/* Loading skeletons */}
+        {loading && (
+          <div className="divide-y divide-[#F3F4F6]">
+            {[1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
           </div>
         )}
 
-        {patients.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">
-                No patients yet. Generate an invite code to add your first patient.
-              </p>
-              <Link
-                href="/professional/invite-codes"
-                className="text-primary hover:underline"
-              >
-                Go to Invite Codes →
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {patients.map((patient) => {
+        {/* Empty state — no patients at all */}
+        {!loading && patients.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+            <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
+              <Users size={22} className="text-[#9CA3AF]" />
+            </div>
+            <p className="text-[15px] font-semibold text-[#374151] mb-1">
+              No patients yet
+            </p>
+            <p className="text-[13px] text-[#9CA3AF] mb-5">
+              Generate an invite code to add your first patient.
+            </p>
+            <Link
+              href="/professional/invite-codes"
+              className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
+            >
+              <KeyRound size={13} strokeWidth={2.2} />
+              Go to Invite Codes
+            </Link>
+          </div>
+        )}
+
+        {/* No search results */}
+        {!loading && patients.length > 0 && filtered.length === 0 && (
+          <div className="py-10 text-center">
+            <p className="text-[14px] font-medium text-[#9CA3AF]">
+              No patients match &quot;{search}&quot;
+            </p>
+          </div>
+        )}
+
+        {/* Patient rows */}
+        {!loading && filtered.length > 0 && (
+          <div className="divide-y divide-[#F3F4F6]">
+            {filtered.map((patient) => {
               const age = calculateAge(patient.dateOfBirth);
+              const displayName = patient.name ?? patient.email;
+
               return (
                 <Link
                   key={patient.id}
                   href={`/professional/patients/${patient.id}`}
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
                 >
-                  <Card className="cursor-pointer hover:border-primary transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{patient.email}</CardTitle>
-                      {age !== null && (
-                        <CardDescription>{age} years old</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {patient.height && (
-                        <p className="text-sm text-muted-foreground">
-                          Height: {patient.height} cm
-                        </p>
-                      )}
-                      {patient.weight && (
-                        <p className="text-sm text-muted-foreground">
-                          Weight: {patient.weight} kg
-                        </p>
-                      )}
-                      {patient.medicalNotes && (
-                        <p className="text-sm text-muted-foreground">
-                          Notes: {patient.medicalNotes.substring(0, 100)}
-                          {patient.medicalNotes.length > 100 && "..."}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground pt-2">
-                        Patient since:{" "}
-                        {new Date(patient.userCreatedAt).toLocaleDateString()}
+                  <PatientInitial name={patient.name} email={patient.email} />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold text-[#111827] truncate">
+                      {displayName}
+                    </p>
+                    {patient.name && (
+                      <p className="text-[12px] text-[#9CA3AF] truncate">
+                        {patient.email}
                       </p>
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    {age !== null && (
+                      <span className="text-[12px] font-medium text-[#9CA3AF]">
+                        {age}y
+                      </span>
+                    )}
+                    {(patient.height || patient.weight) && (
+                      <span className="hidden sm:block text-[12px] text-[#9CA3AF]">
+                        {patient.height ? `${patient.height} cm` : ""}
+                        {patient.height && patient.weight ? " · " : ""}
+                        {patient.weight ? `${patient.weight} kg` : ""}
+                      </span>
+                    )}
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={2}
+                      className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors duration-100"
+                    />
+                  </div>
                 </Link>
               );
             })}
           </div>
         )}
-      </main>
+      </div>
+
     </div>
   );
 }

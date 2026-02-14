@@ -18,30 +18,29 @@ export const themeConfig = {
 
   // Typography
   fonts: {
-    sans: "var(--font-geist-sans)",
-    mono: "var(--font-geist-mono)",
+    sans: "var(--font-plus-jakarta-sans)",
   },
 
   // Light Mode Colors (OKLCH format)
   lightMode: {
-    background: "oklch(1 0 0)", // Pure white
-    foreground: "oklch(0.145 0 0)", // Near black
-    primary: "oklch(0.205 0 0)", // Dark gray
-    primaryForeground: "oklch(0.985 0 0)", // Almost white
-    secondary: "oklch(0.97 0 0)", // Very light gray
-    secondaryForeground: "oklch(0.205 0 0)", // Dark gray
-    muted: "oklch(0.97 0 0)", // Very light gray
-    mutedForeground: "oklch(0.556 0 0)", // Medium gray
-    accent: "oklch(0.97 0 0)", // Very light gray
-    accentForeground: "oklch(0.205 0 0)", // Dark gray
+    background: "oklch(0.961 0.005 152.6)", // Page bg #F2F4F3
+    foreground: "oklch(0.145 0.012 264.3)", // Ink #111827
+    primary: "oklch(0.563 0.142 152.6)", // Green #2E8B5A
+    primaryForeground: "oklch(1 0 0)", // White
+    secondary: "oklch(0.984 0.002 264.5)", // Input bg #F9FAFB
+    secondaryForeground: "oklch(0.296 0.018 264.3)", // #374151
+    muted: "oklch(0.984 0.002 264.5)", // #F9FAFB
+    mutedForeground: "oklch(0.487 0.016 264.4)", // Mid #6B7280
+    accent: "oklch(0.920 0.005 264.5)", // Border #E5E7EB
+    accentForeground: "oklch(0.145 0.012 264.3)", // Ink
     destructive: "oklch(0.577 0.245 27.325)", // Red
-    border: "oklch(0.922 0 0)", // Light gray
-    input: "oklch(0.922 0 0)", // Light gray
-    ring: "oklch(0.708 0 0)", // Medium-light gray
+    border: "oklch(0.920 0.005 264.5)", // #E5E7EB
+    input: "oklch(0.920 0.005 264.5)", // #E5E7EB
+    ring: "oklch(0.563 0.142 152.6)", // Green #2E8B5A
     card: "oklch(1 0 0)", // White
-    cardForeground: "oklch(0.145 0 0)", // Near black
+    cardForeground: "oklch(0.145 0.012 264.3)", // Ink
     popover: "oklch(1 0 0)", // White
-    popoverForeground: "oklch(0.145 0 0)", // Near black
+    popoverForeground: "oklch(0.145 0.012 264.3)", // Ink
   },
 
   // Dark Mode Colors (OKLCH format)

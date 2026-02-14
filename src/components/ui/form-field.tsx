@@ -65,7 +65,7 @@ export function FormField({
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-xs text-destructive">
+        <p id={`${id}-error`} className="text-xs font-medium text-destructive">
           {error.message}
         </p>
       )}
@@ -115,7 +115,7 @@ export function FormTextArea({
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-xs text-destructive">
+        <p id={`${id}-error`} className="text-xs font-medium text-destructive">
           {error.message}
         </p>
       )}

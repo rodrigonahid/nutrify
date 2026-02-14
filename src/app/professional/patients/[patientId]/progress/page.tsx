@@ -3,205 +3,154 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { PageHeader } from "@/components/page-header";
-import { Progress, MealPlanListItem } from "@/types";
+import { ChevronRight, TrendingUp, Plus } from "lucide-react";
+import { Progress } from "@/types";
+
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-28 bg-[#F3F4F6] rounded" />
+        <div className="h-3 w-48 bg-[#F3F4F6] rounded" />
+      </div>
+      <div className="h-3 w-10 bg-[#F3F4F6] rounded" />
+    </div>
+  );
+}
 
 export default function PatientProgressPage() {
   const params = useParams();
   const patientId = params.patientId as string;
 
   const [progress, setProgress] = useState<Progress[]>([]);
-  const [activeMealPlan, setActiveMealPlan] = useState<MealPlanListItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchData();
+    fetch(`/api/professional/patients/${patientId}/progress`)
+      .then((r) => r.json())
+      .then((data) => setProgress(data.progress ?? []))
+      .catch(() => setError("Failed to load progress"))
+      .finally(() => setLoading(false));
   }, [patientId]);
 
-  async function fetchData() {
-    try {
-      // Fetch progress entries
-      const progressResponse = await fetch(
-        `/api/professional/patients/${patientId}/progress`
-      );
-      if (!progressResponse.ok) {
-        throw new Error("Failed to fetch progress data");
-      }
-      const progressData = await progressResponse.json();
-
-      // Get only the last 3 entries
-      const lastThree = progressData.progress.slice(0, 3);
-      setProgress(lastThree);
-
-      // Fetch meal plans to find the active one
-      const mealPlanResponse = await fetch(
-        `/api/professional/patients/${patientId}/meal-plan`
-      );
-      if (mealPlanResponse.ok) {
-        const mealPlanData = await mealPlanResponse.json();
-        const active = mealPlanData.mealPlans?.find((mp: MealPlanListItem) => mp.isActive);
-        setActiveMealPlan(active || null);
-      }
-    } catch (err) {
-      setError("Failed to load data");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
-
-  function formatValue(value: string | null, unit: string = "") {
-    if (!value) return "N/A";
-    const numValue = parseFloat(value);
-    return `${numValue.toFixed(1)}${unit}`;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Progress Tracking" />
-        <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-          <p className="text-center text-muted-foreground">Loading...</p>
-        </main>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Progress Tracking" />
+    <div className="p-4 md:p-8 max-w-[900px]">
 
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href={`/professional/patients/${patientId}`}
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Patient
-        </Link>
+      {/* Back link */}
+      <Link
+        href={`/professional/patients/${patientId}`}
+        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
+      >
+        ← Back to Patient
+      </Link>
 
-        {error && (
-          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
-            {error}
-          </div>
-        )}
-
-        {/* Active Meal Plan */}
-        {activeMealPlan && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Active Meal Plan</h2>
-            <Link href={`/professional/patients/${patientId}/meal-plan/${activeMealPlan.id}`}>
-              <Card className="hover:border-primary transition-colors cursor-pointer bg-white">
-                <CardHeader>
-                  <CardTitle className="text-lg">{activeMealPlan.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>
-                      {activeMealPlan.mealCount} meal{activeMealPlan.mealCount !== 1 ? "s" : ""}
-                    </span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">
-                      Active
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </div>
-        )}
-
-        {/* Recent Progress Entries */}
+      {/* Page heading */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Recent Progress (Last 3 Entries)</h2>
-            <Link
-              href={`/professional/patients/${patientId}/progress/create`}
-              className="text-sm text-primary hover:underline"
-            >
-              + Add Progress Entry
-            </Link>
-          </div>
-
-          {progress.length === 0 ? (
-            <Card className="bg-white">
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">
-                  No progress entries yet
-                </p>
-                <Link
-                  href={`/professional/patients/${patientId}/progress/create`}
-                  className="text-primary hover:underline"
-                >
-                  Create first entry →
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {progress.map((entry) => (
-                <Card key={entry.id} className="bg-white hover:border-primary transition-colors">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {formatDate(entry.createdAt)}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {entry.totalWeight && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">Weight</p>
-                          <p className="text-sm font-semibold">
-                            {formatValue(entry.totalWeight, " kg")}
-                          </p>
-                        </div>
-                      )}
-                      {entry.bmi && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">BMI</p>
-                          <p className="text-sm font-semibold">
-                            {formatValue(entry.bmi)}
-                          </p>
-                        </div>
-                      )}
-                      {entry.bodyFatPercentage && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">Body Fat</p>
-                          <p className="text-sm font-semibold">
-                            {formatValue(entry.bodyFatPercentage, "%")}
-                          </p>
-                        </div>
-                      )}
-                      {entry.perimeterWaist && (
-                        <div>
-                          <p className="text-xs text-muted-foreground">Waist</p>
-                          <p className="text-sm font-semibold">
-                            {formatValue(entry.perimeterWaist, " cm")}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+            Progress
+          </h1>
+          {!loading && (
+            <p className="text-sm font-medium text-[#6B7280]">
+              {progress.length === 0
+                ? "No entries yet"
+                : `${progress.length} entr${progress.length !== 1 ? "ies" : "y"}`}
+            </p>
           )}
         </div>
-      </main>
+        <Link
+          href={`/professional/patients/${patientId}/progress/create`}
+          className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
+        >
+          <Plus size={13} strokeWidth={2.5} />
+          Add Entry
+        </Link>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* Progress list */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+
+        {loading && (
+          <div className="divide-y divide-[#F3F4F6]">
+            {[1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
+          </div>
+        )}
+
+        {!loading && progress.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
+            <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
+              <TrendingUp size={22} className="text-[#9CA3AF]" />
+            </div>
+            <p className="text-[15px] font-semibold text-[#374151] mb-1">
+              No progress entries yet
+            </p>
+            <p className="text-[13px] text-[#9CA3AF] mb-5">
+              Add the first entry to start tracking this patient&apos;s progress.
+            </p>
+            <Link
+              href={`/professional/patients/${patientId}/progress/create`}
+              className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
+            >
+              <Plus size={13} strokeWidth={2.5} />
+              Add First Entry
+            </Link>
+          </div>
+        )}
+
+        {!loading && progress.length > 0 && (
+          <div className="divide-y divide-[#F3F4F6]">
+            {progress.map((entry) => (
+              <Link
+                key={entry.id}
+                href={`/professional/patients/${patientId}/progress/${entry.id}`}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-[14px] font-semibold text-[#111827]">
+                    {formatDate(entry.createdAt)}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 mt-0.5">
+                    {entry.totalWeight && (
+                      <span className="text-[12px] text-[#9CA3AF]">{entry.totalWeight} kg</span>
+                    )}
+                    {entry.bmi && (
+                      <span className="text-[12px] text-[#9CA3AF]">BMI {entry.bmi}</span>
+                    )}
+                    {entry.bodyFatPercentage && (
+                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% body fat</span>
+                    )}
+                    {entry.perimeterWaist && (
+                      <span className="text-[12px] text-[#9CA3AF]">waist {entry.perimeterWaist} cm</span>
+                    )}
+                  </div>
+                </div>
+                <ChevronRight
+                  size={16}
+                  strokeWidth={2}
+                  className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors duration-100 shrink-0"
+                />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }

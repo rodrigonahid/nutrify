@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/page-header";
-import { Card } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 
 interface Appointment {
   id: number;
@@ -19,249 +17,267 @@ interface Appointment {
   cancellationReason: string | null;
 }
 
+function statusStyle(status: string) {
+  switch (status) {
+    case "confirmed":
+      return "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]";
+    case "pending":
+      return "text-[#B45309] bg-[rgba(180,83,9,0.08)]";
+    case "requested":
+      return "text-[#1D4ED8] bg-[rgba(29,78,216,0.08)]";
+    case "cancelled":
+      return "text-[#DC2626] bg-[rgba(220,38,38,0.08)]";
+    case "completed":
+    default:
+      return "text-[#6B7280] bg-[#F3F4F6]";
+  }
+}
+
+function formatDate(dateString: string) {
+  return new Date(dateString + "T00:00:00").toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatTime(timeString: string) {
+  const [hours, minutes] = timeString.split(":");
+  const hour = parseInt(hours, 10);
+  const isPM = hour >= 12;
+  const hour12 = hour % 12 || 12;
+  return `${hour12}:${minutes} ${isPM ? "PM" : "AM"}`;
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-40 bg-[#F3F4F6] rounded" />
+        <div className="h-3 w-24 bg-[#F3F4F6] rounded" />
+      </div>
+      <div className="h-5 w-16 bg-[#F3F4F6] rounded-full" />
+    </div>
+  );
+}
+
+function DateGroup({
+  date,
+  appointments,
+  muted,
+}: {
+  date: string;
+  appointments: Appointment[];
+  muted: boolean;
+}) {
+  return (
+    <div>
+      <p
+        className={`text-[13px] font-semibold mb-2 ${
+          muted ? "text-[#9CA3AF]" : "text-[#374151]"
+        }`}
+      >
+        {formatDate(date)}
+      </p>
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+        <div className="divide-y divide-[#F3F4F6]">
+          {appointments
+            .sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime))
+            .map((apt) => (
+              <div
+                key={apt.id}
+                className="flex items-start gap-3 px-4 py-3.5"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p
+                      className={`text-[14px] font-semibold ${
+                        muted ? "text-[#6B7280]" : "text-[#111827]"
+                      }`}
+                    >
+                      {formatTime(apt.appointmentTime)}
+                    </p>
+                    <span className="text-[12px] text-[#9CA3AF]">
+                      {apt.durationMinutes} min
+                    </span>
+                  </div>
+                  {apt.notes && (
+                    <p className="text-[12px] text-[#6B7280] mt-0.5">
+                      {apt.notes}
+                    </p>
+                  )}
+                  {apt.cancellationReason && (
+                    <p className="text-[12px] text-[#DC2626] mt-0.5">
+                      Cancelled: {apt.cancellationReason}
+                    </p>
+                  )}
+                </div>
+                <span
+                  className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${statusStyle(
+                    apt.status
+                  )}`}
+                >
+                  {apt.status}
+                </span>
+              </div>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PatientAppointmentsPage() {
   const params = useParams();
   const patientId = params.patientId as string;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [patientEmail, setPatientEmail] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchAppointments();
-  }, [patientId]);
-
-  async function fetchAppointments() {
-    try {
-      const response = await fetch(
-        `/api/professional/appointments?patientId=${patientId}`
-      );
-      const data = await response.json();
-      const apts = data.appointments || [];
-      setAppointments(apts);
-      if (apts.length > 0) {
-        setPatientEmail(apts[0].patientEmail);
+    async function load() {
+      try {
+        const res = await fetch(
+          `/api/professional/appointments?patientId=${patientId}`
+        );
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setAppointments(data.appointments ?? []);
+      } catch {
+        setError("Failed to load appointments");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-    } finally {
-      setLoading(false);
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString + "T00:00:00");
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    const [hours, minutes] = timeString.split(":");
-    const hour = parseInt(hours, 10);
-    const isPM = hour >= 12;
-    const hour12 = hour % 12 || 12;
-    return `${hour12}:${minutes} ${isPM ? "PM" : "AM"}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "requested":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "completed":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
+    load();
+  }, [patientId]);
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Separate into upcoming and past
-  const upcomingAppointments = appointments.filter(
-    (apt) => apt.appointmentDate >= today
-  );
-  const pastAppointments = appointments.filter(
-    (apt) => apt.appointmentDate < today
-  );
+  const upcoming = appointments
+    .filter((a) => a.appointmentDate >= today)
+    .sort((a, b) => a.appointmentDate.localeCompare(b.appointmentDate));
 
-  // Group by date
-  const groupByDate = (apts: Appointment[]) => {
+  const past = appointments
+    .filter((a) => a.appointmentDate < today)
+    .sort((a, b) => b.appointmentDate.localeCompare(a.appointmentDate));
+
+  function groupByDate(apts: Appointment[]) {
     return apts.reduce((acc, apt) => {
-      if (!acc[apt.appointmentDate]) {
-        acc[apt.appointmentDate] = [];
-      }
-      acc[apt.appointmentDate].push(apt);
+      (acc[apt.appointmentDate] ??= []).push(apt);
       return acc;
     }, {} as Record<string, Appointment[]>);
-  };
+  }
 
-  const upcomingGrouped = groupByDate(upcomingAppointments);
-  const pastGrouped = groupByDate(pastAppointments);
+  const upcomingGroups = groupByDate(upcoming);
+  const pastGroups = groupByDate(past);
 
-  const upcomingDates = Object.keys(upcomingGrouped).sort();
-  const pastDates = Object.keys(pastGrouped).sort().reverse();
+  const upcomingDates = Object.keys(upcomingGroups).sort();
+  const pastDates = Object.keys(pastGroups).sort().reverse();
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title={`Appointments - ${patientEmail}`} />
+    <div className="p-4 md:p-8 max-w-[900px]">
 
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href={`/professional/patients/${patientId}`}
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Patient Details
-        </Link>
+      {/* Back link */}
+      <Link
+        href={`/professional/patients/${patientId}`}
+        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
+      >
+        ← Back to Patient
+      </Link>
 
-        {loading ? (
-          <div className="text-center py-12 text-muted-foreground">
-            Loading appointments...
-          </div>
-        ) : appointments.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground">
-              No appointments found for this patient
-            </p>
-          </Card>
-        ) : (
-          <div className="space-y-12">
-            {/* Upcoming Appointments */}
-            {upcomingAppointments.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6">
-                  Upcoming Appointments ({upcomingAppointments.length})
-                </h2>
-
-                <div className="space-y-8">
-                  {upcomingDates.map((date) => (
-                    <div key={date}>
-                      <h3 className="text-lg font-semibold mb-4">
-                        {formatDate(date)}
-                      </h3>
-
-                      <div className="grid gap-4">
-                        {upcomingGrouped[date]
-                          .sort((a, b) =>
-                            a.appointmentTime.localeCompare(b.appointmentTime)
-                          )
-                          .map((apt) => (
-                            <Card key={apt.id} className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <span className="text-lg font-semibold">
-                                      {formatTime(apt.appointmentTime)}
-                                    </span>
-                                    <span className="text-sm text-muted-foreground">
-                                      {apt.durationMinutes} min
-                                    </span>
-                                    <span
-                                      className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(
-                                        apt.status
-                                      )}`}
-                                    >
-                                      {apt.status}
-                                    </span>
-                                  </div>
-
-                                  {apt.notes && (
-                                    <div className="text-sm text-muted-foreground mt-2">
-                                      {apt.notes}
-                                    </div>
-                                  )}
-
-                                  {apt.cancellationReason && (
-                                    <div className="text-sm text-red-600 mt-2">
-                                      Cancelled: {apt.cancellationReason}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Past Appointments */}
-            {pastAppointments.length > 0 && (
-              <div>
-                <h2 className="text-2xl font-bold mb-6 text-muted-foreground">
-                  Past Appointments ({pastAppointments.length})
-                </h2>
-
-                <div className="space-y-8">
-                  {pastDates.map((date) => (
-                    <div key={date}>
-                      <h3 className="text-lg font-semibold mb-4 text-muted-foreground">
-                        {formatDate(date)}
-                      </h3>
-
-                      <div className="grid gap-4">
-                        {pastGrouped[date]
-                          .sort((a, b) =>
-                            a.appointmentTime.localeCompare(b.appointmentTime)
-                          )
-                          .map((apt) => (
-                            <Card
-                              key={apt.id}
-                              className="p-4 opacity-75 hover:opacity-100 transition-opacity"
-                            >
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-3 mb-2">
-                                    <span className="text-lg font-semibold">
-                                      {formatTime(apt.appointmentTime)}
-                                    </span>
-                                    <span className="text-sm text-muted-foreground">
-                                      {apt.durationMinutes} min
-                                    </span>
-                                    <span
-                                      className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(
-                                        apt.status
-                                      )}`}
-                                    >
-                                      {apt.status}
-                                    </span>
-                                  </div>
-
-                                  {apt.notes && (
-                                    <div className="text-sm text-muted-foreground mt-2">
-                                      {apt.notes}
-                                    </div>
-                                  )}
-
-                                  {apt.cancellationReason && (
-                                    <div className="text-sm text-red-600 mt-2">
-                                      Cancelled: {apt.cancellationReason}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </Card>
-                          ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Page heading */}
+      <div className="mb-6">
+        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+          Appointments
+        </h1>
+        {!loading && (
+          <p className="text-sm font-medium text-[#6B7280]">
+            {appointments.length === 0
+              ? "No appointments yet"
+              : `${upcoming.length} upcoming · ${past.length} past`}
+          </p>
         )}
-      </main>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="space-y-6">
+          <div>
+            <div className="h-3.5 w-48 bg-[#F3F4F6] rounded animate-pulse mb-2" />
+            <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6]">
+              <SkeletonRow />
+              <SkeletonRow />
+            </div>
+          </div>
+          <div>
+            <div className="h-3.5 w-40 bg-[#F3F4F6] rounded animate-pulse mb-2" />
+            <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6]">
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow />
+            </div>
+          </div>
+        </div>
+      ) : appointments.length === 0 ? (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl flex flex-col items-center justify-center py-14 px-6 text-center">
+          <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
+            <Calendar size={22} className="text-[#9CA3AF]" />
+          </div>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">
+            No appointments yet
+          </p>
+          <p className="text-[13px] text-[#9CA3AF]">
+            Appointments with this patient will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+
+          {/* Upcoming */}
+          {upcomingDates.length > 0 && (
+            <div className="space-y-4">
+              <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                Upcoming · {upcoming.length}
+              </p>
+              {upcomingDates.map((date) => (
+                <DateGroup
+                  key={date}
+                  date={date}
+                  appointments={upcomingGroups[date]}
+                  muted={false}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Past */}
+          {pastDates.length > 0 && (
+            <div className="space-y-4">
+              <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                Past · {past.length}
+              </p>
+              {pastDates.map((date) => (
+                <DateGroup
+                  key={date}
+                  date={date}
+                  appointments={pastGroups[date]}
+                  muted
+                />
+              ))}
+            </div>
+          )}
+
+        </div>
+      )}
     </div>
   );
 }
