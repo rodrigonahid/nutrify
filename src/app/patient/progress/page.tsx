@@ -2,18 +2,28 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { LogoutButton } from "@/components/logout-button";
-import { PageHeader } from "@/components/page-header";
+import { TrendingUp } from "lucide-react";
 import { DeltaIndicator } from "@/components/delta-indicator";
 import { Progress } from "@/types/progress";
 
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-36 bg-[#F3F4F6] rounded" />
+        <div className="h-3 w-56 bg-[#F3F4F6] rounded" />
+      </div>
+    </div>
+  );
+}
 
 export default function PatientProgressListPage() {
   const [progress, setProgress] = useState<Progress[]>([]);
@@ -21,152 +31,101 @@ export default function PatientProgressListPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchProgress();
+    fetch("/api/patient/progress")
+      .then((r) => r.json())
+      .then((d) => setProgress(d.progress ?? []))
+      .catch(() => setError("Failed to load progress data"))
+      .finally(() => setLoading(false));
   }, []);
 
-  async function fetchProgress() {
-    try {
-      const response = await fetch("/api/patient/progress");
-      if (!response.ok) {
-        throw new Error("Failed to fetch progress");
-      }
-      const data = await response.json();
-      setProgress(data.progress);
-    } catch (err) {
-      setError("Failed to load progress data");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="My Progress" />
+    <div className="p-4 md:p-8 max-w-[900px]">
 
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href="/patient"
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Dashboard
-        </Link>
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Progress History</h2>
-          <p className="text-muted-foreground">
-            View your progress entries recorded by your nutritionist
+      <Link
+        href="/patient"
+        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
+      >
+        ← Back to Dashboard
+      </Link>
+
+      <div className="mb-6">
+        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+          Progress History
+        </h1>
+        {!loading && (
+          <p className="text-sm font-medium text-[#6B7280]">
+            {progress.length === 0
+              ? "No entries yet"
+              : `${progress.length} entr${progress.length !== 1 ? "ies" : "y"}`}
+          </p>
+        )}
+      </div>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6]">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
+      ) : progress.length === 0 ? (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl flex flex-col items-center justify-center py-14 px-6 text-center">
+          <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
+            <TrendingUp size={22} className="text-[#9CA3AF]" />
+          </div>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">No entries yet</p>
+          <p className="text-[13px] text-[#9CA3AF]">
+            Your nutritionist will add your first progress entry soon.
           </p>
         </div>
-
-        {error && (
-          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
-            {error}
-          </div>
-        )}
-
-        {progress.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">
-                No progress entries yet. Your nutritionist will add your first
-                entry soon.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
+      ) : (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+          <div className="divide-y divide-[#F3F4F6]">
             {progress.map((entry, index) => {
-              const previousEntry = progress[index + 1];
-
+              const prev = progress[index + 1];
               return (
-                <Link key={entry.id} href={`/patient/progress/${entry.id}`}>
-                  <Card className="cursor-pointer hover:border-primary transition-colors">
-                    <CardHeader>
-                      <CardTitle className="text-lg">
-                        {formatDate(entry.createdAt)}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        {entry.totalWeight && (
-                          <div>
-                            <p className="text-muted-foreground">Weight</p>
-                            <div className="flex items-center gap-1">
-                              <p className="font-medium">{entry.totalWeight} kg</p>
-                              <DeltaIndicator
-                                current={entry.totalWeight}
-                                previous={previousEntry?.totalWeight || null}
-                                unit="kg"
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {entry.bmi && (
-                          <div>
-                            <p className="text-muted-foreground">BMI</p>
-                            <div className="flex items-center gap-1">
-                              <p className="font-medium">{entry.bmi}</p>
-                              <DeltaIndicator
-                                current={entry.bmi}
-                                previous={previousEntry?.bmi || null}
-                                unit=""
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {entry.bodyFatPercentage && (
-                          <div>
-                            <p className="text-muted-foreground">Body Fat</p>
-                            <div className="flex items-center gap-1">
-                              <p className="font-medium">
-                                {entry.bodyFatPercentage}%
-                              </p>
-                              <DeltaIndicator
-                                current={entry.bodyFatPercentage}
-                                previous={previousEntry?.bodyFatPercentage || null}
-                                unit="%"
-                              />
-                            </div>
-                          </div>
-                        )}
-                        {entry.height && (
-                          <div>
-                            <p className="text-muted-foreground">Height</p>
-                            <div className="flex items-center gap-1">
-                              <p className="font-medium">{entry.height} cm</p>
-                              <DeltaIndicator
-                                current={entry.height}
-                                previous={previousEntry?.height || null}
-                                unit="cm"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                <Link
+                  key={entry.id}
+                  href={`/patient/progress/${entry.id}`}
+                  className="flex items-start gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors duration-100 block"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold text-[#111827] mb-1">
+                      {formatDate(entry.createdAt)}
+                    </p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {entry.totalWeight && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[12px] text-[#6B7280]">{entry.totalWeight} kg</span>
+                          <DeltaIndicator current={entry.totalWeight} previous={prev?.totalWeight || null} unit="kg" />
+                        </div>
+                      )}
+                      {entry.bmi && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[12px] text-[#6B7280]">BMI {entry.bmi}</span>
+                          <DeltaIndicator current={entry.bmi} previous={prev?.bmi || null} unit="" />
+                        </div>
+                      )}
+                      {entry.bodyFatPercentage && (
+                        <div className="flex items-center gap-1">
+                          <span className="text-[12px] text-[#6B7280]">{entry.bodyFatPercentage}% fat</span>
+                          <DeltaIndicator current={entry.bodyFatPercentage} previous={prev?.bodyFatPercentage || null} unit="%" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-[12px] font-semibold text-[#2E8B5A] mt-0.5">→</span>
                 </Link>
               );
             })}
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }

@@ -68,7 +68,7 @@ export default function EditMealPlanPage() {
 
         reset({
           name: plan.name,
-          meals: plan.meals.map((meal: MealPlan["meals"][number]) => ({
+          meals: (plan.meals ?? []).map((meal: NonNullable<MealPlan["meals"]>[number]) => ({
             timeOfDay: meal.timeOfDay,
             orderIndex: meal.orderIndex,
             options: meal.options.map((opt) => ({

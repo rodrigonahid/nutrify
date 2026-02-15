@@ -9,13 +9,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { FormField, FormTextArea } from "@/components/ui/form-field";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   emailSchema,
   passwordSchema,
   nutritionistProfileSchema,
@@ -51,7 +44,6 @@ export default function CreateProfessionalPage() {
   async function onSubmit(data: CreateProfessionalFormData) {
     setError("");
     setLoading(true);
-
     try {
       const response = await fetch("/api/admin/professionals", {
         method: "POST",
@@ -64,15 +56,11 @@ export default function CreateProfessionalPage() {
           bio: data.bio || undefined,
         }),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         setError(result.error || "Failed to create professional");
         return;
       }
-
-      // Success - redirect to professionals list
       router.push("/admin/professionals");
     } catch {
       setError("An error occurred. Please try again.");
@@ -82,114 +70,111 @@ export default function CreateProfessionalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href="/admin/professionals"
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Professionals
-        </Link>
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Professional Account</CardTitle>
-            <CardDescription>
-              Add a new nutritionist to the platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
-                  {error}
-                </div>
-              )}
+    <div className="p-4 md:p-8 max-w-[640px]">
+      <Link
+        href="/admin/professionals"
+        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
+      >
+        ← Back to Professionals
+      </Link>
 
-              <div className="space-y-4">
-                <h3 className="font-medium text-sm">Account Credentials</h3>
+      <div className="mb-6">
+        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+          Create Professional Account
+        </h1>
+        <p className="text-sm font-medium text-[#6B7280]">
+          Add a new nutritionist to the platform
+        </p>
+      </div>
 
-                <FormField
-                  label="Email"
-                  type="email"
-                  placeholder="professional@example.com"
-                  registration={register("email")}
-                  error={errors.email}
-                  disabled={loading}
-                />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {error && (
+          <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626]">
+            {error}
+          </div>
+        )}
 
-                <FormField
-                  label="Password"
-                  type="password"
-                  placeholder="••••••••"
-                  registration={register("password")}
-                  error={errors.password}
-                  hint="At least 8 characters with uppercase, lowercase, and number"
-                  disabled={loading}
-                />
+        {/* Account credentials */}
+        <div className="space-y-4">
+          <p className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+            Account Credentials
+          </p>
 
-                <FormField
-                  label="Confirm Password"
-                  type="password"
-                  placeholder="••••••••"
-                  registration={register("confirmPassword")}
-                  error={errors.confirmPassword}
-                  disabled={loading}
-                />
-              </div>
+          <FormField
+            label="Email"
+            type="email"
+            placeholder="professional@example.com"
+            registration={register("email")}
+            error={errors.email}
+            disabled={loading}
+          />
 
-              <div className="border-t pt-6 space-y-4">
-                <h3 className="font-medium text-sm">
-                  Professional Information (Optional)
-                </h3>
+          <FormField
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            registration={register("password")}
+            error={errors.password}
+            hint="At least 8 characters with uppercase, lowercase, and number"
+            disabled={loading}
+          />
 
-                <FormField
-                  label="Professional License"
-                  type="text"
-                  placeholder="License number"
-                  registration={register("professionalLicense")}
-                  error={errors.professionalLicense}
-                  disabled={loading}
-                />
+          <FormField
+            label="Confirm Password"
+            type="password"
+            placeholder="••••••••"
+            registration={register("confirmPassword")}
+            error={errors.confirmPassword}
+            disabled={loading}
+          />
+        </div>
 
-                <FormField
-                  label="Specialization"
-                  type="text"
-                  placeholder="e.g., Sports Nutrition, Weight Management"
-                  registration={register("specialization")}
-                  error={errors.specialization}
-                  hint="Maximum 255 characters"
-                  disabled={loading}
-                />
+        {/* Professional info */}
+        <div className="border-t border-[#F3F4F6] pt-6 space-y-4">
+          <p className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
+            Professional Information (Optional)
+          </p>
 
-                <FormTextArea
-                  label="Bio"
-                  placeholder="Brief professional biography..."
-                  registration={register("bio")}
-                  error={errors.bio}
-                  hint="Maximum 2000 characters"
-                  disabled={loading}
-                />
-              </div>
+          <FormField
+            label="Professional License"
+            type="text"
+            placeholder="License number"
+            registration={register("professionalLicense")}
+            error={errors.professionalLicense}
+            disabled={loading}
+          />
 
-              <div className="flex gap-4 pt-4">
-                <Button type="submit" disabled={loading} className="flex-1">
-                  {loading ? "Creating..." : "Create Professional"}
-                </Button>
-                <Link href="/admin/professionals" className="flex-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={loading}
-                    className="w-full"
-                  >
-                    Cancel
-                  </Button>
-                </Link>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </main>
+          <FormField
+            label="Specialization"
+            type="text"
+            placeholder="e.g., Sports Nutrition, Weight Management"
+            registration={register("specialization")}
+            error={errors.specialization}
+            hint="Maximum 255 characters"
+            disabled={loading}
+          />
+
+          <FormTextArea
+            label="Bio"
+            placeholder="Brief professional biography…"
+            registration={register("bio")}
+            error={errors.bio}
+            hint="Maximum 2000 characters"
+            disabled={loading}
+          />
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading ? "Creating…" : "Create Professional"}
+          </Button>
+          <Link href="/admin/professionals" className="flex-1">
+            <Button type="button" variant="outline" disabled={loading} className="w-full">
+              Cancel
+            </Button>
+          </Link>
+        </div>
+      </form>
     </div>
   );
 }

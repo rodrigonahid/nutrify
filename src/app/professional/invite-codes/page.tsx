@@ -2,19 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Ticket, Plus, Copy, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogoutButton } from "@/components/logout-button";
-import { PageHeader } from "@/components/page-header";
 import { InviteCode } from "@/types";
+
+function codeStatus(code: InviteCode): { label: string; style: string } {
+  if (code.used) return { label: "Used", style: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" };
+  if (code.expiresAt && new Date(code.expiresAt) < new Date())
+    return { label: "Expired", style: "text-[#DC2626] bg-[rgba(220,38,38,0.08)]" };
+  return { label: "Available", style: "text-[#1D4ED8] bg-[rgba(29,78,216,0.08)]" };
+}
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
+      <div className="flex-1 space-y-1.5">
+        <div className="h-4 w-36 bg-[#F3F4F6] rounded" />
+        <div className="h-3 w-24 bg-[#F3F4F6] rounded" />
+      </div>
+      <div className="h-5 w-16 bg-[#F3F4F6] rounded-full" />
+    </div>
+  );
+}
 
 export default function InviteCodesPage() {
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -26,20 +36,17 @@ export default function InviteCodesPage() {
   const [patientName, setPatientName] = useState("");
 
   useEffect(() => {
-    fetchInviteCodes();
+    fetchCodes();
   }, []);
 
-  async function fetchInviteCodes() {
+  async function fetchCodes() {
     try {
-      const response = await fetch("/api/professional/invite-codes");
-      if (!response.ok) {
-        throw new Error("Failed to fetch invite codes");
-      }
-      const data = await response.json();
-      setInviteCodes(data.inviteCodes);
-    } catch (err) {
+      const res = await fetch("/api/professional/invite-codes");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setInviteCodes(data.inviteCodes ?? []);
+    } catch {
       setError("Failed to load invite codes");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -47,224 +54,240 @@ export default function InviteCodesPage() {
 
   async function generateCode(e: React.FormEvent) {
     e.preventDefault();
-
     if (!patientName.trim()) {
       setError("Patient name is required");
       return;
     }
-
     setGenerating(true);
     setError("");
-
     try {
-      const response = await fetch("/api/professional/invite-codes", {
+      const res = await fetch("/api/professional/invite-codes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patientName: patientName.trim() }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate invite code");
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Failed to generate invite code");
       }
-
-      // Refresh the list
-      await fetchInviteCodes();
-
-      // Close modal and reset form
+      await fetchCodes();
       setShowModal(false);
       setPatientName("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate invite code");
-      console.error(err);
     } finally {
       setGenerating(false);
     }
   }
 
-  async function copyToClipboard(code: string) {
+  async function copyCode(code: string) {
     try {
-      // Just copy the code, no URL needed
       await navigator.clipboard.writeText(code);
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    } catch {
+      // clipboard unavailable
     }
   }
 
-  function getCodeStatus(code: InviteCode) {
-    if (code.used) {
-      return { label: "Used", color: "text-green-600" };
-    }
-    if (code.expiresAt && new Date(code.expiresAt) < new Date()) {
-      return { label: "Expired", color: "text-red-600" };
-    }
-    return { label: "Available", color: "text-blue-600" };
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+  function closeModal() {
+    setShowModal(false);
+    setPatientName("");
+    setError("");
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Invite Codes" />
+    <div className="p-4 md:p-8 max-w-[900px]">
 
-      <main className="container mx-auto px-4 py-8 max-w-[1200px]">
-        <Link
-          href="/professional"
-          className="inline-block mb-6 text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to Dashboard
-        </Link>
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="text-2xl font-bold">Patient Invite Codes</h2>
-            <p className="text-muted-foreground">
-              Generate codes for new patients to sign up
+      {/* Back link */}
+      <Link
+        href="/professional"
+        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
+      >
+        ← Back to Dashboard
+      </Link>
+
+      {/* Page heading */}
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+            Invite Codes
+          </h1>
+          {!loading && (
+            <p className="text-sm font-medium text-[#6B7280]">
+              {inviteCodes.length === 0
+                ? "No codes yet"
+                : `${inviteCodes.length} code${inviteCodes.length !== 1 ? "s" : ""}`}
             </p>
-          </div>
-          <Button onClick={() => setShowModal(true)}>
-            + Generate Code
-          </Button>
+          )}
         </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] shrink-0"
+        >
+          <Plus size={13} strokeWidth={2.5} />
+          Generate Code
+        </button>
+      </div>
 
-        {error && (
-          <div className="mb-6 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md">
-            {error}
+      {/* Error */}
+      {error && !showModal && (
+        <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
+          {error}
+        </div>
+      )}
+
+      {/* List */}
+      {loading ? (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6]">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
+      ) : inviteCodes.length === 0 ? (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl flex flex-col items-center justify-center py-14 px-6 text-center">
+          <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
+            <Ticket size={22} className="text-[#9CA3AF]" />
           </div>
-        )}
-
-        {inviteCodes.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">
-                No invite codes yet. Generate your first code to invite patients.
-              </p>
-              <Button onClick={() => setShowModal(true)}>
-                Generate Invite Code
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {inviteCodes.map((inviteCode) => {
-              const status = getCodeStatus(inviteCode);
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">
+            No invite codes yet
+          </p>
+          <p className="text-[13px] text-[#9CA3AF] mb-5">
+            Generate a code to invite a new patient.
+          </p>
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            Generate First Code
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+          <div className="divide-y divide-[#F3F4F6]">
+            {inviteCodes.map((ic) => {
+              const { label, style } = codeStatus(ic);
               return (
-                <Card key={inviteCode.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <CardTitle className="text-2xl font-mono tracking-widest">
-                          {inviteCode.code}
-                        </CardTitle>
-                        <CardDescription>
-                          Created {new Date(inviteCode.createdAt).toLocaleDateString()}
-                          {inviteCode.expiresAt && (
-                            <> • Expires {new Date(inviteCode.expiresAt).toLocaleDateString()}</>
-                          )}
-                        </CardDescription>
-                      </div>
-                      <span className={`text-sm font-medium ${status.color}`}>
-                        {status.label}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center">
-                      <div className="text-sm space-y-1">
-                        <p className="text-muted-foreground">
-                          Patient: <span className="font-medium text-foreground">{inviteCode.patientName}</span>
-                        </p>
-                        {inviteCode.used && inviteCode.patientEmail ? (
-                          <p className="text-muted-foreground">
-                            Used by: <span className="font-medium">{inviteCode.patientEmail}</span>
-                          </p>
-                        ) : (
-                          <p className="text-muted-foreground text-xs">
-                            Share this code with your patient to sign up
-                          </p>
-                        )}
-                      </div>
-                      {!inviteCode.used && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyToClipboard(inviteCode.code)}
-                        >
-                          {copiedCode === inviteCode.code ? "Copied!" : "Copy Code"}
-                        </Button>
+                <div
+                  key={ic.id}
+                  className="flex items-start gap-3 px-4 py-3.5"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-bold text-[#111827] font-mono tracking-widest mb-0.5">
+                      {ic.code}
+                    </p>
+                    <p className="text-[12px] text-[#6B7280]">
+                      {ic.patientName}
+                      {ic.used && ic.patientEmail && (
+                        <span className="text-[#9CA3AF]"> · used by {ic.patientEmail}</span>
                       )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      {!ic.used && ic.expiresAt && (
+                        <span className="text-[#9CA3AF]">
+                          {" "}· expires {new Date(ic.expiresAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${style}`}>
+                      {label}
+                    </span>
+                    {!ic.used && (
+                      <button
+                        onClick={() => copyCode(ic.code)}
+                        className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] rounded-[6px] transition-colors duration-100"
+                        aria-label="Copy code"
+                        title={copiedCode === ic.code ? "Copied!" : "Copy code"}
+                      >
+                        {copiedCode === ic.code ? (
+                          <Check size={13} strokeWidth={2.5} className="text-[#2E8B5A]" />
+                        ) : (
+                          <Copy size={13} strokeWidth={2} />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Generate Code Modal */}
-        {showModal && (
+      {/* Generate Code Modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
           <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => {
-              setShowModal(false);
-              setPatientName("");
-              setError("");
-            }}
+            className="w-full max-w-sm bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            <Card
-              className="max-w-md w-full"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <CardHeader>
-                <CardTitle>Generate Invite Code</CardTitle>
-                <CardDescription>
-                  Enter the patient's name to generate an invite code
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={generateCode} className="space-y-4">
-                  <div>
-                    <Label htmlFor="patient-name">Patient Name</Label>
-                    <Input
-                      id="patient-name"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      placeholder="e.g., John Doe"
-                      autoFocus
-                      disabled={generating}
-                    />
-                  </div>
+            <div className="px-6 py-5 border-b border-[#F3F4F6]">
+              <p className="text-[16px] font-bold text-[#111827]">Generate Invite Code</p>
+              <p className="text-[13px] text-[#6B7280] mt-0.5">
+                Enter the patient's name to generate a code.
+              </p>
+            </div>
 
-                  <div className="flex gap-3">
-                    <Button type="submit" disabled={generating} className="flex-1">
-                      {generating ? "Generating..." : "Generate Code"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setShowModal(false);
-                        setPatientName("");
-                        setError("");
-                      }}
-                      disabled={generating}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+            <form onSubmit={generateCode} className="p-6 space-y-5">
+              {error && (
+                <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold text-[#DC2626]">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <Label
+                  htmlFor="patient-name"
+                  className="text-[14px] font-semibold text-[#374151] mb-1.5 block"
+                >
+                  Patient Name
+                </Label>
+                <Input
+                  id="patient-name"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  placeholder="e.g., John Doe"
+                  autoFocus
+                  disabled={generating}
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={generating}
+                  className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={generating}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 text-[14px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] disabled:opacity-60 disabled:shadow-none"
+                >
+                  {generating ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Generating…
+                    </>
+                  ) : (
+                    "Generate Code"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }

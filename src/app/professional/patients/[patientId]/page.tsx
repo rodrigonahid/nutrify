@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, UtensilsCrossed, CalendarDays, Dumbbell, Plus } from "lucide-react";
-import { Patient, Progress, MealPlanListItem } from "@/types";
+import { Patient, Progress, MealPlanListItem, PatientPlan } from "@/types";
 
 function calculateAge(dateOfBirth: string | null): number | null {
   if (!dateOfBirth) return null;
@@ -24,6 +24,27 @@ function formatDate(dateString: string) {
   });
 }
 
+function formatPlanDate(dateStr: string | null) {
+  if (!dateStr) return "—";
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatPrice(price: string, currency: string) {
+  const num = parseFloat(price);
+  if (currency === "BRL") return `R$ ${num.toFixed(2).replace(".", ",")}`;
+  return `${currency} ${num.toFixed(2)}`;
+}
+
+const PLAN_STATUS_STYLES: Record<string, { label: string; className: string }> = {
+  active: { label: "Active", className: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" },
+  paused: { label: "Paused", className: "text-[#854D0E] bg-[#FEF9C3]" },
+  cancelled: { label: "Cancelled", className: "text-[#DC2626] bg-[#FEF2F2]" },
+};
+
 export default function PatientDetailPage() {
   const params = useParams();
   const patientId = params.patientId as string;
@@ -31,24 +52,27 @@ export default function PatientDetailPage() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [recentProgress, setRecentProgress] = useState<Progress[]>([]);
   const [activeMealPlan, setActiveMealPlan] = useState<MealPlanListItem | null>(null);
+  const [plan, setPlan] = useState<PatientPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [patientRes, progressRes, mealPlanRes] = await Promise.all([
+        const [patientRes, progressRes, mealPlanRes, planRes] = await Promise.all([
           fetch(`/api/professional/patients/${patientId}`),
           fetch(`/api/professional/patients/${patientId}/progress`),
           fetch(`/api/professional/patients/${patientId}/meal-plan`),
+          fetch(`/api/professional/patients/${patientId}/plan`),
         ]);
 
         if (!patientRes.ok) throw new Error("Failed to load patient");
 
-        const [patientData, progressData, mealPlanData] = await Promise.all([
+        const [patientData, progressData, mealPlanData, planData] = await Promise.all([
           patientRes.json(),
           progressRes.ok ? progressRes.json() : { progress: [] },
           mealPlanRes.ok ? mealPlanRes.json() : { mealPlans: [] },
+          planRes.ok ? planRes.json() : { plan: null },
         ]);
 
         setPatient(patientData.patient);
@@ -57,6 +81,7 @@ export default function PatientDetailPage() {
           (mp: MealPlanListItem) => mp.isActive
         ) ?? null;
         setActiveMealPlan(active);
+        setPlan(planData.plan ?? null);
       } catch {
         setError("Failed to load patient data");
       } finally {
@@ -227,6 +252,58 @@ export default function PatientDetailPage() {
         ) : (
           <div className="px-4 py-5 text-center">
             <p className="text-[13px] text-[#9CA3AF]">No active meal plan yet.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Payment Plan */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
+          <p className="text-[14px] font-semibold text-[#111827]">Payment Plan</p>
+          <Link
+            href={`/professional/patients/${patientId}/plan`}
+            className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[6px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-100"
+          >
+            {plan ? "Manage plan" : (
+              <>
+                <Plus size={11} strokeWidth={2.5} />
+                Set plan
+              </>
+            )}
+          </Link>
+        </div>
+        {loading ? (
+          <div className="px-4 py-4 animate-pulse">
+            <div className="h-4 w-48 bg-[#F3F4F6] rounded" />
+          </div>
+        ) : plan ? (
+          <Link
+            href={`/professional/patients/${patientId}/plan`}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-semibold text-[#111827]">
+                {formatPrice(plan.price, plan.currency)} / {plan.billingCycle}
+              </p>
+              {plan.nextPaymentDate && (
+                <p className="text-[12px] text-[#9CA3AF] mt-0.5">
+                  Next payment: {formatPlanDate(plan.nextPaymentDate)}
+                </p>
+              )}
+            </div>
+            {(() => {
+              const s = PLAN_STATUS_STYLES[plan.status] ?? PLAN_STATUS_STYLES.active;
+              return (
+                <span className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${s.className}`}>
+                  {s.label}
+                </span>
+              );
+            })()}
+            <ChevronRight size={15} strokeWidth={2} className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors shrink-0" />
+          </Link>
+        ) : (
+          <div className="px-4 py-5 text-center">
+            <p className="text-[13px] text-[#9CA3AF]">No plan set.</p>
           </div>
         )}
       </div>

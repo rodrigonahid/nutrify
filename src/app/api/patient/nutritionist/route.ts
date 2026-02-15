@@ -30,6 +30,8 @@ export async function GET() {
     const [nutritionist] = await db
       .select({
         id: professionals.id,
+        name: professionals.name,
+        phone: professionals.phone,
         professionalLicense: professionals.professionalLicense,
         specialization: professionals.specialization,
         bio: professionals.bio,

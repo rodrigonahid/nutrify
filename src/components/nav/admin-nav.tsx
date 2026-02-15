@@ -1,13 +1,21 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Stethoscope, LogOut } from "lucide-react";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  label: string;
+  exact?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/admin", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/admin/professionals", icon: Stethoscope, label: "Nutritionists" },
-] as const;
+];
 
 interface AdminNavProps {
   userEmail: string;

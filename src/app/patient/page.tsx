@@ -25,11 +25,11 @@ const FEATURE_CARDS = [
     available: true,
   },
   {
-    href: "#",
+    href: "/patient/nutritionist",
     icon: User,
     label: "My Nutritionist",
-    desc: "Contact and schedule appointments",
-    available: false,
+    desc: "View your nutritionist and plan",
+    available: true,
   },
 ];
 

@@ -137,11 +137,32 @@ export interface ProgressWithComparison {
 export interface Nutritionist {
   id: number;
   name: string | null;
+  phone: string | null;
   professionalLicense: string | null;
   specialization: string | null;
   bio: string | null;
   email: string;
   createdAt: string;
+}
+
+// Patient Plan Types
+export type BillingCycle = "monthly" | "quarterly" | "annual" | "custom";
+export type PlanStatus = "active" | "paused" | "cancelled";
+
+export interface PatientPlan {
+  id: number;
+  patientId: number;
+  professionalId: number;
+  price: string;
+  currency: string;
+  billingCycle: BillingCycle;
+  status: PlanStatus;
+  startDate: string;
+  nextPaymentDate: string | null;
+  lastPaymentDate: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Appointment Types

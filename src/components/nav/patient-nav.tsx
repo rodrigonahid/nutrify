@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -10,12 +11,19 @@ import {
   LogOut,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+  label: string;
+  exact?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/patient", icon: LayoutDashboard, label: "Dashboard", exact: true },
   { href: "/patient/meal-plan", icon: UtensilsCrossed, label: "Meal Plan" },
   { href: "/patient/progress", icon: TrendingUp, label: "Progress" },
   { href: "/patient/training", icon: Dumbbell, label: "Training" },
-] as const;
+];
 
 interface PatientNavProps {
   userEmail: string;

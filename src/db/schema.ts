@@ -55,6 +55,7 @@ export const professionals = pgTable("professionals", {
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
   name: text("name"),
+  phone: text("phone"),
   professionalLicense: text("professional_license"),
   specialization: text("specialization"),
   bio: text("bio"),
@@ -75,6 +76,7 @@ export const professionalsRelations = relations(
     appointments: many(appointments),
     exercises: many(exercises),
     workouts: many(workouts),
+    patientPlans: many(patientPlans),
   })
 );
 
@@ -117,6 +119,10 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   exercises: many(exercises),
   workouts: many(workouts),
   trainingSessions: many(trainingSessions),
+  patientPlan: one(patientPlans, {
+    fields: [patients.id],
+    references: [patientPlans.patientId],
+  }),
 }));
 
 // Invite codes table - for patient signup
@@ -625,5 +631,40 @@ export const exercisePrsRelations = relations(exercisePrs, ({ one }) => ({
   patient: one(patients, {
     fields: [exercisePrs.patientId],
     references: [patients.id],
+  }),
+}));
+
+// Patient Plans — billing/payment plan per patient (managed by professional)
+export const patientPlans = pgTable("patient_plans", {
+  id: serial("id").primaryKey(),
+  patientId: integer("patient_id")
+    .notNull()
+    .unique()
+    .references(() => patients.id, { onDelete: "cascade" }),
+  professionalId: integer("professional_id")
+    .notNull()
+    .references(() => professionals.id, { onDelete: "cascade" }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("BRL"),
+  billingCycle: text("billing_cycle").notNull().default("monthly"),
+  // "monthly" | "quarterly" | "annual" | "custom"
+  status: text("status").notNull().default("active"),
+  // "active" | "paused" | "cancelled"
+  startDate: date("start_date").notNull(),
+  nextPaymentDate: date("next_payment_date"),
+  lastPaymentDate: date("last_payment_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const patientPlansRelations = relations(patientPlans, ({ one }) => ({
+  patient: one(patients, {
+    fields: [patientPlans.patientId],
+    references: [patients.id],
+  }),
+  professional: one(professionals, {
+    fields: [patientPlans.professionalId],
+    references: [professionals.id],
   }),
 }));
