@@ -6,29 +6,29 @@ const FEATURE_CARDS = [
   {
     href: "/patient/meal-plan",
     icon: UtensilsCrossed,
-    label: "My Meal Plan",
-    desc: "View your current nutrition plan",
+    label: "Meu Plano Alimentar",
+    desc: "Veja seu plano nutricional atual",
     available: true,
   },
   {
     href: "/patient/progress",
     icon: TrendingUp,
-    label: "Progress",
-    desc: "Track your health journey",
+    label: "Progresso",
+    desc: "Acompanhe sua jornada de saúde",
     available: true,
   },
   {
     href: "/patient/training",
     icon: Dumbbell,
-    label: "Training",
-    desc: "Track your gym progress",
+    label: "Treino",
+    desc: "Acompanhe seu progresso na academia",
     available: true,
   },
   {
     href: "/patient/nutritionist",
     icon: User,
-    label: "My Nutritionist",
-    desc: "View your nutritionist and plan",
+    label: "Meu Nutricionista",
+    desc: "Veja seu nutricionista e plano",
     available: true,
   },
 ];
@@ -45,10 +45,10 @@ export default async function PatientDashboard() {
       {/* Page heading */}
       <div className="mb-8">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
-          Hello, {firstName}
+          Olá, {firstName}
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">
-          Here&apos;s an overview of your health journey
+          Aqui está uma visão geral da sua jornada de saúde
         </p>
       </div>
 

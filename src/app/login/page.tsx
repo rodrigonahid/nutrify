@@ -10,7 +10,7 @@ import { emailSchema } from "@/lib/validation";
 
 const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(1, "Senha obrigatória"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -62,7 +62,7 @@ function LoginForm() {
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || "Login failed");
+        setError(result.error || "Falha no login");
         return;
       }
 
@@ -82,7 +82,7 @@ function LoginForm() {
 
       window.location.href = finalDestination;
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("Ocorreu um erro. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ function LoginForm() {
 
             {/* Tagline */}
             <p className="relative z-10 text-[13px] font-medium text-white/[0.48] mb-[26px]">
-              Nutrition management for professionals
+              Gestão nutricional para profissionais
             </p>
           </div>
 
@@ -131,10 +131,10 @@ function LoginForm() {
         <div className="px-10 pt-0 pb-10 max-sm:px-7 max-sm:pb-12">
           <div className="mb-[26px]">
             <h1 className="text-[22px] font-extrabold text-[#111827] tracking-[-0.4px] mb-1">
-              Welcome back
+              Bem-vindo de volta
             </h1>
             <p className="text-sm font-medium text-[#6B7280]">
-              Sign in to continue to your dashboard
+              Entre para acessar seu painel
             </p>
           </div>
 
@@ -158,7 +158,7 @@ function LoginForm() {
             {/* Email field */}
             <div className="flex flex-col gap-[6px] mb-[14px]">
               <label htmlFor="email" className="text-[14px] font-semibold text-[#374151]">
-                Email address
+                E-mail
               </label>
               <div className="group relative flex items-center">
                 <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -186,7 +186,7 @@ function LoginForm() {
             {/* Password field */}
             <div className="flex flex-col gap-[6px] mb-[14px]">
               <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
-                Password
+                Senha
               </label>
               <div className="group relative flex items-center">
                 <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -209,7 +209,7 @@ function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   className="absolute right-[11px] text-[#9CA3AF] hover:text-[#2E8B5A] p-[5px] rounded-[6px] transition-colors duration-150"
                 >
                   {showPassword ? (
@@ -243,17 +243,17 @@ function LoginForm() {
                   <path d="M8.5 1.5a7 7 0 017 7" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               ) : (
-                "Sign in"
+                "Entrar"
               )}
             </button>
 
             <p className="text-center text-[14px] font-medium text-[#6B7280]">
-              Don&apos;t have an account?{" "}
+              Não tem uma conta?{" "}
               <Link
                 href="/signup"
                 className="text-[#2E8B5A] font-bold hover:opacity-75 transition-opacity duration-150"
               >
-                Create account
+                Criar conta
               </Link>
             </p>
 
@@ -268,7 +268,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-dvh flex items-center justify-center bg-[#F2F4F3]">
-        <div className="animate-pulse text-[#6B7280]">Loading...</div>
+        <div className="animate-pulse text-[#6B7280]">Carregando...</div>
       </div>
     }>
       <LoginForm />

@@ -6,6 +6,14 @@ import { Calendar, Plus, Trash2 } from "lucide-react";
 import { CreateAppointmentModal } from "@/components/appointments/create-appointment-modal";
 import { AppointmentWithPatient } from "@/types";
 
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: "Confirmada",
+  pending: "Pendente",
+  requested: "Solicitada",
+  cancelled: "Cancelada",
+  completed: "Concluída",
+};
+
 function statusStyle(status: string) {
   switch (status) {
     case "confirmed":
@@ -30,9 +38,9 @@ function formatDate(dateString: string) {
   tomorrow.setDate(tomorrow.getDate() + 1);
   date.setHours(0, 0, 0, 0);
 
-  if (date.getTime() === today.getTime()) return "Today";
-  if (date.getTime() === tomorrow.getTime()) return "Tomorrow";
-  return date.toLocaleDateString("en-US", {
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
+  return date.toLocaleDateString("pt-BR", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -73,7 +81,7 @@ export default function SchedulesPage() {
       const data = await res.json();
       setAppointments(data.appointments ?? []);
     } catch {
-      setError("Failed to load appointments");
+      setError("Falha ao carregar consultas");
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ export default function SchedulesPage() {
   async function handleCancel() {
     if (!appointmentToCancel) return;
     if (!cancellationReason.trim()) {
-      setError("Please provide a cancellation reason");
+      setError("Informe o motivo do cancelamento");
       return;
     }
     setCancelling(true);
@@ -100,14 +108,14 @@ export default function SchedulesPage() {
       });
       if (!res.ok) {
         const d = await res.json();
-        throw new Error(d.error || "Failed to cancel appointment");
+        throw new Error(d.error || "Falha ao cancelar consulta");
       }
       setIsCancelModalOpen(false);
       setAppointmentToCancel(null);
       setCancellationReason("");
       await fetchAppointments();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to cancel appointment");
+      setError(err instanceof Error ? err.message : "Falha ao cancelar consulta");
     } finally {
       setCancelling(false);
     }
@@ -128,20 +136,20 @@ export default function SchedulesPage() {
         href="/professional"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       {/* Page heading */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Appointments
+            Consultas
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {appointments.length === 0
-                ? "No appointments yet"
-                : `${appointments.length} appointment${appointments.length !== 1 ? "s" : ""}`}
+                ? "Nenhuma consulta ainda"
+                : `${appointments.length} consulta${appointments.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -150,7 +158,7 @@ export default function SchedulesPage() {
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] shrink-0"
         >
           <Plus size={13} strokeWidth={2.5} />
-          Add Schedule
+          Adicionar horário
         </button>
       </div>
 
@@ -178,17 +186,17 @@ export default function SchedulesPage() {
             <Calendar size={22} className="text-[#9CA3AF]" />
           </div>
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
-            No appointments scheduled
+            Nenhuma consulta agendada
           </p>
           <p className="text-[13px] text-[#9CA3AF] mb-5">
-            Create your first appointment to get started.
+            Crie sua primeira consulta para começar.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
           >
             <Plus size={13} strokeWidth={2.5} />
-            Add Schedule
+            Adicionar horário
           </button>
         </div>
       ) : (
@@ -229,20 +237,20 @@ export default function SchedulesPage() {
                           )}
                           {apt.cancellationReason && (
                             <p className="text-[12px] text-[#DC2626] mt-0.5">
-                              Cancelled: {apt.cancellationReason}
+                              Cancelada: {apt.cancellationReason}
                             </p>
                           )}
                         </div>
 
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${statusStyle(apt.status)}`}>
-                            {apt.status}
+                          <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(apt.status)}`}>
+                            {STATUS_LABELS[apt.status] ?? apt.status}
                           </span>
                           {apt.status !== "cancelled" && (
                             <button
                               onClick={() => openCancelModal(apt.id)}
                               className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] rounded-[6px] transition-colors duration-100"
-                              aria-label="Cancel appointment"
+                              aria-label="Cancelar consulta"
                             >
                               <Trash2 size={13} strokeWidth={2} />
                             </button>
@@ -274,9 +282,9 @@ export default function SchedulesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-5 border-b border-[#F3F4F6]">
-              <p className="text-[16px] font-bold text-[#111827]">Cancel Appointment</p>
+              <p className="text-[16px] font-bold text-[#111827]">Cancelar consulta</p>
               <p className="text-[13px] text-[#6B7280] mt-0.5">
-                Please provide a reason for cancelling.
+                Informe o motivo do cancelamento.
               </p>
             </div>
 
@@ -289,7 +297,7 @@ export default function SchedulesPage() {
               <textarea
                 value={cancellationReason}
                 onChange={(e) => setCancellationReason(e.target.value)}
-                placeholder="Enter cancellation reason…"
+                placeholder="Motivo do cancelamento…"
                 className="w-full px-3 py-2.5 text-[14px] text-[#111827] bg-[#F9FAFB] border border-[#E5E7EB] rounded-[10px] focus:outline-none focus:border-[#2E8B5A] focus:ring-[3px] focus:ring-[rgba(46,139,90,0.16)] focus:bg-white resize-none transition-all"
                 rows={4}
                 maxLength={500}
@@ -305,7 +313,7 @@ export default function SchedulesPage() {
                   disabled={cancelling}
                   className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150 disabled:opacity-50"
                 >
-                  Keep Appointment
+                  Manter consulta
                 </button>
                 <button
                   type="button"
@@ -319,10 +327,10 @@ export default function SchedulesPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Cancelling…
+                      Cancelando…
                     </>
                   ) : (
-                    "Cancel Appointment"
+                    "Cancelar consulta"
                   )}
                 </button>
               </div>

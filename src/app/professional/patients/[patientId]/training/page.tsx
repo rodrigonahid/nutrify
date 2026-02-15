@@ -14,7 +14,7 @@ interface Session {
 }
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -45,7 +45,7 @@ export default function PatientTrainingPage() {
     fetch(`/api/professional/patients/${patientId}/training/sessions`)
       .then((r) => r.json())
       .then((d) => setSessions(d.sessions ?? []))
-      .catch(() => setError("Failed to load sessions"))
+      .catch(() => setError("Falha ao carregar sessões"))
       .finally(() => setLoading(false));
   }, [patientId]);
 
@@ -57,19 +57,19 @@ export default function PatientTrainingPage() {
         href={`/professional/patients/${patientId}`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Patient
+        ← Voltar ao paciente
       </Link>
 
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Training Sessions
+          Sessões de Treino
         </h1>
         {!loading && (
           <p className="text-sm font-medium text-[#6B7280]">
             {sessions.length === 0
-              ? "No sessions yet"
-              : `${sessions.length} session${sessions.length !== 1 ? "s" : ""}`}
+              ? "Nenhuma sessão ainda"
+              : `${sessions.length} ${sessions.length !== 1 ? "sessões" : "sessão"}`}
           </p>
         )}
       </div>
@@ -93,10 +93,10 @@ export default function PatientTrainingPage() {
             <Dumbbell size={22} className="text-[#9CA3AF]" />
           </div>
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
-            No training sessions yet
+            Nenhuma sessão de treino ainda
           </p>
           <p className="text-[13px] text-[#9CA3AF]">
-            Sessions will appear here once the patient starts logging workouts.
+            As sessões aparecerão aqui quando o paciente começar a registrar treinos.
           </p>
         </div>
       ) : (
@@ -125,7 +125,7 @@ export default function PatientTrainingPage() {
                   )}
                 </div>
                 <p className="shrink-0 text-[13px] text-[#9CA3AF]">
-                  {session.exerciseCount} exercise{session.exerciseCount !== 1 ? "s" : ""}
+                  {session.exerciseCount} exercício{session.exerciseCount !== 1 ? "s" : ""}
                 </p>
               </div>
             ))}

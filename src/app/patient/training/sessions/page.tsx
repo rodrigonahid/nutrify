@@ -27,7 +27,7 @@ function SkeletonRow() {
 
 function formatSessionDate(dateStr: string) {
   const [y, m, d] = dateStr.split("-");
-  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("en-US", {
+  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("pt-BR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -43,7 +43,7 @@ export default function SessionsPage() {
     fetch("/api/patient/training/sessions")
       .then((r) => r.json())
       .then((d) => setSessions(d.sessions ?? []))
-      .catch(() => setError("Failed to load sessions"))
+      .catch(() => setError("Falha ao carregar sessões"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,19 +53,19 @@ export default function SessionsPage() {
         href="/patient/training"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Training
+        ← Voltar ao treino
       </Link>
 
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Sessions
+            Sessões
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {sessions.length === 0
-                ? "No sessions yet"
-                : `${sessions.length} session${sessions.length !== 1 ? "s" : ""}`}
+                ? "Nenhuma sessão ainda"
+                : `${sessions.length} ${sessions.length !== 1 ? "sessões" : "sessão"}`}
             </p>
           )}
         </div>
@@ -74,7 +74,7 @@ export default function SessionsPage() {
           className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px transition-all duration-150"
         >
           <Plus size={14} />
-          New Session
+          Nova sessão
         </Link>
       </div>
 
@@ -95,14 +95,14 @@ export default function SessionsPage() {
           <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
             <ClipboardList size={22} className="text-[#9CA3AF]" />
           </div>
-          <p className="text-[15px] font-semibold text-[#374151] mb-1">No sessions yet</p>
-          <p className="text-[13px] text-[#9CA3AF] mb-4">Start logging your workouts.</p>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">Nenhuma sessão ainda</p>
+          <p className="text-[13px] text-[#9CA3AF] mb-4">Comece a registrar seus treinos.</p>
           <Link
             href="/patient/training/sessions/new"
             className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] transition-all duration-150"
           >
             <Plus size={14} />
-            Log your first session
+            Registrar primeira sessão
           </Link>
         </div>
       ) : (

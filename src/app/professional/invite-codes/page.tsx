@@ -8,10 +8,10 @@ import { Label } from "@/components/ui/label";
 import { InviteCode } from "@/types";
 
 function codeStatus(code: InviteCode): { label: string; style: string } {
-  if (code.used) return { label: "Used", style: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" };
+  if (code.used) return { label: "Usado", style: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" };
   if (code.expiresAt && new Date(code.expiresAt) < new Date())
-    return { label: "Expired", style: "text-[#DC2626] bg-[rgba(220,38,38,0.08)]" };
-  return { label: "Available", style: "text-[#1D4ED8] bg-[rgba(29,78,216,0.08)]" };
+    return { label: "Expirado", style: "text-[#DC2626] bg-[rgba(220,38,38,0.08)]" };
+  return { label: "Disponível", style: "text-[#1D4ED8] bg-[rgba(29,78,216,0.08)]" };
 }
 
 function SkeletonRow() {
@@ -46,7 +46,7 @@ export default function InviteCodesPage() {
       const data = await res.json();
       setInviteCodes(data.inviteCodes ?? []);
     } catch {
-      setError("Failed to load invite codes");
+      setError("Falha ao carregar códigos de convite");
     } finally {
       setLoading(false);
     }
@@ -55,7 +55,7 @@ export default function InviteCodesPage() {
   async function generateCode(e: React.FormEvent) {
     e.preventDefault();
     if (!patientName.trim()) {
-      setError("Patient name is required");
+      setError("Nome do paciente obrigatório");
       return;
     }
     setGenerating(true);
@@ -68,13 +68,13 @@ export default function InviteCodesPage() {
       });
       if (!res.ok) {
         const d = await res.json();
-        throw new Error(d.error || "Failed to generate invite code");
+        throw new Error(d.error || "Falha ao gerar código de convite");
       }
       await fetchCodes();
       setShowModal(false);
       setPatientName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate invite code");
+      setError(err instanceof Error ? err.message : "Falha ao gerar código de convite");
     } finally {
       setGenerating(false);
     }
@@ -104,19 +104,19 @@ export default function InviteCodesPage() {
         href="/professional"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       {/* Page heading */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Invite Codes
+            Códigos de convite
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {inviteCodes.length === 0
-                ? "No codes yet"
+                ? "Nenhum código ainda"
                 : `${inviteCodes.length} code${inviteCodes.length !== 1 ? "s" : ""}`}
             </p>
           )}
@@ -126,7 +126,7 @@ export default function InviteCodesPage() {
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] shrink-0"
         >
           <Plus size={13} strokeWidth={2.5} />
-          Generate Code
+          Gerar código
         </button>
       </div>
 
@@ -150,17 +150,17 @@ export default function InviteCodesPage() {
             <Ticket size={22} className="text-[#9CA3AF]" />
           </div>
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
-            No invite codes yet
+            Nenhum código ainda
           </p>
           <p className="text-[13px] text-[#9CA3AF] mb-5">
-            Generate a code to invite a new patient.
+            Gere um código para convidar um novo paciente.
           </p>
           <button
             onClick={() => setShowModal(true)}
             className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
           >
             <Plus size={13} strokeWidth={2.5} />
-            Generate First Code
+            Gerar código
           </button>
         </div>
       ) : (
@@ -180,11 +180,11 @@ export default function InviteCodesPage() {
                     <p className="text-[12px] text-[#6B7280]">
                       {ic.patientName}
                       {ic.used && ic.patientEmail && (
-                        <span className="text-[#9CA3AF]"> · used by {ic.patientEmail}</span>
+                        <span className="text-[#9CA3AF]"> · usado por {ic.patientEmail}</span>
                       )}
                       {!ic.used && ic.expiresAt && (
                         <span className="text-[#9CA3AF]">
-                          {" "}· expires {new Date(ic.expiresAt).toLocaleDateString()}
+                          {" "}· expira em {new Date(ic.expiresAt).toLocaleDateString("pt-BR")}
                         </span>
                       )}
                     </p>
@@ -198,8 +198,8 @@ export default function InviteCodesPage() {
                       <button
                         onClick={() => copyCode(ic.code)}
                         className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] rounded-[6px] transition-colors duration-100"
-                        aria-label="Copy code"
-                        title={copiedCode === ic.code ? "Copied!" : "Copy code"}
+                        aria-label="Copiar código"
+                        title={copiedCode === ic.code ? "Copiado!" : "Copiar código"}
                       >
                         {copiedCode === ic.code ? (
                           <Check size={13} strokeWidth={2.5} className="text-[#2E8B5A]" />
@@ -227,9 +227,9 @@ export default function InviteCodesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-5 border-b border-[#F3F4F6]">
-              <p className="text-[16px] font-bold text-[#111827]">Generate Invite Code</p>
+              <p className="text-[16px] font-bold text-[#111827]">Gerar código de convite</p>
               <p className="text-[13px] text-[#6B7280] mt-0.5">
-                Enter the patient's name to generate a code.
+                Digite o nome do paciente para gerar um código.
               </p>
             </div>
 
@@ -245,13 +245,13 @@ export default function InviteCodesPage() {
                   htmlFor="patient-name"
                   className="text-[14px] font-semibold text-[#374151] mb-1.5 block"
                 >
-                  Patient Name
+                  Nome do paciente
                 </Label>
                 <Input
                   id="patient-name"
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="e.g., John Doe"
+                  placeholder="ex.: Maria Silva"
                   autoFocus
                   disabled={generating}
                 />
@@ -264,7 +264,7 @@ export default function InviteCodesPage() {
                   disabled={generating}
                   className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150 disabled:opacity-50"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
@@ -277,10 +277,10 @@ export default function InviteCodesPage() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      Generating…
+                      Gerando…
                     </>
                   ) : (
-                    "Generate Code"
+                    "Gerar código"
                   )}
                 </button>
               </div>

@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Nutritionist, PatientPlan } from "@/types";
+import { getPaymentSchedule, PaymentEntry } from "@/lib/payment-schedule";
 
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "—";
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -22,23 +23,23 @@ function formatPrice(price: string, currency: string) {
 }
 
 const CYCLE_LABELS: Record<string, string> = {
-  monthly: "monthly",
-  quarterly: "quarterly",
-  annual: "annual",
-  custom: "custom",
+  monthly: "mensal",
+  quarterly: "trimestral",
+  annual: "anual",
+  custom: "personalizado",
 };
 
 const STATUS_STYLES: Record<string, { label: string; className: string }> = {
   active: {
-    label: "Active",
+    label: "Ativo",
     className: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]",
   },
   paused: {
-    label: "Paused",
+    label: "Pausado",
     className: "text-[#854D0E] bg-[#FEF9C3]",
   },
   cancelled: {
-    label: "Cancelled",
+    label: "Cancelado",
     className: "text-[#DC2626] bg-[#FEF2F2]",
   },
 };
@@ -48,6 +49,59 @@ function SkeletonRow() {
     <div className="flex items-center gap-3 py-3 border-b border-[#F3F4F6] last:border-0 animate-pulse">
       <div className="h-3.5 w-24 bg-[#F3F4F6] rounded" />
       <div className="h-3.5 w-36 bg-[#F3F4F6] rounded ml-auto" />
+    </div>
+  );
+}
+
+function PaymentScheduleList({ plan }: { plan: PatientPlan }) {
+  const entries: PaymentEntry[] = getPaymentSchedule(plan);
+  const paid = entries.filter((e) => e.status === "paid");
+  const overdue = entries.filter((e) => e.status === "overdue");
+  const upcoming = entries.filter((e) => e.status === "upcoming");
+
+  const MAX_PAID = 6;
+  const collapsedCount = Math.max(0, paid.length - MAX_PAID);
+  const visiblePaid = paid.slice(collapsedCount);
+
+  if (entries.length === 0) {
+    return (
+      <p className="text-[13px] text-[#9CA3AF] py-1">Nenhum pagamento agendado.</p>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {collapsedCount > 0 && (
+        <p className="text-[12px] text-[#9CA3AF] py-1">
+          + {collapsedCount} pagamento{collapsedCount !== 1 ? "s" : ""} anterior{collapsedCount !== 1 ? "es" : ""} realizado{collapsedCount !== 1 ? "s" : ""}
+        </p>
+      )}
+      {visiblePaid.map((entry) => (
+        <div key={entry.date} className="flex items-center gap-2.5 py-1.5">
+          <div className="w-5 h-5 rounded-full bg-[rgba(46,139,90,0.08)] flex items-center justify-center shrink-0">
+            <span className="text-[9px] font-black text-[#2E8B5A]">✓</span>
+          </div>
+          <span className="text-[13px] font-medium text-[#2E8B5A]">{formatDate(entry.date)}</span>
+        </div>
+      ))}
+      {overdue.map((entry) => (
+        <div key={entry.date} className="flex items-center gap-2.5 py-1.5">
+          <div className="w-5 h-5 rounded-full bg-[#FEF2F2] flex items-center justify-center shrink-0">
+            <span className="text-[9px] font-black text-[#DC2626]">!</span>
+          </div>
+          <span className="text-[13px] font-medium text-[#DC2626]">{formatDate(entry.date)}</span>
+          <span className="ml-auto text-[11px] font-semibold text-[#DC2626] bg-[#FEF2F2] px-2 py-0.5 rounded-full">Atrasado</span>
+        </div>
+      ))}
+      {upcoming.map((entry) => (
+        <div key={entry.date} className="flex items-center gap-2.5 py-1.5">
+          <div className="w-5 h-5 rounded-full bg-[#F3F4F6] flex items-center justify-center shrink-0">
+            <span className="text-[9px] font-black text-[#6B7280]">→</span>
+          </div>
+          <span className="text-[13px] font-medium text-[#6B7280]">{formatDate(entry.date)}</span>
+          <span className="ml-auto text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">Próximo</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -66,7 +120,7 @@ export default function PatientNutritionistPage() {
           fetch("/api/patient/nutritionist/plan"),
         ]);
 
-        if (!nutritionistRes.ok) throw new Error("Failed to load nutritionist");
+        if (!nutritionistRes.ok) throw new Error("Falha ao carregar nutricionista");
 
         const [nutritionistData, planData] = await Promise.all([
           nutritionistRes.json(),
@@ -76,7 +130,7 @@ export default function PatientNutritionistPage() {
         setNutritionist(nutritionistData.nutritionist);
         setPlan(planData.plan ?? null);
       } catch {
-        setError("Failed to load data. Please try again.");
+        setError("Falha ao carregar dados. Tente novamente.");
       } finally {
         setLoading(false);
       }
@@ -96,11 +150,11 @@ export default function PatientNutritionistPage() {
         href="/patient"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Dashboard
+        ← Painel
       </Link>
 
       <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-6">
-        My Nutritionist
+        Meu Nutricionista
       </h1>
 
       {/* Error */}
@@ -113,7 +167,7 @@ export default function PatientNutritionistPage() {
       {/* Section 1 — Nutritionist Info */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
         <div className="px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Nutritionist Info</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Informações do Nutricionista</p>
         </div>
 
         {loading ? (
@@ -148,13 +202,13 @@ export default function PatientNutritionistPage() {
             <div className="divide-y divide-[#F3F4F6]">
               {nutritionist.phone && (
                 <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Phone</span>
+                  <span className="text-[13px] text-[#6B7280]">Telefone</span>
                   <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.phone}</span>
                 </div>
               )}
               {nutritionist.specialization && (
                 <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Specialization</span>
+                  <span className="text-[13px] text-[#6B7280]">Especialização</span>
                   <span className="text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2.5 py-0.5 rounded-full ml-4">
                     {nutritionist.specialization}
                   </span>
@@ -162,13 +216,13 @@ export default function PatientNutritionistPage() {
               )}
               {nutritionist.professionalLicense && (
                 <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">License</span>
+                  <span className="text-[13px] text-[#6B7280]">CRN</span>
                   <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.professionalLicense}</span>
                 </div>
               )}
               {nutritionist.bio && (
                 <div className="py-2.5">
-                  <span className="text-[13px] text-[#6B7280] block mb-1.5">About</span>
+                  <span className="text-[13px] text-[#6B7280] block mb-1.5">Sobre</span>
                   <p className="text-[13px] text-[#374151] leading-relaxed">{nutritionist.bio}</p>
                 </div>
               )}
@@ -180,7 +234,7 @@ export default function PatientNutritionistPage() {
       {/* Section 2 — My Plan */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">My Plan</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Meu Plano</p>
         </div>
 
         {loading ? (
@@ -201,30 +255,18 @@ export default function PatientNutritionistPage() {
                 )}
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <span className="text-[13px] text-[#6B7280]">Price</span>
+                <span className="text-[13px] text-[#6B7280]">Valor</span>
                 <span className="text-[13px] font-medium text-[#111827]">
                   {formatPrice(plan.price, plan.currency)} / {CYCLE_LABELS[plan.billingCycle] ?? plan.billingCycle}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-[13px] text-[#6B7280]">Start date</span>
-                <span className="text-[13px] font-medium text-[#111827]">{formatDate(plan.startDate)}</span>
+              <div className="py-3">
+                <span className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wide block mb-2">Histórico de pagamentos</span>
+                <PaymentScheduleList plan={plan} />
               </div>
-              {plan.nextPaymentDate && (
-                <div className="flex items-center justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Next payment</span>
-                  <span className="text-[13px] font-medium text-[#111827]">{formatDate(plan.nextPaymentDate)}</span>
-                </div>
-              )}
-              {plan.lastPaymentDate && (
-                <div className="flex items-center justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Last payment</span>
-                  <span className="text-[13px] font-medium text-[#111827]">{formatDate(plan.lastPaymentDate)}</span>
-                </div>
-              )}
               {plan.notes && (
                 <div className="py-2.5">
-                  <span className="text-[13px] text-[#6B7280] block mb-1.5">Notes</span>
+                  <span className="text-[13px] text-[#6B7280] block mb-1.5">Observações</span>
                   <p className="text-[13px] text-[#374151] leading-relaxed">{plan.notes}</p>
                 </div>
               )}
@@ -233,7 +275,7 @@ export default function PatientNutritionistPage() {
         ) : (
           <div className="px-4 py-8 text-center">
             <p className="text-[13px] text-[#9CA3AF]">
-              No plan assigned yet. Contact your nutritionist.
+              Nenhum plano atribuído ainda. Entre em contato com seu nutricionista.
             </p>
           </div>
         )}

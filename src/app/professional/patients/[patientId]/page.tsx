@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, TrendingUp, UtensilsCrossed, CalendarDays, Dumbbell, Plus } from "lucide-react";
 import { Patient, Progress, MealPlanListItem, PatientPlan } from "@/types";
+import { getPaymentSchedule, PaymentEntry } from "@/lib/payment-schedule";
 
 function calculateAge(dateOfBirth: string | null): number | null {
   if (!dateOfBirth) return null;
@@ -17,7 +18,7 @@ function calculateAge(dateOfBirth: string | null): number | null {
 }
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -26,7 +27,7 @@ function formatDate(dateString: string) {
 
 function formatPlanDate(dateStr: string | null) {
   if (!dateStr) return "—";
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-US", {
+  return new Date(dateStr + "T00:00:00").toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -40,10 +41,102 @@ function formatPrice(price: string, currency: string) {
 }
 
 const PLAN_STATUS_STYLES: Record<string, { label: string; className: string }> = {
-  active: { label: "Active", className: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" },
-  paused: { label: "Paused", className: "text-[#854D0E] bg-[#FEF9C3]" },
-  cancelled: { label: "Cancelled", className: "text-[#DC2626] bg-[#FEF2F2]" },
+  active: { label: "Ativo", className: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]" },
+  paused: { label: "Pausado", className: "text-[#854D0E] bg-[#FEF9C3]" },
+  cancelled: { label: "Cancelado", className: "text-[#DC2626] bg-[#FEF2F2]" },
 };
+
+function PaymentScheduleList({
+  plan,
+  onToggle,
+}: {
+  plan: PatientPlan;
+  onToggle?: (newLastPaymentDate: string | null) => Promise<void>;
+}) {
+  const [updating, setUpdating] = useState(false);
+  const entries: PaymentEntry[] = getPaymentSchedule(plan);
+
+  const paidCount = entries.filter((e) => e.status === "paid").length;
+  const collapsedCount = Math.max(0, paidCount - 6);
+  const visibleEntries = entries.slice(collapsedCount);
+
+  async function handleEntryClick(entry: PaymentEntry) {
+    if (!onToggle || updating) return;
+    const idx = entries.findIndex((e) => e.date === entry.date);
+    const newLastPaymentDate =
+      entry.status !== "paid" ? entry.date : idx > 0 ? entries[idx - 1].date : null;
+    setUpdating(true);
+    try {
+      await onToggle(newLastPaymentDate);
+    } finally {
+      setUpdating(false);
+    }
+  }
+
+  if (entries.length === 0) {
+    return (
+      <p className="text-[13px] text-[#9CA3AF] py-1">Nenhum pagamento agendado.</p>
+    );
+  }
+
+  return (
+    <div className={`space-y-1 transition-opacity ${updating ? "opacity-50 pointer-events-none" : ""}`}>
+      {collapsedCount > 0 && (
+        <p className="text-[12px] text-[#9CA3AF] py-1">
+          + {collapsedCount} pagamento{collapsedCount !== 1 ? "s" : ""} anterior{collapsedCount !== 1 ? "es" : ""}
+        </p>
+      )}
+      {visibleEntries.map((entry) => {
+        const iconText = entry.status === "paid" ? "✓" : entry.status === "overdue" ? "!" : "→";
+        const iconBg =
+          entry.status === "paid"
+            ? "bg-[rgba(46,139,90,0.08)]"
+            : entry.status === "overdue"
+            ? "bg-[#FEF2F2]"
+            : "bg-[#F3F4F6]";
+        const iconColor =
+          entry.status === "paid"
+            ? "text-[#2E8B5A]"
+            : entry.status === "overdue"
+            ? "text-[#DC2626]"
+            : "text-[#6B7280]";
+        const textColor =
+          entry.status === "paid"
+            ? "text-[#2E8B5A]"
+            : entry.status === "overdue"
+            ? "text-[#DC2626]"
+            : "text-[#6B7280]";
+
+        const iconEl = onToggle ? (
+          <button
+            type="button"
+            onClick={() => handleEntryClick(entry)}
+            className={`w-5 h-5 rounded-full ${iconBg} flex items-center justify-center shrink-0 cursor-pointer hover:opacity-70 transition-opacity`}
+          >
+            <span className={`text-[9px] font-black ${iconColor}`}>{iconText}</span>
+          </button>
+        ) : (
+          <div className={`w-5 h-5 rounded-full ${iconBg} flex items-center justify-center shrink-0`}>
+            <span className={`text-[9px] font-black ${iconColor}`}>{iconText}</span>
+          </div>
+        );
+
+        return (
+          <div key={entry.date} className="flex items-center gap-2.5 py-1.5">
+            {iconEl}
+            <span className={`text-[13px] font-medium ${textColor}`}>{formatPlanDate(entry.date)}</span>
+            {entry.status === "overdue" && (
+              <span className="ml-auto text-[11px] font-semibold text-[#DC2626] bg-[#FEF2F2] px-2 py-0.5 rounded-full">Atrasado</span>
+            )}
+            {entry.status === "upcoming" && (
+              <span className="ml-auto text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">Próximo</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function PatientDetailPage() {
   const params = useParams();
@@ -55,6 +148,27 @@ export default function PatientDetailPage() {
   const [plan, setPlan] = useState<PatientPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  async function handlePaymentToggle(newLastPaymentDate: string | null) {
+    if (!plan) return;
+    const res = await fetch(`/api/professional/patients/${patientId}/plan`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        price: parseFloat(plan.price),
+        currency: plan.currency,
+        billingCycle: plan.billingCycle,
+        status: plan.status,
+        startDate: plan.startDate,
+        nextPaymentDate: plan.nextPaymentDate ?? null,
+        lastPaymentDate: newLastPaymentDate,
+        notes: plan.notes ?? null,
+      }),
+    });
+    if (res.ok) {
+      setPlan({ ...plan, lastPaymentDate: newLastPaymentDate });
+    }
+  }
 
   useEffect(() => {
     async function fetchAll() {
@@ -83,7 +197,7 @@ export default function PatientDetailPage() {
         setActiveMealPlan(active);
         setPlan(planData.plan ?? null);
       } catch {
-        setError("Failed to load patient data");
+        setError("Falha ao carregar dados do paciente");
       } finally {
         setLoading(false);
       }
@@ -100,26 +214,26 @@ export default function PatientDetailPage() {
     {
       href: `/professional/patients/${patientId}/progress`,
       icon: TrendingUp,
-      label: "Progress",
-      desc: "View measurement history",
+      label: "Progresso",
+      desc: "Ver histórico de medidas",
     },
     {
       href: `/professional/patients/${patientId}/meal-plan`,
       icon: UtensilsCrossed,
-      label: "Meal Plans",
-      desc: "Manage nutrition plans",
+      label: "Planos alimentares",
+      desc: "Gerenciar planos nutricionais",
     },
     {
       href: `/professional/patients/${patientId}/appointments`,
       icon: CalendarDays,
-      label: "Appointments",
-      desc: "Schedule and history",
+      label: "Consultas",
+      desc: "Agenda e histórico",
     },
     {
       href: `/professional/patients/${patientId}/training`,
       icon: Dumbbell,
-      label: "Training",
-      desc: "Workouts and exercises",
+      label: "Treino",
+      desc: "Treinos e exercícios",
     },
   ];
 
@@ -131,7 +245,7 @@ export default function PatientDetailPage() {
         href="/professional/patients"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← My Patients
+        ← Meus pacientes
       </Link>
 
       {/* Error */}
@@ -165,7 +279,7 @@ export default function PatientDetailPage() {
             <div className="flex flex-wrap gap-2 mt-1">
               {age !== null && (
                 <span className="text-[12px] font-medium text-[#6B7280] bg-[#F3F4F6] rounded-full px-2.5 py-0.5">
-                  {age} years old
+                  {age} anos
                 </span>
               )}
               {patient.height && (
@@ -205,7 +319,7 @@ export default function PatientDetailPage() {
       {/* Active Meal Plan */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Active Meal Plan</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Plano alimentar ativo</p>
           <Link
             href={
               activeMealPlan
@@ -214,10 +328,10 @@ export default function PatientDetailPage() {
             }
             className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[6px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-100"
           >
-            {activeMealPlan ? "Edit" : (
+            {activeMealPlan ? "Editar" : (
               <>
                 <Plus size={11} strokeWidth={2.5} />
-                Create
+                Criar
               </>
             )}
           </Link>
@@ -237,11 +351,11 @@ export default function PatientDetailPage() {
                 {activeMealPlan.name}
               </p>
               <p className="text-[12px] text-[#9CA3AF]">
-                {activeMealPlan.mealCount} meal{activeMealPlan.mealCount !== 1 ? "s" : ""}
+                {activeMealPlan.mealCount} {activeMealPlan.mealCount !== 1 ? "refeições" : "refeição"}
               </p>
             </div>
             <span className="shrink-0 text-[11px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2.5 py-0.5 rounded-full">
-              Active
+              Ativo
             </span>
             <ChevronRight
               size={15}
@@ -251,7 +365,7 @@ export default function PatientDetailPage() {
           </Link>
         ) : (
           <div className="px-4 py-5 text-center">
-            <p className="text-[13px] text-[#9CA3AF]">No active meal plan yet.</p>
+            <p className="text-[13px] text-[#9CA3AF]">Nenhum plano alimentar ativo.</p>
           </div>
         )}
       </div>
@@ -259,15 +373,15 @@ export default function PatientDetailPage() {
       {/* Payment Plan */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Payment Plan</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Plano de pagamento</p>
           <Link
             href={`/professional/patients/${patientId}/plan`}
             className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[6px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-100"
           >
-            {plan ? "Manage plan" : (
+            {plan ? "Gerenciar plano" : (
               <>
                 <Plus size={11} strokeWidth={2.5} />
-                Set plan
+                Definir plano
               </>
             )}
           </Link>
@@ -277,33 +391,26 @@ export default function PatientDetailPage() {
             <div className="h-4 w-48 bg-[#F3F4F6] rounded" />
           </div>
         ) : plan ? (
-          <Link
-            href={`/professional/patients/${patientId}/plan`}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
-          >
-            <div className="flex-1 min-w-0">
+          <div className="px-4 py-4">
+            <div className="flex items-center justify-between mb-3">
               <p className="text-[14px] font-semibold text-[#111827]">
                 {formatPrice(plan.price, plan.currency)} / {plan.billingCycle}
               </p>
-              {plan.nextPaymentDate && (
-                <p className="text-[12px] text-[#9CA3AF] mt-0.5">
-                  Next payment: {formatPlanDate(plan.nextPaymentDate)}
-                </p>
-              )}
+              {(() => {
+                const s = PLAN_STATUS_STYLES[plan.status] ?? PLAN_STATUS_STYLES.active;
+                return (
+                  <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${s.className}`}>
+                    {s.label}
+                  </span>
+                );
+              })()}
             </div>
-            {(() => {
-              const s = PLAN_STATUS_STYLES[plan.status] ?? PLAN_STATUS_STYLES.active;
-              return (
-                <span className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${s.className}`}>
-                  {s.label}
-                </span>
-              );
-            })()}
-            <ChevronRight size={15} strokeWidth={2} className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors shrink-0" />
-          </Link>
+            <span className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wide block mb-2">Histórico de pagamentos</span>
+            <PaymentScheduleList plan={plan} onToggle={handlePaymentToggle} />
+          </div>
         ) : (
           <div className="px-4 py-5 text-center">
-            <p className="text-[13px] text-[#9CA3AF]">No plan set.</p>
+            <p className="text-[13px] text-[#9CA3AF]">Nenhum plano definido.</p>
           </div>
         )}
       </div>
@@ -311,13 +418,13 @@ export default function PatientDetailPage() {
       {/* Recent Progress */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Recent Progress</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Progresso recente</p>
           <Link
             href={`/professional/patients/${patientId}/progress/create`}
             className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[6px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-100"
           >
             <Plus size={11} strokeWidth={2.5} />
-            Add
+            Adicionar
           </Link>
         </div>
 
@@ -334,7 +441,7 @@ export default function PatientDetailPage() {
           </div>
         ) : recentProgress.length === 0 ? (
           <div className="px-4 py-5 text-center">
-            <p className="text-[13px] text-[#9CA3AF]">No progress entries yet.</p>
+            <p className="text-[13px] text-[#9CA3AF]">Nenhum registro de progresso ainda.</p>
           </div>
         ) : (
           <div className="divide-y divide-[#F3F4F6]">
@@ -353,10 +460,10 @@ export default function PatientDetailPage() {
                       <span className="text-[12px] text-[#9CA3AF]">{entry.totalWeight} kg</span>
                     )}
                     {entry.bmi && (
-                      <span className="text-[12px] text-[#9CA3AF]">BMI {entry.bmi}</span>
+                      <span className="text-[12px] text-[#9CA3AF]">IMC {entry.bmi}</span>
                     )}
                     {entry.bodyFatPercentage && (
-                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% body fat</span>
+                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% gordura</span>
                     )}
                   </div>
                 </div>
@@ -371,7 +478,7 @@ export default function PatientDetailPage() {
               href={`/professional/patients/${patientId}/progress`}
               className="flex items-center justify-center px-4 py-2.5 text-[12.5px] font-medium text-[#6B7280] hover:text-[#2E8B5A] hover:bg-[#F9FAFB] transition-colors duration-100"
             >
-              View all progress →
+              Ver todo o progresso →
             </Link>
           </div>
         )}

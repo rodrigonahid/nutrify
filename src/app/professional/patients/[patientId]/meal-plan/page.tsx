@@ -7,7 +7,7 @@ import { UtensilsCrossed, Plus, Trash2 } from "lucide-react";
 import { MealPlanListItem } from "@/types";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -45,7 +45,7 @@ export default function MealPlanListPage() {
       const data = await res.json();
       setMealPlans(data.mealPlans ?? []);
     } catch {
-      setError("Failed to load meal plans");
+      setError("Falha ao carregar planos alimentares");
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ export default function MealPlanListPage() {
       if (!res.ok) throw new Error();
       await fetchMealPlans();
     } catch {
-      setActionError("Failed to update meal plan status");
+      setActionError("Falha ao atualizar status do plano alimentar");
     }
   }
 
   async function deleteMealPlan(planId: number) {
-    if (!confirm("Delete this meal plan? This cannot be undone.")) return;
+    if (!confirm("Excluir este plano alimentar? Esta ação não pode ser desfeita.")) return;
     setActionError("");
     try {
       const res = await fetch(
@@ -84,7 +84,7 @@ export default function MealPlanListPage() {
       if (!res.ok) throw new Error();
       await fetchMealPlans();
     } catch {
-      setActionError("Failed to delete meal plan");
+      setActionError("Falha ao excluir plano alimentar");
     }
   }
 
@@ -96,20 +96,20 @@ export default function MealPlanListPage() {
         href={`/professional/patients/${patientId}`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Patient
+        ← Voltar ao paciente
       </Link>
 
       {/* Page heading */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Meal Plans
+            Planos Alimentares
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {mealPlans.length === 0
-                ? "No plans yet"
-                : `${mealPlans.length} plan${mealPlans.length !== 1 ? "s" : ""}`}
+                ? "Nenhum plano ainda"
+                : `${mealPlans.length} plano${mealPlans.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -118,7 +118,7 @@ export default function MealPlanListPage() {
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
         >
           <Plus size={13} strokeWidth={2.5} />
-          New Plan
+          Novo plano
         </Link>
       </div>
 
@@ -144,17 +144,17 @@ export default function MealPlanListPage() {
               <UtensilsCrossed size={22} className="text-[#9CA3AF]" />
             </div>
             <p className="text-[15px] font-semibold text-[#374151] mb-1">
-              No meal plans yet
+              Nenhum plano alimentar ainda
             </p>
             <p className="text-[13px] text-[#9CA3AF] mb-5">
-              Create the first nutrition plan for this patient.
+              Crie o primeiro plano nutricional para este paciente.
             </p>
             <Link
               href={`/professional/patients/${patientId}/meal-plan/create`}
               className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
             >
               <Plus size={13} strokeWidth={2.5} />
-              Create First Plan
+              Criar primeiro plano
             </Link>
           </div>
         )}
@@ -173,12 +173,12 @@ export default function MealPlanListPage() {
                     </p>
                     {plan.isActive && (
                       <span className="shrink-0 text-[11px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2 py-0.5 rounded-full">
-                        Active
+                        Ativo
                       </span>
                     )}
                   </div>
                   <p className="text-[12px] text-[#9CA3AF]">
-                    {formatDate(plan.createdAt)} · {plan.mealCount} meal{plan.mealCount !== 1 ? "s" : ""}
+                    {formatDate(plan.createdAt)} · {plan.mealCount} {plan.mealCount !== 1 ? "refeições" : "refeição"}
                   </p>
                 </div>
 
@@ -187,12 +187,12 @@ export default function MealPlanListPage() {
                     onClick={() => toggleActive(plan.id, plan.isActive)}
                     className="h-7 px-2.5 text-[12px] font-semibold text-[#374151] bg-[#F3F4F6] rounded-[6px] hover:bg-[#E5E7EB] transition-colors duration-100"
                   >
-                    {plan.isActive ? "Deactivate" : "Activate"}
+                    {plan.isActive ? "Desativar" : "Ativar"}
                   </button>
                   <button
                     onClick={() => deleteMealPlan(plan.id)}
                     className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] rounded-[6px] transition-colors duration-100"
-                    aria-label="Delete meal plan"
+                    aria-label="Excluir plano alimentar"
                   >
                     <Trash2 size={13} strokeWidth={2} />
                   </button>

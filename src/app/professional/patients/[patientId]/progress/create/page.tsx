@@ -81,12 +81,12 @@ export default function CreateProgressPage() {
 
       if (!res.ok) {
         const result = await res.json();
-        throw new Error(result.error || "Failed to create progress entry");
+        throw new Error(result.error || "Falha ao criar registro de progresso");
       }
 
       router.push(`/professional/patients/${patientId}/progress`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create progress entry");
+      setError(err instanceof Error ? err.message : "Falha ao criar registro de progresso");
     } finally {
       setSubmitting(false);
     }
@@ -100,16 +100,16 @@ export default function CreateProgressPage() {
         href={`/professional/patients/${patientId}/progress`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Progress
+        ← Voltar ao progresso
       </Link>
 
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
-          Add Progress Entry
+          Adicionar Registro de Progresso
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">
-          All measurements are optional — fill in what was measured today.
+          Todas as medidas são opcionais — preencha o que foi medido hoje.
         </p>
       </div>
 
@@ -161,10 +161,10 @@ export default function CreateProgressPage() {
               />
               <div>
                 <p className="text-[14px] font-semibold text-[#111827]">
-                  Update patient profile
+                  Atualizar perfil do paciente
                 </p>
                 <p className="text-[12px] text-[#9CA3AF] mt-0.5">
-                  Height and weight entered above will also update the patient&apos;s profile
+                  Altura e peso inseridos acima também serão atualizados no perfil do paciente
                 </p>
               </div>
             </label>
@@ -176,7 +176,7 @@ export default function CreateProgressPage() {
               href={`/professional/patients/${patientId}/progress`}
               className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150"
             >
-              Cancel
+              Cancelar
             </Link>
             <button
               type="submit"
@@ -189,10 +189,10 @@ export default function CreateProgressPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Saving…
+                  Salvando…
                 </>
               ) : (
-                "Save Entry"
+                "Salvar registro"
               )}
             </button>
           </div>

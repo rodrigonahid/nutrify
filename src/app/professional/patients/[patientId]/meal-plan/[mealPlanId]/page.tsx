@@ -62,7 +62,7 @@ export default function EditMealPlanPage() {
         const res = await fetch(
           `/api/professional/patients/${patientId}/meal-plan/${mealPlanId}`
         );
-        if (!res.ok) throw new Error("Failed to fetch meal plan");
+        if (!res.ok) throw new Error("Falha ao buscar plano alimentar");
         const { mealPlan: plan } = await res.json();
         setMealPlan(plan);
 
@@ -84,7 +84,7 @@ export default function EditMealPlanPage() {
           })),
         });
       } catch {
-        setError("Failed to load meal plan");
+        setError("Falha ao carregar plano alimentar");
       } finally {
         setInitializing(false);
       }
@@ -113,12 +113,12 @@ export default function EditMealPlanPage() {
 
       if (!res.ok) {
         const result = await res.json();
-        throw new Error(result.error || "Failed to update meal plan");
+        throw new Error(result.error || "Falha ao atualizar plano alimentar");
       }
 
       router.push(`/professional/patients/${patientId}/meal-plan`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update meal plan");
+      setError(err instanceof Error ? err.message : "Falha ao atualizar plano alimentar");
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +148,7 @@ export default function EditMealPlanPage() {
         href={`/professional/patients/${patientId}/meal-plan`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Meal Plans
+        ← Voltar aos planos alimentares
       </Link>
 
       {/* Page heading */}
@@ -159,17 +159,17 @@ export default function EditMealPlanPage() {
               {initializing ? (
                 <span className="inline-block w-48 h-6 bg-[#F3F4F6] rounded animate-pulse" />
               ) : (
-                mealPlan?.name ?? "Edit Meal Plan"
+                mealPlan?.name ?? "Editar plano alimentar"
               )}
             </h1>
             {!initializing && mealPlan?.isActive && (
               <span className="text-[11px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2.5 py-0.5 rounded-full">
-                Active
+                Ativo
               </span>
             )}
           </div>
           <p className="text-sm font-medium text-[#6B7280]">
-            Edit meals, options, and ingredients.
+            Edite refeições, opções e ingredientes.
           </p>
         </div>
       </div>
@@ -194,12 +194,12 @@ export default function EditMealPlanPage() {
             {/* Plan name */}
             <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
               <div className="px-4 py-3 border-b border-[#F3F4F6]">
-                <p className="text-[14px] font-semibold text-[#111827]">Plan Details</p>
+                <p className="text-[14px] font-semibold text-[#111827]">Detalhes do plano</p>
               </div>
               <div className="p-4">
                 <FormField
-                  label="Plan Name"
-                  placeholder="e.g., Weekly Plan — January"
+                  label="Nome do plano"
+                  placeholder="ex.: Plano Semanal — Janeiro"
                   registration={register("name")}
                   error={errors.name}
                 />
@@ -214,14 +214,14 @@ export default function EditMealPlanPage() {
               >
                 <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
                   <p className="text-[14px] font-semibold text-[#111827]">
-                    Meal {mealIdx + 1}
+                    Refeição {mealIdx + 1}
                   </p>
                   {meals.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeMeal(mealIdx)}
                       className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] rounded-[6px] transition-colors duration-100"
-                      aria-label="Remove meal"
+                      aria-label="Remover refeição"
                     >
                       <Trash2 size={13} strokeWidth={2} />
                     </button>
@@ -251,7 +251,7 @@ export default function EditMealPlanPage() {
               onClick={addMeal}
               className="w-full h-10 flex items-center justify-center gap-1.5 text-[13px] font-semibold text-[#6B7280] border border-dashed border-[#D1D5DB] rounded-xl hover:border-[#2E8B5A] hover:text-[#2E8B5A] transition-colors duration-150"
             >
-              + Add Meal
+              + Adicionar refeição
             </button>
 
             {/* Action buttons */}
@@ -260,7 +260,7 @@ export default function EditMealPlanPage() {
                 href={`/professional/patients/${patientId}/meal-plan`}
                 className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150"
               >
-                Cancel
+                Cancelar
               </Link>
               <button
                 type="submit"
@@ -273,10 +273,10 @@ export default function EditMealPlanPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Saving…
+                    Salvando…
                   </>
                 ) : (
-                  "Save Changes"
+                  "Salvar alterações"
                 )}
               </button>
             </div>

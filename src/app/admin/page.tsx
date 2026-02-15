@@ -6,22 +6,22 @@ const ADMIN_CARDS = [
   {
     href: "/admin/professionals",
     icon: Stethoscope,
-    label: "Nutritionists",
-    desc: "Manage nutritionist accounts",
+    label: "Nutricionistas",
+    desc: "Gerenciar contas de nutricionistas",
     available: true,
   },
   {
     href: "#",
     icon: Users,
-    label: "Patients",
-    desc: "View all patients in the system",
+    label: "Pacientes",
+    desc: "Ver todos os pacientes do sistema",
     available: false,
   },
   {
     href: "#",
     icon: BarChart3,
-    label: "Statistics",
-    desc: "Platform analytics and reports",
+    label: "Estatísticas",
+    desc: "Análises e relatórios da plataforma",
     available: false,
   },
 ];
@@ -39,7 +39,7 @@ export default async function AdminDashboard() {
           Admin
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">
-          Platform management — {user?.email}
+          Gestão da plataforma — {user?.email}
         </p>
       </div>
 

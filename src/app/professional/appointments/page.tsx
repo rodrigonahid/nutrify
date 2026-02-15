@@ -36,6 +36,14 @@ interface CalendarEvent extends Event {
   notes: string | null;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: "Confirmada",
+  pending: "Pendente",
+  requested: "Solicitada",
+  cancelled: "Cancelada",
+  completed: "Concluída",
+};
+
 function statusStyle(status: string) {
   switch (status) {
     case "confirmed":
@@ -70,9 +78,9 @@ function formatDate(dateString: string) {
   tomorrow.setDate(tomorrow.getDate() + 1);
   date.setHours(0, 0, 0, 0);
 
-  if (date.getTime() === today.getTime()) return "Today";
-  if (date.getTime() === tomorrow.getTime()) return "Tomorrow";
-  return date.toLocaleDateString("en-US", {
+  if (date.getTime() === today.getTime()) return "Hoje";
+  if (date.getTime() === tomorrow.getTime()) return "Amanhã";
+  return date.toLocaleDateString("pt-BR", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -118,7 +126,7 @@ export default function AgendaPage() {
         const data = await res.json();
         setAppointments(data.appointments ?? []);
       } catch {
-        setError("Failed to load appointments");
+        setError("Falha ao carregar consultas");
       } finally {
         setLoading(false);
       }
@@ -182,7 +190,7 @@ export default function AgendaPage() {
         href="/professional"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       {/* Page heading + controls */}
@@ -194,8 +202,8 @@ export default function AgendaPage() {
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {appointments.length === 0
-                ? "No appointments"
-                : `${appointments.length} appointment${appointments.length !== 1 ? "s" : ""}`}
+                ? "Nenhuma consulta"
+                : `${appointments.length} consulta${appointments.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -203,9 +211,9 @@ export default function AgendaPage() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Filter pills */}
           <div className="flex gap-1">
-            {filterBtn("all", "All")}
-            {filterBtn("upcoming", "Upcoming")}
-            {filterBtn("past", "Past")}
+            {filterBtn("all", "Todos")}
+            {filterBtn("upcoming", "Próximas")}
+            {filterBtn("past", "Anteriores")}
           </div>
 
           {/* View toggle */}
@@ -217,7 +225,7 @@ export default function AgendaPage() {
                   ? "bg-white text-[#111827] shadow-sm"
                   : "text-[#9CA3AF] hover:text-[#374151]"
               }`}
-              aria-label="List view"
+              aria-label="Visualização em lista"
             >
               <List size={14} />
             </button>
@@ -228,7 +236,7 @@ export default function AgendaPage() {
                   ? "bg-white text-[#111827] shadow-sm"
                   : "text-[#9CA3AF] hover:text-[#374151]"
               }`}
-              aria-label="Calendar view"
+              aria-label="Visualização em calendário"
             >
               <CalendarIcon size={14} />
             </button>
@@ -281,10 +289,10 @@ export default function AgendaPage() {
             <CalendarIcon size={22} className="text-[#9CA3AF]" />
           </div>
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
-            No appointments found
+            Nenhuma consulta encontrada
           </p>
           <p className="text-[13px] text-[#9CA3AF]">
-            {filter === "upcoming" ? "No upcoming appointments." : filter === "past" ? "No past appointments." : "No appointments scheduled yet."}
+            {filter === "upcoming" ? "Nenhuma consulta agendada." : filter === "past" ? "Nenhuma consulta anterior." : "Nenhuma consulta cadastrada."}
           </p>
         </div>
       ) : (
@@ -326,14 +334,14 @@ export default function AgendaPage() {
                           )}
                           {apt.cancellationReason && (
                             <p className="text-[12px] text-[#DC2626] mt-0.5">
-                              Cancelled: {apt.cancellationReason}
+                              Cancelada: {apt.cancellationReason}
                             </p>
                           )}
                         </div>
                         <span
-                          className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${statusStyle(apt.status)}`}
+                          className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(apt.status)}`}
                         >
-                          {apt.status}
+                          {STATUS_LABELS[apt.status] ?? apt.status}
                         </span>
                       </Link>
                     ))}

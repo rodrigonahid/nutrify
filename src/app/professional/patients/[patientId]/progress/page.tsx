@@ -7,7 +7,7 @@ import { ChevronRight, TrendingUp, Plus } from "lucide-react";
 import { Progress } from "@/types";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -38,7 +38,7 @@ export default function PatientProgressPage() {
     fetch(`/api/professional/patients/${patientId}/progress`)
       .then((r) => r.json())
       .then((data) => setProgress(data.progress ?? []))
-      .catch(() => setError("Failed to load progress"))
+      .catch(() => setError("Falha ao carregar progresso"))
       .finally(() => setLoading(false));
   }, [patientId]);
 
@@ -50,20 +50,20 @@ export default function PatientProgressPage() {
         href={`/professional/patients/${patientId}`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Patient
+        ← Voltar ao paciente
       </Link>
 
       {/* Page heading */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Progress
+            Progresso
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {progress.length === 0
-                ? "No entries yet"
-                : `${progress.length} entr${progress.length !== 1 ? "ies" : "y"}`}
+                ? "Nenhum registro ainda"
+                : `${progress.length} registro${progress.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -72,7 +72,7 @@ export default function PatientProgressPage() {
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
         >
           <Plus size={13} strokeWidth={2.5} />
-          Add Entry
+          Adicionar registro
         </Link>
       </div>
 
@@ -98,17 +98,17 @@ export default function PatientProgressPage() {
               <TrendingUp size={22} className="text-[#9CA3AF]" />
             </div>
             <p className="text-[15px] font-semibold text-[#374151] mb-1">
-              No progress entries yet
+              Nenhum registro de progresso ainda
             </p>
             <p className="text-[13px] text-[#9CA3AF] mb-5">
-              Add the first entry to start tracking this patient&apos;s progress.
+              Adicione o primeiro registro para começar a acompanhar o progresso deste paciente.
             </p>
             <Link
               href={`/professional/patients/${patientId}/progress/create`}
               className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
             >
               <Plus size={13} strokeWidth={2.5} />
-              Add First Entry
+              Adicionar primeiro registro
             </Link>
           </div>
         )}
@@ -130,13 +130,13 @@ export default function PatientProgressPage() {
                       <span className="text-[12px] text-[#9CA3AF]">{entry.totalWeight} kg</span>
                     )}
                     {entry.bmi && (
-                      <span className="text-[12px] text-[#9CA3AF]">BMI {entry.bmi}</span>
+                      <span className="text-[12px] text-[#9CA3AF]">IMC {entry.bmi}</span>
                     )}
                     {entry.bodyFatPercentage && (
-                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% body fat</span>
+                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% gordura</span>
                     )}
                     {entry.perimeterWaist && (
-                      <span className="text-[12px] text-[#9CA3AF]">waist {entry.perimeterWaist} cm</span>
+                      <span className="text-[12px] text-[#9CA3AF]">cintura {entry.perimeterWaist} cm</span>
                     )}
                   </div>
                 </div>

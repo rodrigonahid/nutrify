@@ -18,11 +18,11 @@ const createProfessionalSchema = z
   .object({
     email: emailSchema,
     password: passwordSchema,
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z.string().min(1, "Confirme sua senha"),
   })
   .merge(nutritionistProfileSchema)
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "As senhas não coincidem",
     path: ["confirmPassword"],
   });
 
@@ -58,12 +58,12 @@ export default function CreateProfessionalPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        setError(result.error || "Failed to create professional");
+        setError(result.error || "Falha ao criar profissional");
         return;
       }
       router.push("/admin/professionals");
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("Ocorreu um erro. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -75,15 +75,15 @@ export default function CreateProfessionalPage() {
         href="/admin/professionals"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Professionals
+        ← Voltar aos profissionais
       </Link>
 
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Create Professional Account
+          Criar conta de profissional
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">
-          Add a new nutritionist to the platform
+          Adicionar um novo nutricionista à plataforma
         </p>
       </div>
 
@@ -97,30 +97,30 @@ export default function CreateProfessionalPage() {
         {/* Account credentials */}
         <div className="space-y-4">
           <p className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
-            Account Credentials
+            Credenciais da conta
           </p>
 
           <FormField
-            label="Email"
+            label="E-mail"
             type="email"
-            placeholder="professional@example.com"
+            placeholder="nutricionista@exemplo.com"
             registration={register("email")}
             error={errors.email}
             disabled={loading}
           />
 
           <FormField
-            label="Password"
+            label="Senha"
             type="password"
             placeholder="••••••••"
             registration={register("password")}
             error={errors.password}
-            hint="At least 8 characters with uppercase, lowercase, and number"
+            hint="Mínimo 8 caracteres com maiúscula, minúscula e número"
             disabled={loading}
           />
 
           <FormField
-            label="Confirm Password"
+            label="Confirmar senha"
             type="password"
             placeholder="••••••••"
             registration={register("confirmPassword")}
@@ -132,45 +132,45 @@ export default function CreateProfessionalPage() {
         {/* Professional info */}
         <div className="border-t border-[#F3F4F6] pt-6 space-y-4">
           <p className="text-[12px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
-            Professional Information (Optional)
+            Informações profissionais (opcional)
           </p>
 
           <FormField
-            label="Professional License"
+            label="Registro profissional (CRN)"
             type="text"
-            placeholder="License number"
+            placeholder="Número do registro"
             registration={register("professionalLicense")}
             error={errors.professionalLicense}
             disabled={loading}
           />
 
           <FormField
-            label="Specialization"
+            label="Especialização"
             type="text"
-            placeholder="e.g., Sports Nutrition, Weight Management"
+            placeholder="ex.: Nutrição Esportiva, Emagrecimento"
             registration={register("specialization")}
             error={errors.specialization}
-            hint="Maximum 255 characters"
+            hint="Máximo 255 caracteres"
             disabled={loading}
           />
 
           <FormTextArea
             label="Bio"
-            placeholder="Brief professional biography…"
+            placeholder="Breve biografia profissional…"
             registration={register("bio")}
             error={errors.bio}
-            hint="Maximum 2000 characters"
+            hint="Máximo 2000 caracteres"
             disabled={loading}
           />
         </div>
 
         <div className="flex gap-3 pt-2">
           <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? "Creating…" : "Create Professional"}
+            {loading ? "Criando…" : "Criar profissional"}
           </Button>
           <Link href="/admin/professionals" className="flex-1">
             <Button type="button" variant="outline" disabled={loading} className="w-full">
-              Cancel
+              Cancelar
             </Button>
           </Link>
         </div>

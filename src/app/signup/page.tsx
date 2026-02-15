@@ -15,7 +15,7 @@ const step1Schema = z.object({
 
 // Step 2: Personal information schema
 const step2Schema = z.object({
-  name: z.string().min(1, "Name is required").max(255, "Name is too long"),
+  name: z.string().min(1, "Nome obrigatório").max(255, "Nome muito longo"),
   dateOfBirth: z.string().optional(),
 });
 
@@ -24,17 +24,17 @@ const step3Schema = z
   .object({
     email: z
       .string()
-      .email("Invalid email address")
-      .min(1, "Email is required")
-      .max(255, "Email is too long"),
+      .email("E-mail inválido")
+      .min(1, "E-mail obrigatório")
+      .max(255, "E-mail muito longo"),
     password: z
       .string()
-      .min(1, "Password is required")
-      .max(100, "Password is too long"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+      .min(1, "Senha obrigatória")
+      .max(100, "Senha muito longa"),
+    confirmPassword: z.string().min(1, "Confirme sua senha"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "As senhas não coincidem",
     path: ["confirmPassword"],
   });
 
@@ -43,9 +43,9 @@ type Step2Data = z.infer<typeof step2Schema>;
 type Step3Data = z.infer<typeof step3Schema>;
 
 const STEP_LABELS = {
-  1: { heading: "Enter your code", sub: "Enter the 8-digit code from your nutritionist" },
-  2: { heading: "Your information", sub: "Confirm your personal details" },
-  3: { heading: "Create account", sub: "Set up your login credentials" },
+  1: { heading: "Digite seu código", sub: "Digite o código de 8 dígitos do seu nutricionista" },
+  2: { heading: "Suas informações", sub: "Confirme seus dados pessoais" },
+  3: { heading: "Criar conta", sub: "Configure suas credenciais de acesso" },
 } as const;
 
 // Shared input className
@@ -118,7 +118,7 @@ export default function SignupPage() {
       const result = await response.json();
 
       if (!response.ok || !result.valid) {
-        setError(result.error || "Invalid invite code");
+        setError(result.error || "Código de convite inválido");
         return;
       }
 
@@ -127,7 +127,7 @@ export default function SignupPage() {
       step2Form.setValue("name", result.patientName || "");
       setCurrentStep(2);
     } catch {
-      setError("Failed to validate invite code. Please try again.");
+      setError("Falha ao validar o código. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export default function SignupPage() {
             .join(", ");
           setError(errorMessages);
         } else {
-          setError(result.error || "Signup failed");
+          setError(result.error || "Falha no cadastro");
         }
         return;
       }
@@ -179,7 +179,7 @@ export default function SignupPage() {
       router.push("/patient");
     } catch (err) {
       console.error("Signup error:", err);
-      setError("An error occurred. Please try again.");
+      setError("Ocorreu um erro. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -211,7 +211,7 @@ export default function SignupPage() {
 
             {/* Tagline */}
             <p className="relative z-10 text-[13px] font-medium text-white/[0.48] mb-[26px]">
-              Nutrition management for professionals
+              Gestão nutricional para profissionais
             </p>
           </div>
 
@@ -291,7 +291,7 @@ export default function SignupPage() {
             <form onSubmit={step1Form.handleSubmit(onStep1Submit)} className="flex flex-col" noValidate>
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="inviteCode" className="text-[14px] font-semibold text-[#374151]">
-                  Invite code
+                  Código de convite
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -320,11 +320,11 @@ export default function SignupPage() {
                     {step1Form.formState.errors.inviteCode.message}
                   </p>
                 )}
-                <p className="text-xs text-[#9CA3AF]">8-digit code provided by your nutritionist</p>
+                <p className="text-xs text-[#9CA3AF]">Código de 8 dígitos fornecido pelo seu nutricionista</p>
               </div>
 
               <div className="h-[10px]" />
-              <SubmitButton loading={loading} label="Continue" />
+              <SubmitButton loading={loading} label="Continuar" />
               <SignInCta />
             </form>
           )}
@@ -342,7 +342,7 @@ export default function SignupPage() {
                     <circle cx="7.5" cy="4.5" r="0.75" fill="currentColor"/>
                   </svg>
                   <span>
-                    Your nutritionist: <strong>{professionalInfo.email}</strong>
+                    Seu nutricionista: <strong>{professionalInfo.email}</strong>
                     {professionalInfo.specialization && ` · ${professionalInfo.specialization}`}
                   </span>
                 </div>
@@ -351,7 +351,7 @@ export default function SignupPage() {
               {/* Full name */}
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="name" className="text-[14px] font-semibold text-[#374151]">
-                  Full name
+                  Nome completo
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -363,7 +363,7 @@ export default function SignupPage() {
                   <input
                     id="name"
                     type="text"
-                    placeholder="Jane Doe"
+                    placeholder="Maria Silva"
                     disabled={loading}
                     aria-invalid={step2Form.formState.errors.name ? "true" : "false"}
                     {...step2Form.register("name")}
@@ -380,7 +380,7 @@ export default function SignupPage() {
               {/* Date of birth */}
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="dateOfBirth" className="text-[14px] font-semibold text-[#374151]">
-                  Date of birth <span className="font-normal text-[#9CA3AF]">(optional)</span>
+                  Data de nascimento <span className="font-normal text-[#9CA3AF]">(opcional)</span>
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -404,7 +404,7 @@ export default function SignupPage() {
               <div className="h-[10px]" />
               <div className="flex gap-3 mb-5">
                 <BackButton onClick={() => setCurrentStep(1)} />
-                <SubmitButton loading={loading} label="Continue" flex />
+                <SubmitButton loading={loading} label="Continuar" flex />
               </div>
               <SignInCta />
             </form>
@@ -417,7 +417,7 @@ export default function SignupPage() {
               {/* Email */}
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="email" className="text-[14px] font-semibold text-[#374151]">
-                  Email address
+                  E-mail
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -441,14 +441,14 @@ export default function SignupPage() {
                   <p className="text-xs font-medium text-[#DC2626]">{step3Form.formState.errors.email.message}</p>
                 )}
                 {showValidation && emailValue && !isEmailValid && !step3Form.formState.errors.email && (
-                  <p className="text-xs font-medium text-amber-600">Invalid email format</p>
+                  <p className="text-xs font-medium text-amber-600">Formato de e-mail inválido</p>
                 )}
               </div>
 
               {/* Password */}
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
-                  Password
+                  Senha
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -471,7 +471,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     className="absolute right-[11px] text-[#9CA3AF] hover:text-[#2E8B5A] p-[5px] rounded-[6px] transition-colors duration-150"
                   >
                     <EyeIcon open={showPassword} />
@@ -482,7 +482,7 @@ export default function SignupPage() {
                 )}
                 {showValidation && passwordValue && !isPasswordStrong && !step3Form.formState.errors.password && (
                   <p className="text-xs font-medium text-amber-600">
-                    Use 8+ chars with uppercase, lowercase, and a number
+                    Use 8+ caracteres com maiúscula, minúscula e número
                   </p>
                 )}
               </div>
@@ -490,7 +490,7 @@ export default function SignupPage() {
               {/* Confirm password */}
               <div className="flex flex-col gap-[6px] mb-[14px]">
                 <label htmlFor="confirmPassword" className="text-[14px] font-semibold text-[#374151]">
-                  Confirm password
+                  Confirmar senha
                 </label>
                 <div className="group relative flex items-center">
                   <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
@@ -513,7 +513,7 @@ export default function SignupPage() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((v) => !v)}
-                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
                     className="absolute right-[11px] text-[#9CA3AF] hover:text-[#2E8B5A] p-[5px] rounded-[6px] transition-colors duration-150"
                   >
                     <EyeIcon open={showConfirmPassword} />
@@ -523,14 +523,14 @@ export default function SignupPage() {
                   <p className="text-xs font-medium text-[#DC2626]">{step3Form.formState.errors.confirmPassword.message}</p>
                 )}
                 {confirmPasswordValue && passwordsMatch && (
-                  <p className="text-xs font-medium text-[#2E8B5A]">Passwords match</p>
+                  <p className="text-xs font-medium text-[#2E8B5A]">Senhas iguais</p>
                 )}
               </div>
 
               <div className="h-[10px]" />
               <div className="flex gap-3 mb-5">
                 <BackButton onClick={() => setCurrentStep(2)} />
-                <SubmitButton loading={loading} label="Create account" flex />
+                <SubmitButton loading={loading} label="Criar conta" flex />
               </div>
               <SignInCta />
             </form>
@@ -596,7 +596,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
       </svg>
-      Back
+      Voltar
     </button>
   );
 }
@@ -604,12 +604,12 @@ function BackButton({ onClick }: { onClick: () => void }) {
 function SignInCta() {
   return (
     <p className="text-center text-[14px] font-medium text-[#6B7280]">
-      Already have an account?{" "}
+      Já tem uma conta?{" "}
       <Link
         href="/login"
         className="text-[#2E8B5A] font-bold hover:opacity-75 transition-opacity duration-150"
       >
-        Sign in
+        Entrar
       </Link>
     </p>
   );

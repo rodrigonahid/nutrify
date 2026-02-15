@@ -17,6 +17,14 @@ interface Appointment {
   cancellationReason: string | null;
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  confirmed: "Confirmada",
+  pending: "Pendente",
+  requested: "Solicitada",
+  cancelled: "Cancelada",
+  completed: "Concluída",
+};
+
 function statusStyle(status: string) {
   switch (status) {
     case "confirmed":
@@ -34,7 +42,7 @@ function statusStyle(status: string) {
 }
 
 function formatDate(dateString: string) {
-  return new Date(dateString + "T00:00:00").toLocaleDateString("en-US", {
+  return new Date(dateString + "T00:00:00").toLocaleDateString("pt-BR", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -109,16 +117,16 @@ function DateGroup({
                   )}
                   {apt.cancellationReason && (
                     <p className="text-[12px] text-[#DC2626] mt-0.5">
-                      Cancelled: {apt.cancellationReason}
+                      Cancelada: {apt.cancellationReason}
                     </p>
                   )}
                 </div>
                 <span
-                  className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${statusStyle(
+                  className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(
                     apt.status
                   )}`}
                 >
-                  {apt.status}
+                  {STATUS_LABELS[apt.status] ?? apt.status}
                 </span>
               </div>
             ))}
@@ -146,7 +154,7 @@ export default function PatientAppointmentsPage() {
         const data = await res.json();
         setAppointments(data.appointments ?? []);
       } catch {
-        setError("Failed to load appointments");
+        setError("Falha ao carregar consultas");
       } finally {
         setLoading(false);
       }
@@ -185,19 +193,19 @@ export default function PatientAppointmentsPage() {
         href={`/professional/patients/${patientId}`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Patient
+        ← Voltar ao paciente
       </Link>
 
       {/* Page heading */}
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Appointments
+          Consultas
         </h1>
         {!loading && (
           <p className="text-sm font-medium text-[#6B7280]">
             {appointments.length === 0
-              ? "No appointments yet"
-              : `${upcoming.length} upcoming · ${past.length} past`}
+              ? "Nenhuma consulta ainda"
+              : `${upcoming.length} próxima${upcoming.length !== 1 ? "s" : ""} · ${past.length} anterior${past.length !== 1 ? "es" : ""}`}
           </p>
         )}
       </div>
@@ -233,10 +241,10 @@ export default function PatientAppointmentsPage() {
             <Calendar size={22} className="text-[#9CA3AF]" />
           </div>
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
-            No appointments yet
+            Nenhuma consulta ainda
           </p>
           <p className="text-[13px] text-[#9CA3AF]">
-            Appointments with this patient will appear here.
+            Consultas com este paciente aparecerão aqui.
           </p>
         </div>
       ) : (
@@ -246,7 +254,7 @@ export default function PatientAppointmentsPage() {
           {upcomingDates.length > 0 && (
             <div className="space-y-4">
               <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
-                Upcoming · {upcoming.length}
+                Próximas · {upcoming.length}
               </p>
               {upcomingDates.map((date) => (
                 <DateGroup
@@ -263,7 +271,7 @@ export default function PatientAppointmentsPage() {
           {pastDates.length > 0 && (
             <div className="space-y-4">
               <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
-                Past · {past.length}
+                Anteriores · {past.length}
               </p>
               {pastDates.map((date) => (
                 <DateGroup

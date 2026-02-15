@@ -7,7 +7,7 @@ import { DeltaIndicator } from "@/components/delta-indicator";
 import { Progress } from "@/types/progress";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -34,7 +34,7 @@ export default function PatientProgressListPage() {
     fetch("/api/patient/progress")
       .then((r) => r.json())
       .then((d) => setProgress(d.progress ?? []))
-      .catch(() => setError("Failed to load progress data"))
+      .catch(() => setError("Falha ao carregar dados de progresso"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,18 +45,18 @@ export default function PatientProgressListPage() {
         href="/patient"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Progress History
+          Histórico de Progresso
         </h1>
         {!loading && (
           <p className="text-sm font-medium text-[#6B7280]">
             {progress.length === 0
-              ? "No entries yet"
-              : `${progress.length} entr${progress.length !== 1 ? "ies" : "y"}`}
+              ? "Nenhum registro ainda"
+              : `${progress.length} registro${progress.length !== 1 ? "s" : ""}`}
           </p>
         )}
       </div>
@@ -78,9 +78,9 @@ export default function PatientProgressListPage() {
           <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
             <TrendingUp size={22} className="text-[#9CA3AF]" />
           </div>
-          <p className="text-[15px] font-semibold text-[#374151] mb-1">No entries yet</p>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">Nenhum registro ainda</p>
           <p className="text-[13px] text-[#9CA3AF]">
-            Your nutritionist will add your first progress entry soon.
+            Seu nutricionista adicionará seu primeiro registro de progresso em breve.
           </p>
         </div>
       ) : (
@@ -107,13 +107,13 @@ export default function PatientProgressListPage() {
                       )}
                       {entry.bmi && (
                         <div className="flex items-center gap-1">
-                          <span className="text-[12px] text-[#6B7280]">BMI {entry.bmi}</span>
+                          <span className="text-[12px] text-[#6B7280]">IMC {entry.bmi}</span>
                           <DeltaIndicator current={entry.bmi} previous={prev?.bmi || null} unit="" />
                         </div>
                       )}
                       {entry.bodyFatPercentage && (
                         <div className="flex items-center gap-1">
-                          <span className="text-[12px] text-[#6B7280]">{entry.bodyFatPercentage}% fat</span>
+                          <span className="text-[12px] text-[#6B7280]">{entry.bodyFatPercentage}% gordura</span>
                           <DeltaIndicator current={entry.bodyFatPercentage} previous={prev?.bodyFatPercentage || null} unit="%" />
                         </div>
                       )}

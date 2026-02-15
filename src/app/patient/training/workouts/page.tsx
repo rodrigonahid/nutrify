@@ -34,7 +34,7 @@ export default function WorkoutsPage() {
     fetch("/api/patient/training/workouts")
       .then((r) => r.json())
       .then((d) => setWorkouts(d.workouts ?? []))
-      .catch(() => setError("Failed to load workouts"))
+      .catch(() => setError("Falha ao carregar treinos"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -44,19 +44,19 @@ export default function WorkoutsPage() {
         href="/patient/training"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Training
+        ← Voltar ao treino
       </Link>
 
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Workouts
+            Treinos
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {workouts.length === 0
-                ? "No workouts yet"
-                : `${workouts.length} workout${workouts.length !== 1 ? "s" : ""}`}
+                ? "Nenhum treino ainda"
+                : `${workouts.length} treino${workouts.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -65,7 +65,7 @@ export default function WorkoutsPage() {
           className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px transition-all duration-150"
         >
           <Plus size={14} />
-          New Workout
+          Novo treino
         </Link>
       </div>
 
@@ -86,14 +86,14 @@ export default function WorkoutsPage() {
           <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
             <Dumbbell size={22} className="text-[#9CA3AF]" />
           </div>
-          <p className="text-[15px] font-semibold text-[#374151] mb-1">No workouts yet</p>
-          <p className="text-[13px] text-[#9CA3AF] mb-4">Create templates to speed up session logging.</p>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">Nenhum treino ainda</p>
+          <p className="text-[13px] text-[#9CA3AF] mb-4">Crie modelos para agilizar o registro de sessões.</p>
           <Link
             href="/patient/training/workouts/create"
             className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] transition-all duration-150"
           >
             <Plus size={14} />
-            Create your first workout
+            Criar primeiro treino
           </Link>
         </div>
       ) : (
@@ -110,12 +110,12 @@ export default function WorkoutsPage() {
                     <p className="text-[14px] font-semibold text-[#111827] truncate">{workout.name}</p>
                     {workout.assignedByProfessionalId && (
                       <span className="shrink-0 text-[11px] font-semibold text-[#2563EB] bg-[rgba(37,99,235,0.08)] px-2 py-0.5 rounded-full">
-                        Assigned
+                        Atribuído
                       </span>
                     )}
                   </div>
                   <p className="text-[12px] text-[#9CA3AF]">
-                    {workout.exerciseCount} exercise{workout.exerciseCount !== 1 ? "s" : ""}
+                    {workout.exerciseCount} exercício{workout.exerciseCount !== 1 ? "s" : ""}
                   </p>
                 </div>
                 <span className="shrink-0 text-[12px] font-semibold text-[#2E8B5A] mt-0.5">→</span>

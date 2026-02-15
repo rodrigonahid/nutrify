@@ -6,7 +6,7 @@ import { UtensilsCrossed } from "lucide-react";
 import { MealPlanListItem } from "@/types";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -34,7 +34,7 @@ export default function PatientMealPlanListPage() {
     fetch("/api/patient/meal-plan")
       .then((r) => r.json())
       .then((d) => setMealPlans(d.mealPlans ?? []))
-      .catch(() => setError("Failed to load meal plans"))
+      .catch(() => setError("Falha ao carregar planos alimentares"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -45,18 +45,18 @@ export default function PatientMealPlanListPage() {
         href="/patient"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Nutrition Plans
+          Planos Alimentares
         </h1>
         {!loading && (
           <p className="text-sm font-medium text-[#6B7280]">
             {mealPlans.length === 0
-              ? "No plans yet"
-              : `${mealPlans.length} plan${mealPlans.length !== 1 ? "s" : ""}`}
+              ? "Nenhum plano ainda"
+              : `${mealPlans.length} plano${mealPlans.length !== 1 ? "s" : ""}`}
           </p>
         )}
       </div>
@@ -78,9 +78,9 @@ export default function PatientMealPlanListPage() {
           <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
             <UtensilsCrossed size={22} className="text-[#9CA3AF]" />
           </div>
-          <p className="text-[15px] font-semibold text-[#374151] mb-1">No meal plans yet</p>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">Nenhum plano alimentar ainda</p>
           <p className="text-[13px] text-[#9CA3AF]">
-            Your nutritionist will create one for you soon.
+            Seu nutricionista criará um para você em breve.
           </p>
         </div>
       ) : (
@@ -97,12 +97,12 @@ export default function PatientMealPlanListPage() {
                     <p className="text-[14px] font-semibold text-[#111827] truncate">{plan.name}</p>
                     {plan.isActive && (
                       <span className="shrink-0 text-[11px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2 py-0.5 rounded-full">
-                        Active
+                        Ativo
                       </span>
                     )}
                   </div>
                   <p className="text-[12px] text-[#9CA3AF]">
-                    {formatDate(plan.createdAt)} · {plan.mealCount} meal{plan.mealCount !== 1 ? "s" : ""}
+                    {formatDate(plan.createdAt)} · {plan.mealCount} {plan.mealCount !== 1 ? "refeições" : "refeição"}
                   </p>
                 </div>
                 <span className="shrink-0 text-[12px] font-semibold text-[#2E8B5A] mt-0.5">→</span>

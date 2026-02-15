@@ -47,7 +47,7 @@ export default function PatientsListPage() {
     fetch("/api/professional/patients")
       .then((r) => r.json())
       .then((data) => setPatients(data.patients ?? []))
-      .catch(() => setError("Failed to load patients"))
+      .catch(() => setError("Falha ao carregar pacientes"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -66,13 +66,13 @@ export default function PatientsListPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            My Patients
+            Meus pacientes
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {patients.length === 0
-                ? "No patients yet"
-                : `${patients.length} patient${patients.length !== 1 ? "s" : ""}`}
+                ? "Nenhum paciente ainda"
+                : `${patients.length} paciente${patients.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -86,7 +86,7 @@ export default function PatientsListPage() {
           </span>
           <input
             type="search"
-            placeholder="Search by name or email…"
+            placeholder="Buscar por nome ou e-mail…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full h-10 pl-[38px] pr-3 bg-white border border-[#E5E7EB] rounded-[10px] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 hover:border-[#D1D5DB] focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.12)]"
@@ -118,17 +118,17 @@ export default function PatientsListPage() {
               <Users size={22} className="text-[#9CA3AF]" />
             </div>
             <p className="text-[15px] font-semibold text-[#374151] mb-1">
-              No patients yet
+              Nenhum paciente ainda
             </p>
             <p className="text-[13px] text-[#9CA3AF] mb-5">
-              Generate an invite code to add your first patient.
+              Gere um código de convite para adicionar seu primeiro paciente.
             </p>
             <Link
               href="/professional/invite-codes"
               className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
             >
               <KeyRound size={13} strokeWidth={2.2} />
-              Go to Invite Codes
+              Ir para códigos de convite
             </Link>
           </div>
         )}
@@ -137,7 +137,7 @@ export default function PatientsListPage() {
         {!loading && patients.length > 0 && filtered.length === 0 && (
           <div className="py-10 text-center">
             <p className="text-[14px] font-medium text-[#9CA3AF]">
-              No patients match &quot;{search}&quot;
+              Nenhum paciente encontrado para &quot;{search}&quot;
             </p>
           </div>
         )}

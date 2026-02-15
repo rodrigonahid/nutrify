@@ -7,7 +7,7 @@ import { DeltaIndicator } from "@/components/delta-indicator";
 import { Progress } from "@/types/progress";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -62,14 +62,14 @@ export default function PatientProgressDetailPage() {
     fetch(`/api/patient/progress/${progressId}`)
       .then((r) => r.json())
       .then((d) => { setProgress(d.progress); setPrevious(d.previous); })
-      .catch(() => setError("Failed to load progress data"))
+      .catch(() => setError("Falha ao carregar dados de progresso"))
       .finally(() => setLoading(false));
   }, [progressId]);
 
   return (
     <div className="p-4 md:p-8 max-w-[900px]">
       <Link href="/patient/progress" className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6">
-        ← Back to Progress
+        ← Voltar ao progresso
       </Link>
 
       <div className="mb-6">
@@ -91,51 +91,51 @@ export default function PatientProgressDetailPage() {
         </div>
       ) : !progress ? null : (
         <div className="space-y-4">
-          <Section title="Body Composition">
-            <Row label="Weight" current={progress.totalWeight} prev={previous?.totalWeight || null} unit="kg" />
-            <Row label="Height" current={progress.height} prev={previous?.height || null} unit="cm" />
-            <Row label="BMI" current={progress.bmi} prev={previous?.bmi || null} unit="" />
-            <Row label="Body Fat" current={progress.bodyFatPercentage} prev={previous?.bodyFatPercentage || null} unit="%" />
+          <Section title="Composição Corporal">
+            <Row label="Peso" current={progress.totalWeight} prev={previous?.totalWeight || null} unit="kg" />
+            <Row label="Altura" current={progress.height} prev={previous?.height || null} unit="cm" />
+            <Row label="IMC" current={progress.bmi} prev={previous?.bmi || null} unit="" />
+            <Row label="Gordura Corporal" current={progress.bodyFatPercentage} prev={previous?.bodyFatPercentage || null} unit="%" />
           </Section>
 
-          <Section title="Trunk" subtitle="cm">
-            <Row label="Chest" current={progress.perimeterChest} prev={previous?.perimeterChest || null} unit="cm" />
-            <Row label="Shoulder" current={progress.perimeterShoulder} prev={previous?.perimeterShoulder || null} unit="cm" />
-            <Row label="Waist" current={progress.perimeterWaist} prev={previous?.perimeterWaist || null} unit="cm" />
-            <Row label="Abdomen" current={progress.perimeterAbdomen} prev={previous?.perimeterAbdomen || null} unit="cm" />
-            <Row label="Hip" current={progress.perimeterHip} prev={previous?.perimeterHip || null} unit="cm" />
+          <Section title="Tronco" subtitle="cm">
+            <Row label="Tórax" current={progress.perimeterChest} prev={previous?.perimeterChest || null} unit="cm" />
+            <Row label="Ombro" current={progress.perimeterShoulder} prev={previous?.perimeterShoulder || null} unit="cm" />
+            <Row label="Cintura" current={progress.perimeterWaist} prev={previous?.perimeterWaist || null} unit="cm" />
+            <Row label="Abdômen" current={progress.perimeterAbdomen} prev={previous?.perimeterAbdomen || null} unit="cm" />
+            <Row label="Quadril" current={progress.perimeterHip} prev={previous?.perimeterHip || null} unit="cm" />
           </Section>
 
-          <Section title="Upper Limbs" subtitle="cm">
-            <Row label="Biceps Left (Relaxed)" current={progress.perimeterBicepsLeftRelaxed} prev={previous?.perimeterBicepsLeftRelaxed || null} unit="cm" />
-            <Row label="Biceps Left (Contracted)" current={progress.perimeterBicepsLeftContracted} prev={previous?.perimeterBicepsLeftContracted || null} unit="cm" />
-            <Row label="Biceps Right (Relaxed)" current={progress.perimeterBicepsRightRelaxed} prev={previous?.perimeterBicepsRightRelaxed || null} unit="cm" />
-            <Row label="Biceps Right (Contracted)" current={progress.perimeterBicepsRightContracted} prev={previous?.perimeterBicepsRightContracted || null} unit="cm" />
-            <Row label="Forearm Left" current={progress.perimeterForearmLeft} prev={previous?.perimeterForearmLeft || null} unit="cm" />
-            <Row label="Forearm Right" current={progress.perimeterForearmRight} prev={previous?.perimeterForearmRight || null} unit="cm" />
+          <Section title="Membros Superiores" subtitle="cm">
+            <Row label="Bíceps Esq (Relaxado)" current={progress.perimeterBicepsLeftRelaxed} prev={previous?.perimeterBicepsLeftRelaxed || null} unit="cm" />
+            <Row label="Bíceps Esq (Contraído)" current={progress.perimeterBicepsLeftContracted} prev={previous?.perimeterBicepsLeftContracted || null} unit="cm" />
+            <Row label="Bíceps Dir (Relaxado)" current={progress.perimeterBicepsRightRelaxed} prev={previous?.perimeterBicepsRightRelaxed || null} unit="cm" />
+            <Row label="Bíceps Dir (Contraído)" current={progress.perimeterBicepsRightContracted} prev={previous?.perimeterBicepsRightContracted || null} unit="cm" />
+            <Row label="Antebraço Esq" current={progress.perimeterForearmLeft} prev={previous?.perimeterForearmLeft || null} unit="cm" />
+            <Row label="Antebraço Dir" current={progress.perimeterForearmRight} prev={previous?.perimeterForearmRight || null} unit="cm" />
           </Section>
 
-          <Section title="Lower Limbs" subtitle="cm">
-            <Row label="Thigh Proximal Left" current={progress.perimeterThighProximalLeft} prev={previous?.perimeterThighProximalLeft || null} unit="cm" />
-            <Row label="Thigh Proximal Right" current={progress.perimeterThighProximalRight} prev={previous?.perimeterThighProximalRight || null} unit="cm" />
-            <Row label="Thigh Medial Left" current={progress.perimeterThighMedialLeft} prev={previous?.perimeterThighMedialLeft || null} unit="cm" />
-            <Row label="Thigh Medial Right" current={progress.perimeterThighMedialRight} prev={previous?.perimeterThighMedialRight || null} unit="cm" />
-            <Row label="Thigh Distal Left" current={progress.perimeterThighDistalLeft} prev={previous?.perimeterThighDistalLeft || null} unit="cm" />
-            <Row label="Thigh Distal Right" current={progress.perimeterThighDistalRight} prev={previous?.perimeterThighDistalRight || null} unit="cm" />
-            <Row label="Calf Left" current={progress.perimeterCalfLeft} prev={previous?.perimeterCalfLeft || null} unit="cm" />
-            <Row label="Calf Right" current={progress.perimeterCalfRight} prev={previous?.perimeterCalfRight || null} unit="cm" />
+          <Section title="Membros Inferiores" subtitle="cm">
+            <Row label="Coxa Proximal Esq" current={progress.perimeterThighProximalLeft} prev={previous?.perimeterThighProximalLeft || null} unit="cm" />
+            <Row label="Coxa Proximal Dir" current={progress.perimeterThighProximalRight} prev={previous?.perimeterThighProximalRight || null} unit="cm" />
+            <Row label="Coxa Medial Esq" current={progress.perimeterThighMedialLeft} prev={previous?.perimeterThighMedialLeft || null} unit="cm" />
+            <Row label="Coxa Medial Dir" current={progress.perimeterThighMedialRight} prev={previous?.perimeterThighMedialRight || null} unit="cm" />
+            <Row label="Coxa Distal Esq" current={progress.perimeterThighDistalLeft} prev={previous?.perimeterThighDistalLeft || null} unit="cm" />
+            <Row label="Coxa Distal Dir" current={progress.perimeterThighDistalRight} prev={previous?.perimeterThighDistalRight || null} unit="cm" />
+            <Row label="Panturrilha Esq" current={progress.perimeterCalfLeft} prev={previous?.perimeterCalfLeft || null} unit="cm" />
+            <Row label="Panturrilha Dir" current={progress.perimeterCalfRight} prev={previous?.perimeterCalfRight || null} unit="cm" />
           </Section>
 
-          <Section title="Skinfolds" subtitle="mm">
-            <Row label="Biceps" current={progress.skinfoldBiceps} prev={previous?.skinfoldBiceps || null} unit="mm" />
-            <Row label="Triceps" current={progress.skinfoldTriceps} prev={previous?.skinfoldTriceps || null} unit="mm" />
-            <Row label="Axillary" current={progress.skinfoldAxillary} prev={previous?.skinfoldAxillary || null} unit="mm" />
-            <Row label="Suprailiac" current={progress.skinfoldSuprailiac} prev={previous?.skinfoldSuprailiac || null} unit="mm" />
+          <Section title="Dobras Cutâneas" subtitle="mm">
+            <Row label="Bíceps" current={progress.skinfoldBiceps} prev={previous?.skinfoldBiceps || null} unit="mm" />
+            <Row label="Tríceps" current={progress.skinfoldTriceps} prev={previous?.skinfoldTriceps || null} unit="mm" />
+            <Row label="Axilar" current={progress.skinfoldAxillary} prev={previous?.skinfoldAxillary || null} unit="mm" />
+            <Row label="Suprailíaca" current={progress.skinfoldSuprailiac} prev={previous?.skinfoldSuprailiac || null} unit="mm" />
             <Row label="Abdominal" current={progress.skinfoldAbdominal} prev={previous?.skinfoldAbdominal || null} unit="mm" />
-            <Row label="Subscapular" current={progress.skinfoldSubscapular} prev={previous?.skinfoldSubscapular || null} unit="mm" />
-            <Row label="Chest" current={progress.skinfoldChest} prev={previous?.skinfoldChest || null} unit="mm" />
-            <Row label="Thigh" current={progress.skinfoldThigh} prev={previous?.skinfoldThigh || null} unit="mm" />
-            <Row label="Calf" current={progress.skinfoldCalf} prev={previous?.skinfoldCalf || null} unit="mm" />
+            <Row label="Subescapular" current={progress.skinfoldSubscapular} prev={previous?.skinfoldSubscapular || null} unit="mm" />
+            <Row label="Peitoral" current={progress.skinfoldChest} prev={previous?.skinfoldChest || null} unit="mm" />
+            <Row label="Coxa" current={progress.skinfoldThigh} prev={previous?.skinfoldThigh || null} unit="mm" />
+            <Row label="Panturrilha" current={progress.skinfoldCalf} prev={previous?.skinfoldCalf || null} unit="mm" />
           </Section>
         </div>
       )}

@@ -19,7 +19,7 @@ export default function ProfessionalSettingsPage() {
     async function fetchProfile() {
       try {
         const res = await fetch("/api/professional/profile");
-        if (!res.ok) throw new Error("Failed to load profile");
+        if (!res.ok) throw new Error("Falha ao carregar perfil");
         const { profile } = await res.json();
         setName(profile.name ?? "");
         setPhone(profile.phone ?? "");
@@ -27,7 +27,7 @@ export default function ProfessionalSettingsPage() {
         setBio(profile.bio ?? "");
         setProfessionalLicense(profile.professionalLicense ?? "");
       } catch {
-        setError("Failed to load profile.");
+        setError("Falha ao carregar perfil.");
       } finally {
         setLoading(false);
       }
@@ -56,12 +56,12 @@ export default function ProfessionalSettingsPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? "Failed to save profile");
+        throw new Error(data.error ?? "Falha ao salvar perfil");
       }
 
       setSuccess(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save profile");
+      setError(err instanceof Error ? err.message : "Falha ao salvar perfil");
     } finally {
       setSaving(false);
     }
@@ -76,10 +76,10 @@ export default function ProfessionalSettingsPage() {
 
       <div className="mb-8">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
-          Settings
+          Configurações
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">
-          Manage your profile information
+          Gerencie suas informações de perfil
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export default function ProfessionalSettingsPage() {
       {/* Success */}
       {success && (
         <div className="flex items-center gap-2 bg-[rgba(46,139,90,0.08)] border border-[rgba(46,139,90,0.2)] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#2E8B5A] mb-4">
-          Profile updated successfully.
+          Perfil atualizado com sucesso.
         </div>
       )}
 
@@ -111,18 +111,18 @@ export default function ProfessionalSettingsPage() {
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 space-y-4">
 
             <div>
-              <label className={labelClass}>Name</label>
+              <label className={labelClass}>Nome</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your full name"
+                placeholder="Seu nome completo"
                 className={inputClass}
               />
             </div>
 
             <div>
-              <label className={labelClass}>Phone</label>
+              <label className={labelClass}>Telefone</label>
               <input
                 type="tel"
                 value={phone}
@@ -133,18 +133,18 @@ export default function ProfessionalSettingsPage() {
             </div>
 
             <div>
-              <label className={labelClass}>Specialization</label>
+              <label className={labelClass}>Especialização</label>
               <input
                 type="text"
                 value={specialization}
                 onChange={(e) => setSpecialization(e.target.value)}
-                placeholder="e.g. Sports Nutrition"
+                placeholder="ex.: Nutrição Esportiva"
                 className={inputClass}
               />
             </div>
 
             <div>
-              <label className={labelClass}>Professional license</label>
+              <label className={labelClass}>Registro profissional</label>
               <input
                 type="text"
                 value={professionalLicense}
@@ -155,12 +155,12 @@ export default function ProfessionalSettingsPage() {
             </div>
 
             <div>
-              <label className={labelClass}>Bio <span className="font-normal text-[#9CA3AF]">(optional)</span></label>
+              <label className={labelClass}>Bio <span className="font-normal text-[#9CA3AF]">(opcional)</span></label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 rows={4}
-                placeholder="A short description about yourself…"
+                placeholder="Uma breve descrição sobre você…"
                 className="w-full px-3 py-2.5 rounded-[10px] border border-[#E5E7EB] bg-[#F9FAFB] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2E8B5A] focus:ring-2 focus:ring-[rgba(46,139,90,0.15)] transition-all duration-150 resize-none"
               />
             </div>
@@ -172,7 +172,7 @@ export default function ProfessionalSettingsPage() {
             disabled={saving}
             className="w-full mt-4 h-11 rounded-[10px] bg-[#2E8B5A] text-white text-[14px] font-bold hover:bg-[#267a50] active:bg-[#1e6b43] disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-150"
           >
-            {saving ? "Saving…" : "Save profile"}
+            {saving ? "Salvando…" : "Salvar perfil"}
           </button>
         </form>
       )}
@@ -180,11 +180,11 @@ export default function ProfessionalSettingsPage() {
       {/* Account info */}
       <div className="mt-6 bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Account</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Conta</p>
         </div>
         <div className="px-4 py-3">
           <p className="text-[13px] text-[#6B7280]">
-            To change your email or password, contact your administrator.
+            Para alterar seu e-mail ou senha, entre em contato com o administrador.
           </p>
         </div>
       </div>

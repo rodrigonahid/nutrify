@@ -21,12 +21,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/professional", icon: LayoutDashboard, label: "Dashboard", exact: true },
-  { href: "/professional/patients", icon: Users, label: "Patients" },
-  { href: "/professional/appointments", icon: Calendar, label: "Appointments" },
-  { href: "/professional/invite-codes", icon: KeyRound, label: "Invite Codes" },
-  { href: "/professional/schedules", icon: Clock, label: "Schedules" },
-  { href: "/professional/settings", icon: Settings, label: "Settings" },
+  { href: "/professional", icon: LayoutDashboard, label: "Painel", exact: true },
+  { href: "/professional/patients", icon: Users, label: "Pacientes" },
+  { href: "/professional/appointments", icon: Calendar, label: "Consultas" },
+  { href: "/professional/invite-codes", icon: KeyRound, label: "Convites" },
+  { href: "/professional/schedules", icon: Clock, label: "Horários" },
+  { href: "/professional/settings", icon: Settings, label: "Configurações" },
 ];
 
 interface ProfessionalNavProps {
@@ -98,7 +98,7 @@ export function ProfessionalNav({ userEmail }: ProfessionalNavProps) {
           </div>
           <button
             onClick={handleLogout}
-            title="Sign out"
+            title="Sair"
             className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-all duration-150"
           >
             <LogOut size={18} strokeWidth={1.8} />
@@ -123,7 +123,7 @@ export function ProfessionalNav({ userEmail }: ProfessionalNavProps) {
         <button
           onClick={handleLogout}
           className="text-[#9CA3AF] hover:text-[#DC2626] transition-colors duration-150 p-1"
-          title="Sign out"
+          title="Sair"
         >
           <LogOut size={18} strokeWidth={1.8} />
         </button>
@@ -152,7 +152,7 @@ export function ProfessionalNav({ userEmail }: ProfessionalNavProps) {
           className="flex flex-col items-center gap-[3px] min-w-[44px] py-1 rounded-[8px] text-[#9CA3AF] transition-colors duration-150"
         >
           <LogOut size={20} strokeWidth={1.8} />
-          <span className="text-[10px] font-semibold">Sign out</span>
+          <span className="text-[10px] font-semibold">Sair</span>
         </button>
       </nav>
     </>

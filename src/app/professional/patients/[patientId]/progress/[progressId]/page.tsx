@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import { Progress } from "@/types";
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString("pt-BR", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -72,9 +72,9 @@ export default function ProgressDetailPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.progress) setEntry(data.progress);
-        else setError("Progress entry not found");
+        else setError("Registro de progresso não encontrado");
       })
-      .catch(() => setError("Failed to load progress entry"))
+      .catch(() => setError("Falha ao carregar registro de progresso"))
       .finally(() => setLoading(false));
   }, [patientId, progressId]);
 
@@ -86,7 +86,7 @@ export default function ProgressDetailPage() {
         href={`/professional/patients/${patientId}/progress`}
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Progress
+        ← Voltar ao progresso
       </Link>
 
       {/* Page heading */}
@@ -98,17 +98,17 @@ export default function ProgressDetailPage() {
             ) : entry ? (
               formatDate(entry.createdAt)
             ) : (
-              "Progress Entry"
+              "Registro de progresso"
             )}
           </h1>
-          <p className="text-sm font-medium text-[#6B7280]">Measurement record</p>
+          <p className="text-sm font-medium text-[#6B7280]">Registro de medidas</p>
         </div>
         <Link
           href={`/professional/patients/${patientId}/progress/create`}
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
         >
           <Plus size={13} strokeWidth={2.5} />
-          New Entry
+          Novo registro
         </Link>
       </div>
 
@@ -146,18 +146,18 @@ export default function ProgressDetailPage() {
 
           {/* Body Composition — always show if any value exists */}
           {(entry.bodyFatPercentage || entry.height || entry.totalWeight || entry.bmi) && (
-            <Section title="Body Composition" cols={4}>
+            <Section title="Composição Corporal" cols={4}>
               {fmt(entry.bodyFatPercentage, "%") && (
-                <Stat label="Body Fat" value={fmt(entry.bodyFatPercentage, "%")!} />
+                <Stat label="Gordura Corporal" value={fmt(entry.bodyFatPercentage, "%")!} />
               )}
               {fmt(entry.height, "cm") && (
-                <Stat label="Height" value={fmt(entry.height, "cm")!} />
+                <Stat label="Altura" value={fmt(entry.height, "cm")!} />
               )}
               {fmt(entry.totalWeight, "kg") && (
-                <Stat label="Weight" value={fmt(entry.totalWeight, "kg")!} />
+                <Stat label="Peso" value={fmt(entry.totalWeight, "kg")!} />
               )}
               {fmt(entry.bmi) && (
-                <Stat label="BMI" value={fmt(entry.bmi)!} />
+                <Stat label="IMC" value={fmt(entry.bmi)!} />
               )}
             </Section>
           )}
@@ -165,21 +165,21 @@ export default function ProgressDetailPage() {
           {/* Perimeters — Trunk */}
           {(entry.perimeterChest || entry.perimeterShoulder || entry.perimeterWaist ||
             entry.perimeterAbdomen || entry.perimeterHip) && (
-            <Section title="Perimeters — Trunk (cm)">
+            <Section title="Perímetros — Tronco (cm)">
               {fmt(entry.perimeterChest, "cm") && (
-                <Stat label="Chest" value={fmt(entry.perimeterChest, "cm")!} />
+                <Stat label="Tórax" value={fmt(entry.perimeterChest, "cm")!} />
               )}
               {fmt(entry.perimeterShoulder, "cm") && (
-                <Stat label="Shoulder" value={fmt(entry.perimeterShoulder, "cm")!} />
+                <Stat label="Ombro" value={fmt(entry.perimeterShoulder, "cm")!} />
               )}
               {fmt(entry.perimeterWaist, "cm") && (
-                <Stat label="Waist" value={fmt(entry.perimeterWaist, "cm")!} />
+                <Stat label="Cintura" value={fmt(entry.perimeterWaist, "cm")!} />
               )}
               {fmt(entry.perimeterAbdomen, "cm") && (
-                <Stat label="Abdomen" value={fmt(entry.perimeterAbdomen, "cm")!} />
+                <Stat label="Abdômen" value={fmt(entry.perimeterAbdomen, "cm")!} />
               )}
               {fmt(entry.perimeterHip, "cm") && (
-                <Stat label="Hip" value={fmt(entry.perimeterHip, "cm")!} />
+                <Stat label="Quadril" value={fmt(entry.perimeterHip, "cm")!} />
               )}
             </Section>
           )}
@@ -188,24 +188,24 @@ export default function ProgressDetailPage() {
           {(entry.perimeterBicepsLeftRelaxed || entry.perimeterBicepsRightRelaxed ||
             entry.perimeterBicepsLeftContracted || entry.perimeterBicepsRightContracted ||
             entry.perimeterForearmLeft || entry.perimeterForearmRight) && (
-            <Section title="Perimeters — Upper Limbs (cm)">
+            <Section title="Perímetros — Membros Superiores (cm)">
               {fmt(entry.perimeterBicepsLeftRelaxed, "cm") && (
-                <Stat label="Biceps L (Relaxed)" value={fmt(entry.perimeterBicepsLeftRelaxed, "cm")!} />
+                <Stat label="Bíceps E (Relaxado)" value={fmt(entry.perimeterBicepsLeftRelaxed, "cm")!} />
               )}
               {fmt(entry.perimeterBicepsRightRelaxed, "cm") && (
-                <Stat label="Biceps R (Relaxed)" value={fmt(entry.perimeterBicepsRightRelaxed, "cm")!} />
+                <Stat label="Bíceps D (Relaxado)" value={fmt(entry.perimeterBicepsRightRelaxed, "cm")!} />
               )}
               {fmt(entry.perimeterBicepsLeftContracted, "cm") && (
-                <Stat label="Biceps L (Contracted)" value={fmt(entry.perimeterBicepsLeftContracted, "cm")!} />
+                <Stat label="Bíceps E (Contraído)" value={fmt(entry.perimeterBicepsLeftContracted, "cm")!} />
               )}
               {fmt(entry.perimeterBicepsRightContracted, "cm") && (
-                <Stat label="Biceps R (Contracted)" value={fmt(entry.perimeterBicepsRightContracted, "cm")!} />
+                <Stat label="Bíceps D (Contraído)" value={fmt(entry.perimeterBicepsRightContracted, "cm")!} />
               )}
               {fmt(entry.perimeterForearmLeft, "cm") && (
-                <Stat label="Forearm L" value={fmt(entry.perimeterForearmLeft, "cm")!} />
+                <Stat label="Antebraço E" value={fmt(entry.perimeterForearmLeft, "cm")!} />
               )}
               {fmt(entry.perimeterForearmRight, "cm") && (
-                <Stat label="Forearm R" value={fmt(entry.perimeterForearmRight, "cm")!} />
+                <Stat label="Antebraço D" value={fmt(entry.perimeterForearmRight, "cm")!} />
               )}
             </Section>
           )}
@@ -215,30 +215,30 @@ export default function ProgressDetailPage() {
             entry.perimeterThighMedialLeft || entry.perimeterThighMedialRight ||
             entry.perimeterThighDistalLeft || entry.perimeterThighDistalRight ||
             entry.perimeterCalfLeft || entry.perimeterCalfRight) && (
-            <Section title="Perimeters — Lower Limbs (cm)">
+            <Section title="Perímetros — Membros Inferiores (cm)">
               {fmt(entry.perimeterThighProximalLeft, "cm") && (
-                <Stat label="Thigh Proximal L" value={fmt(entry.perimeterThighProximalLeft, "cm")!} />
+                <Stat label="Coxa Proximal E" value={fmt(entry.perimeterThighProximalLeft, "cm")!} />
               )}
               {fmt(entry.perimeterThighProximalRight, "cm") && (
-                <Stat label="Thigh Proximal R" value={fmt(entry.perimeterThighProximalRight, "cm")!} />
+                <Stat label="Coxa Proximal D" value={fmt(entry.perimeterThighProximalRight, "cm")!} />
               )}
               {fmt(entry.perimeterThighMedialLeft, "cm") && (
-                <Stat label="Thigh Medial L" value={fmt(entry.perimeterThighMedialLeft, "cm")!} />
+                <Stat label="Coxa Medial E" value={fmt(entry.perimeterThighMedialLeft, "cm")!} />
               )}
               {fmt(entry.perimeterThighMedialRight, "cm") && (
-                <Stat label="Thigh Medial R" value={fmt(entry.perimeterThighMedialRight, "cm")!} />
+                <Stat label="Coxa Medial D" value={fmt(entry.perimeterThighMedialRight, "cm")!} />
               )}
               {fmt(entry.perimeterThighDistalLeft, "cm") && (
-                <Stat label="Thigh Distal L" value={fmt(entry.perimeterThighDistalLeft, "cm")!} />
+                <Stat label="Coxa Distal E" value={fmt(entry.perimeterThighDistalLeft, "cm")!} />
               )}
               {fmt(entry.perimeterThighDistalRight, "cm") && (
-                <Stat label="Thigh Distal R" value={fmt(entry.perimeterThighDistalRight, "cm")!} />
+                <Stat label="Coxa Distal D" value={fmt(entry.perimeterThighDistalRight, "cm")!} />
               )}
               {fmt(entry.perimeterCalfLeft, "cm") && (
-                <Stat label="Calf L" value={fmt(entry.perimeterCalfLeft, "cm")!} />
+                <Stat label="Panturrilha E" value={fmt(entry.perimeterCalfLeft, "cm")!} />
               )}
               {fmt(entry.perimeterCalfRight, "cm") && (
-                <Stat label="Calf R" value={fmt(entry.perimeterCalfRight, "cm")!} />
+                <Stat label="Panturrilha D" value={fmt(entry.perimeterCalfRight, "cm")!} />
               )}
             </Section>
           )}
@@ -247,33 +247,33 @@ export default function ProgressDetailPage() {
           {(entry.skinfoldBiceps || entry.skinfoldTriceps || entry.skinfoldAxillary ||
             entry.skinfoldSuprailiac || entry.skinfoldAbdominal || entry.skinfoldSubscapular ||
             entry.skinfoldChest || entry.skinfoldThigh || entry.skinfoldCalf) && (
-            <Section title="Skinfolds (mm)">
+            <Section title="Dobras Cutâneas (mm)">
               {fmt(entry.skinfoldBiceps, "mm") && (
-                <Stat label="Biceps" value={fmt(entry.skinfoldBiceps, "mm")!} />
+                <Stat label="Bíceps" value={fmt(entry.skinfoldBiceps, "mm")!} />
               )}
               {fmt(entry.skinfoldTriceps, "mm") && (
-                <Stat label="Triceps" value={fmt(entry.skinfoldTriceps, "mm")!} />
+                <Stat label="Tríceps" value={fmt(entry.skinfoldTriceps, "mm")!} />
               )}
               {fmt(entry.skinfoldAxillary, "mm") && (
-                <Stat label="Axillary" value={fmt(entry.skinfoldAxillary, "mm")!} />
+                <Stat label="Axilar" value={fmt(entry.skinfoldAxillary, "mm")!} />
               )}
               {fmt(entry.skinfoldSuprailiac, "mm") && (
-                <Stat label="Suprailiac" value={fmt(entry.skinfoldSuprailiac, "mm")!} />
+                <Stat label="Suprailíaca" value={fmt(entry.skinfoldSuprailiac, "mm")!} />
               )}
               {fmt(entry.skinfoldAbdominal, "mm") && (
                 <Stat label="Abdominal" value={fmt(entry.skinfoldAbdominal, "mm")!} />
               )}
               {fmt(entry.skinfoldSubscapular, "mm") && (
-                <Stat label="Subscapular" value={fmt(entry.skinfoldSubscapular, "mm")!} />
+                <Stat label="Subescapular" value={fmt(entry.skinfoldSubscapular, "mm")!} />
               )}
               {fmt(entry.skinfoldChest, "mm") && (
-                <Stat label="Chest" value={fmt(entry.skinfoldChest, "mm")!} />
+                <Stat label="Peitoral" value={fmt(entry.skinfoldChest, "mm")!} />
               )}
               {fmt(entry.skinfoldThigh, "mm") && (
-                <Stat label="Thigh" value={fmt(entry.skinfoldThigh, "mm")!} />
+                <Stat label="Coxa" value={fmt(entry.skinfoldThigh, "mm")!} />
               )}
               {fmt(entry.skinfoldCalf, "mm") && (
-                <Stat label="Calf" value={fmt(entry.skinfoldCalf, "mm")!} />
+                <Stat label="Panturrilha" value={fmt(entry.skinfoldCalf, "mm")!} />
               )}
             </Section>
           )}
@@ -285,7 +285,7 @@ export default function ProgressDetailPage() {
            !entry.skinfoldBiceps && !entry.skinfoldTriceps && (
             <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-10 text-center">
               <p className="text-[14px] font-medium text-[#9CA3AF]">
-                No measurements were recorded for this entry.
+                Nenhuma medida foi registrada para este registro.
               </p>
             </div>
           )}

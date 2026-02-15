@@ -7,20 +7,20 @@ const NAV_CARDS = [
   {
     href: "/patient/training/sessions",
     icon: ClipboardList,
-    title: "Sessions",
-    desc: "Log and view your training sessions",
+    title: "Sessões",
+    desc: "Registre e visualize seus treinos",
   },
   {
     href: "/patient/training/workouts",
     icon: Dumbbell,
-    title: "Workouts",
-    desc: "Create and manage workout templates",
+    title: "Treinos",
+    desc: "Crie e gerencie modelos de treino",
   },
   {
     href: "/patient/training/exercises",
     icon: BookOpen,
-    title: "Exercise Library",
-    desc: "Browse and add exercises",
+    title: "Biblioteca de Exercícios",
+    desc: "Navegue e adicione exercícios",
   },
 ];
 
@@ -34,12 +34,12 @@ export default async function TrainingDashboard() {
         href="/patient"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Dashboard
+        ← Voltar ao painel
       </Link>
 
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Training
+          Treino
         </h1>
       </div>
 

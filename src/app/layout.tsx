@@ -10,7 +10,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "Nutrify",
-  description: "Nutrition management for professionals",
+  description: "Gestão nutricional para profissionais",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body className={`${plusJakartaSans.variable} antialiased`}>
         {children}
       </body>

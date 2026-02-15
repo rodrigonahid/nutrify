@@ -17,26 +17,26 @@ const QUICK_ACTIONS = [
   {
     href: "/professional/patients",
     icon: Users,
-    label: "My Patients",
-    desc: "View and manage your patients",
+    label: "Meus pacientes",
+    desc: "Visualize e gerencie seus pacientes",
   },
   {
     href: "/professional/appointments",
     icon: Calendar,
     label: "Agenda",
-    desc: "View all your appointments",
+    desc: "Veja todas as suas consultas",
   },
   {
     href: "/professional/invite-codes",
     icon: KeyRound,
-    label: "Invite Codes",
-    desc: "Generate codes for new patients",
+    label: "Códigos de convite",
+    desc: "Gere códigos para novos pacientes",
   },
   {
     href: "/professional/schedules",
     icon: Clock,
-    label: "Schedules",
-    desc: "Manage your availability",
+    label: "Horários",
+    desc: "Gerencie sua disponibilidade",
   },
 ];
 
@@ -107,7 +107,7 @@ export default async function ProfessionalDashboard() {
 
   const displayAppointments = [previousAppointment, currentAppointment, nextAppointment].filter(Boolean);
 
-  const dateLabel = new Date().toLocaleDateString("en-US", {
+  const dateLabel = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -119,7 +119,7 @@ export default async function ProfessionalDashboard() {
       {/* Page heading */}
       <div className="mb-8">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
-          Today
+          Hoje
         </h1>
         <p className="text-sm font-medium text-[#6B7280]">{dateLabel}</p>
       </div>
@@ -129,7 +129,7 @@ export default async function ProfessionalDashboard() {
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-[15px] font-semibold text-[#111827]">
-              Today&apos;s appointments
+              Consultas de hoje
             </h2>
             <span className="text-[13px] font-medium text-[#9CA3AF]">
               {todayAppointments.length} total
@@ -158,16 +158,16 @@ export default async function ProfessionalDashboard() {
                   {/* Label row */}
                   <div className="flex items-center gap-1.5 mb-2">
                     {isPrevious && (
-                      <span className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">Previous</span>
+                      <span className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">Anterior</span>
                     )}
                     {isCurrent && (
                       <span className="flex items-center gap-1 text-[11px] font-semibold text-[#2E8B5A] uppercase tracking-wide">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#2E8B5A] animate-pulse" />
-                        Now
+                        Agora
                       </span>
                     )}
                     {isNext && (
-                      <span className="text-[11px] font-semibold text-[#3B82F6] uppercase tracking-wide">Next</span>
+                      <span className="text-[11px] font-semibold text-[#3B82F6] uppercase tracking-wide">Próxima</span>
                     )}
                   </div>
 
@@ -205,9 +205,9 @@ export default async function ProfessionalDashboard() {
               <Calendar size={18} className="text-[#9CA3AF]" />
             </div>
             <div>
-              <p className="text-[14px] font-semibold text-[#374151]">No appointments today</p>
+              <p className="text-[14px] font-semibold text-[#374151]">Sem consultas hoje</p>
               <p className="text-[13px] text-[#9CA3AF]">
-                Your schedule is clear for today.
+                Sua agenda está livre hoje.
               </p>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default async function ProfessionalDashboard() {
 
       {/* Quick access */}
       <section>
-        <h2 className="text-[15px] font-semibold text-[#111827] mb-4">Quick access</h2>
+        <h2 className="text-[15px] font-semibold text-[#111827] mb-4">Acesso rápido</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {QUICK_ACTIONS.map(({ href, icon: Icon, label, desc }) => (
             <Link
