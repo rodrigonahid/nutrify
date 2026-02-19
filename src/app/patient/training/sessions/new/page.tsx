@@ -4,15 +4,9 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-interface MuscleGroup {
-  id: number;
-  name: string;
-}
-
 interface Exercise {
   id: number;
   name: string;
-  muscleGroupName: string | null;
 }
 
 interface Workout {
@@ -29,7 +23,6 @@ function NewSessionForm() {
   const searchParams = useSearchParams();
   const preselectedWorkoutId = searchParams.get("workoutId");
 
-  const [muscleGroups, setMuscleGroups] = useState<MuscleGroup[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
@@ -37,24 +30,20 @@ function NewSessionForm() {
 
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
-  const [muscleGroupId, setMuscleGroupId] = useState("");
   const [workoutId, setWorkoutId] = useState(preselectedWorkoutId ?? "");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
     const loadAll = async () => {
-      const [groupsRes, exRes, workoutsRes] = await Promise.all([
-        fetch("/api/patient/training/muscle-groups"),
+      const [exRes, workoutsRes] = await Promise.all([
         fetch("/api/patient/training/exercises"),
         fetch("/api/patient/training/workouts"),
       ]);
-      const [groupsData, exData, workoutsData] = await Promise.all([
-        groupsRes.json(),
+      const [exData, workoutsData] = await Promise.all([
         exRes.json(),
         workoutsRes.json(),
       ]);
-      setMuscleGroups(groupsData.muscleGroups ?? []);
       setExercises(exData.exercises ?? []);
 
       const workoutDetails: Workout[] = [];
@@ -108,7 +97,6 @@ function NewSessionForm() {
         body: JSON.stringify({
           date,
           workoutId: workoutId ? parseInt(workoutId) : undefined,
-          muscleGroupId: muscleGroupId ? parseInt(muscleGroupId) : undefined,
           notes: notes || undefined,
           exerciseIds: Array.from(selectedIds),
         }),
@@ -144,21 +132,6 @@ function NewSessionForm() {
           required
           className={inputCls}
         />
-      </div>
-
-      <div>
-        <label htmlFor="muscleGroup" className={labelCls}>Muscle Group</label>
-        <select
-          id="muscleGroup"
-          value={muscleGroupId}
-          onChange={(e) => setMuscleGroupId(e.target.value)}
-          className={inputCls}
-        >
-          <option value="">— Select muscle group —</option>
-          {muscleGroups.map((g) => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
       </div>
 
       <div>
@@ -199,11 +172,6 @@ function NewSessionForm() {
                   className="w-4 h-4 accent-[#2E8B5A]"
                 />
                 <span className="flex-1 text-[13px] font-medium text-[#374151]">{ex.name}</span>
-                {ex.muscleGroupName && (
-                  <span className="text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-                    {ex.muscleGroupName}
-                  </span>
-                )}
               </label>
             ))}
           </div>

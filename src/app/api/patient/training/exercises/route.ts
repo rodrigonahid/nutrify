@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { exercises, patients, muscleGroups } from "@/db/schema";
+import { exercises, patients } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { createExerciseSchema } from "@/lib/validation";
 import { eq, or } from "drizzle-orm";
@@ -24,14 +24,11 @@ export async function GET() {
         id: exercises.id,
         name: exercises.name,
         description: exercises.description,
-        muscleGroupId: exercises.muscleGroupId,
-        muscleGroupName: muscleGroups.name,
         patientId: exercises.patientId,
         professionalId: exercises.professionalId,
         createdAt: exercises.createdAt,
       })
       .from(exercises)
-      .leftJoin(muscleGroups, eq(exercises.muscleGroupId, muscleGroups.id))
       .where(
         or(
           eq(exercises.patientId, patient.id),
@@ -81,7 +78,6 @@ export async function POST(request: NextRequest) {
       .values({
         name: result.data.name,
         description: result.data.description,
-        muscleGroupId: result.data.muscleGroupId ?? null,
         patientId: patient.id,
         professionalId: null,
       })

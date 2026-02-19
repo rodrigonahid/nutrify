@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { exercises, patients, muscleGroups, sessionExercises, exerciseSets, trainingSessions } from "@/db/schema";
+import { exercises, patients, sessionExercises, exerciseSets, trainingSessions } from "@/db/schema";
 import { requireRole } from "@/lib/session";
-import { eq, or, asc } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 export async function GET(
   request: NextRequest,
@@ -27,14 +27,11 @@ export async function GET(
         id: exercises.id,
         name: exercises.name,
         description: exercises.description,
-        muscleGroupId: exercises.muscleGroupId,
-        muscleGroupName: muscleGroups.name,
         patientId: exercises.patientId,
         professionalId: exercises.professionalId,
         createdAt: exercises.createdAt,
       })
       .from(exercises)
-      .leftJoin(muscleGroups, eq(exercises.muscleGroupId, muscleGroups.id))
       .where(
         eq(exercises.id, parseInt(exerciseId))
       )

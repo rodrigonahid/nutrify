@@ -8,7 +8,6 @@ import { Dumbbell } from "lucide-react";
 interface Session {
   id: number;
   date: string;
-  muscleGroupName: string | null;
   exerciseCount: number;
   notes: string | null;
 }
@@ -112,11 +111,6 @@ export default function PatientTrainingPage() {
                     <p className="text-[14px] font-semibold text-[#111827]">
                       {formatDate(session.date)}
                     </p>
-                    {session.muscleGroupName && (
-                      <span className="text-[11px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2 py-0.5 rounded-full">
-                        {session.muscleGroupName}
-                      </span>
-                    )}
                   </div>
                   {session.notes && (
                     <p className="text-[12px] text-[#6B7280] line-clamp-1">

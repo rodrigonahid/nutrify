@@ -2,7 +2,7 @@ import { getSession } from "@/lib/session";
 import { db } from "@/db";
 import { appointments, patients, professionals } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { Users, Calendar, KeyRound, Clock } from "lucide-react";
+import { Users, Calendar, KeyRound } from "lucide-react";
 import Link from "next/link";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -23,20 +23,14 @@ const QUICK_ACTIONS = [
   {
     href: "/professional/appointments",
     icon: Calendar,
-    label: "Agenda",
-    desc: "Veja todas as suas consultas",
+    label: "Consultas",
+    desc: "Visualize e agende consultas",
   },
   {
     href: "/professional/invite-codes",
     icon: KeyRound,
     label: "Códigos de convite",
     desc: "Gere códigos para novos pacientes",
-  },
-  {
-    href: "/professional/schedules",
-    icon: Clock,
-    label: "Horários",
-    desc: "Gerencie sua disponibilidade",
   },
 ];
 

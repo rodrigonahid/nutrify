@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { trainingSessions, patients, professionals, muscleGroups, sessionExercises } from "@/db/schema";
+import { trainingSessions, patients, professionals, sessionExercises } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { eq, and, sql, desc } from "drizzle-orm";
 
@@ -50,16 +50,13 @@ export async function GET(
         date: trainingSessions.date,
         notes: trainingSessions.notes,
         workoutId: trainingSessions.workoutId,
-        muscleGroupId: trainingSessions.muscleGroupId,
-        muscleGroupName: muscleGroups.name,
         exerciseCount: sql<number>`cast(count(${sessionExercises.id}) as int)`,
         createdAt: trainingSessions.createdAt,
       })
       .from(trainingSessions)
-      .leftJoin(muscleGroups, eq(trainingSessions.muscleGroupId, muscleGroups.id))
       .leftJoin(sessionExercises, eq(sessionExercises.sessionId, trainingSessions.id))
       .where(eq(trainingSessions.patientId, patient.id))
-      .groupBy(trainingSessions.id, muscleGroups.name)
+      .groupBy(trainingSessions.id)
       .orderBy(desc(trainingSessions.date));
 
     return NextResponse.json({ sessions: result });

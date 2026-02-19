@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Trash2, Plus } from "lucide-react";
+import { ExerciseDetailModal } from "@/components/exercise-detail-modal";
 
 interface SetData {
   id: number;
@@ -19,7 +20,6 @@ interface ExerciseData {
   exerciseId: number;
   exerciseName: string;
   exerciseDescription: string | null;
-  muscleGroupName: string | null;
   sets: SetData[];
 }
 
@@ -27,7 +27,6 @@ interface Session {
   id: number;
   date: string;
   notes: string | null;
-  muscleGroupName: string | null;
   workoutId: number | null;
 }
 
@@ -70,6 +69,7 @@ export default function SessionDetailPage() {
   const [error, setError] = useState("");
   const [addForms, setAddForms] = useState<Record<number, AddSetForm>>({});
   const [submitting, setSubmitting] = useState<Record<number, boolean>>({});
+  const [detailExerciseId, setDetailExerciseId] = useState<number | null>(null);
 
   const loadSession = useCallback(async () => {
     const res = await fetch(`/api/patient/training/sessions/${sessionId}`);
@@ -154,11 +154,6 @@ export default function SessionDetailPage() {
             session ? formatSessionDate(session.date) : "Session"
           )}
         </h1>
-        {!loading && session?.muscleGroupName && (
-          <span className="inline-block text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2.5 py-0.5 rounded-full mt-1">
-            {session.muscleGroupName}
-          </span>
-        )}
         {!loading && session?.notes && (
           <p className="text-sm font-medium text-[#6B7280] mt-1">{session.notes}</p>
         )}
@@ -185,17 +180,12 @@ export default function SessionDetailPage() {
               {/* Exercise header */}
               <div className="px-4 py-3 border-b border-[#F3F4F6]">
                 <div className="flex items-center gap-2">
-                  <Link
-                    href={`/patient/training/exercises/${ex.exerciseId}`}
+                  <button
+                    onClick={() => setDetailExerciseId(ex.exerciseId)}
                     className="text-[14px] font-semibold text-[#111827] hover:text-[#2E8B5A] transition-colors"
                   >
                     {ex.exerciseName}
-                  </Link>
-                  {ex.muscleGroupName && (
-                    <span className="text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-                      {ex.muscleGroupName}
-                    </span>
-                  )}
+                  </button>
                 </div>
               </div>
 
@@ -308,6 +298,13 @@ export default function SessionDetailPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {detailExerciseId !== null && (
+        <ExerciseDetailModal
+          exerciseId={detailExerciseId}
+          onClose={() => setDetailExerciseId(null)}
+        />
       )}
     </div>
   );

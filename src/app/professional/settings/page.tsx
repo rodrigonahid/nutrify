@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 export default function ProfessionalSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,11 @@ export default function ProfessionalSettingsPage() {
   const [bio, setBio] = useState("");
   const [professionalLicense, setProfessionalLicense] = useState("");
 
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -26,6 +31,7 @@ export default function ProfessionalSettingsPage() {
         setSpecialization(profile.specialization ?? "");
         setBio(profile.bio ?? "");
         setProfessionalLicense(profile.professionalLicense ?? "");
+        setLogoUrl(profile.logoUrl ?? null);
       } catch {
         setError("Falha ao carregar perfil.");
       } finally {
@@ -34,6 +40,35 @@ export default function ProfessionalSettingsPage() {
     }
     fetchProfile();
   }, []);
+
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLogoError("");
+    setLogoUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/professional/logo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Falha ao enviar logotipo");
+
+      setLogoUrl(data.url);
+    } catch (err) {
+      setLogoError(err instanceof Error ? err.message : "Falha ao enviar logotipo");
+    } finally {
+      setLogoUploading(false);
+      // Reset so the same file can be re-selected if needed
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -97,6 +132,57 @@ export default function ProfessionalSettingsPage() {
         </div>
       )}
 
+      {/* Logo */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-4">
+        <p className={labelClass}>Logotipo</p>
+        <div className="flex items-center gap-4">
+          {/* Logo preview */}
+          <div className="w-16 h-16 rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-center overflow-hidden shrink-0">
+            {logoUploading ? (
+              <div className="w-5 h-5 border-2 border-[#2E8B5A] border-t-transparent rounded-full animate-spin" />
+            ) : logoUrl ? (
+              <Image
+                src={logoUrl}
+                alt="Logotipo"
+                width={64}
+                height={64}
+                className="w-full h-full object-contain p-1"
+                unoptimized
+              />
+            ) : (
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="m21 15-5-5L5 21" />
+              </svg>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={logoUploading}
+              className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#374151] hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+            >
+              {logoUploading ? "Enviando…" : logoUrl ? "Alterar logotipo" : "Enviar logotipo"}
+            </button>
+            <p className="mt-1.5 text-[12px] text-[#9CA3AF]">JPG, PNG, WebP ou SVG · máx. 2 MB</p>
+            {logoError && (
+              <p className="mt-1 text-[12px] font-semibold text-[#DC2626]">{logoError}</p>
+            )}
+          </div>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/svg+xml"
+          className="hidden"
+          onChange={handleLogoChange}
+        />
+      </div>
+
       {loading ? (
         <div className="bg-white border border-[#E5E7EB] rounded-xl p-6 animate-pulse space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -155,7 +241,9 @@ export default function ProfessionalSettingsPage() {
             </div>
 
             <div>
-              <label className={labelClass}>Bio <span className="font-normal text-[#9CA3AF]">(opcional)</span></label>
+              <label className={labelClass}>
+                Bio <span className="font-normal text-[#9CA3AF]">(opcional)</span>
+              </label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}

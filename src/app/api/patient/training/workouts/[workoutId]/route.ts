@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { workouts, patients, workoutExercises, exercises, muscleGroups } from "@/db/schema";
+import { workouts, patients, workoutExercises, exercises } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { eq, and, asc } from "drizzle-orm";
 
@@ -44,11 +44,9 @@ export async function GET(
         exerciseId: exercises.id,
         exerciseName: exercises.name,
         exerciseDescription: exercises.description,
-        muscleGroupName: muscleGroups.name,
       })
       .from(workoutExercises)
       .innerJoin(exercises, eq(workoutExercises.exerciseId, exercises.id))
-      .leftJoin(muscleGroups, eq(exercises.muscleGroupId, muscleGroups.id))
       .where(eq(workoutExercises.workoutId, workout.id))
       .orderBy(asc(workoutExercises.orderIndex));
 

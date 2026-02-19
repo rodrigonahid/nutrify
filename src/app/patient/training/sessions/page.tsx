@@ -8,7 +8,6 @@ interface Session {
   id: number;
   date: string;
   notes: string | null;
-  muscleGroupName: string | null;
   exerciseCount: number;
   createdAt: string;
 }
@@ -119,11 +118,6 @@ export default function SessionsPage() {
                     <p className="text-[14px] font-semibold text-[#111827]">
                       {formatSessionDate(session.date)}
                     </p>
-                    {session.muscleGroupName && (
-                      <span className="text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-                        {session.muscleGroupName}
-                      </span>
-                    )}
                   </div>
                   {session.notes && (
                     <p className="text-[12px] text-[#9CA3AF] truncate">{session.notes}</p>

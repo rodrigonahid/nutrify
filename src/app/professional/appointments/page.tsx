@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Calendar as BigCalendar, dateFnsLocalizer, Event } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
-import { enUS } from "date-fns/locale";
-import { Calendar as CalendarIcon, List } from "lucide-react";
+import { ptBR } from "date-fns/locale";
+import { Calendar as CalendarIcon, List, Plus, Trash2 } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { CreateAppointmentModal } from "@/components/appointments/create-appointment-modal";
 
 const localizer = dateFnsLocalizer({
   format,
   parse,
   startOfWeek,
   getDay,
-  locales: { "en-US": enUS },
+  locales: { "pt-BR": ptBR },
 });
 
 interface Appointment {
@@ -116,23 +117,63 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<View>("calendar");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [appointmentToCancel, setAppointmentToCancel] = useState<number | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch("/api/professional/appointments");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setAppointments(data.appointments ?? []);
-      } catch {
-        setError("Falha ao carregar consultas");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    fetchAppointments();
   }, []);
+
+  async function fetchAppointments() {
+    try {
+      const res = await fetch("/api/professional/appointments");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setAppointments(data.appointments ?? []);
+    } catch {
+      setError("Falha ao carregar consultas");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function openCancelModal(id: number) {
+    setAppointmentToCancel(id);
+    setCancellationReason("");
+    setIsCancelModalOpen(true);
+  }
+
+  async function handleCancel() {
+    if (!appointmentToCancel) return;
+    if (!cancellationReason.trim()) {
+      setError("Informe o motivo do cancelamento");
+      return;
+    }
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/professional/appointments/${appointmentToCancel}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cancellationReason: cancellationReason.trim() }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || "Falha ao cancelar consulta");
+      }
+      setIsCancelModalOpen(false);
+      setAppointmentToCancel(null);
+      setCancellationReason("");
+      await fetchAppointments();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao cancelar consulta");
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -197,7 +238,7 @@ export default function AgendaPage() {
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Agenda
+            Consultas
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
@@ -208,7 +249,7 @@ export default function AgendaPage() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
           {/* Filter pills */}
           <div className="flex gap-1">
             {filterBtn("all", "Todos")}
@@ -241,11 +282,20 @@ export default function AgendaPage() {
               <CalendarIcon size={14} />
             </button>
           </div>
+
+          {/* Add appointment */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            Adicionar horário
+          </button>
         </div>
       </div>
 
       {/* Error */}
-      {error && (
+      {error && !isCancelModalOpen && (
         <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-4 py-3 text-[13.5px] font-semibold text-[#DC2626] mb-4">
           {error}
         </div>
@@ -270,6 +320,7 @@ export default function AgendaPage() {
               events={calendarEvents}
               startAccessor="start"
               endAccessor="end"
+              culture="pt-BR"
               style={{ height: "100%" }}
               onSelectEvent={(event) => {
                 window.location.href = `/professional/patients/${(event as CalendarEvent).patientId}`;
@@ -280,6 +331,19 @@ export default function AgendaPage() {
               }}
               views={["month", "week", "day", "agenda"]}
               defaultView="month"
+              messages={{
+                next: "Próximo",
+                previous: "Anterior",
+                today: "Hoje",
+                month: "Mês",
+                week: "Semana",
+                day: "Dia",
+                agenda: "Agenda",
+                date: "Data",
+                time: "Hora",
+                event: "Consulta",
+                noEventsInRange: "Nenhuma consulta neste período.",
+              }}
             />
           </div>
         </div>
@@ -291,9 +355,16 @@ export default function AgendaPage() {
           <p className="text-[15px] font-semibold text-[#374151] mb-1">
             Nenhuma consulta encontrada
           </p>
-          <p className="text-[13px] text-[#9CA3AF]">
+          <p className="text-[13px] text-[#9CA3AF] mb-5">
             {filter === "upcoming" ? "Nenhuma consulta agendada." : filter === "past" ? "Nenhuma consulta anterior." : "Nenhuma consulta cadastrada."}
           </p>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            Adicionar horário
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -310,12 +381,14 @@ export default function AgendaPage() {
                   {grouped[date]
                     .sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime))
                     .map((apt) => (
-                      <Link
+                      <div
                         key={apt.id}
-                        href={`/professional/patients/${apt.patientId}`}
-                        className="flex items-start gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors duration-100 block"
+                        className="flex items-start gap-3 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors duration-100"
                       >
-                        <div className="flex-1 min-w-0">
+                        <Link
+                          href={`/professional/patients/${apt.patientId}`}
+                          className="flex-1 min-w-0"
+                        >
                           <div className="flex items-center gap-2 mb-0.5">
                             <p className="text-[14px] font-semibold text-[#111827]">
                               {formatTime(apt.appointmentTime)}
@@ -337,18 +410,102 @@ export default function AgendaPage() {
                               Cancelada: {apt.cancellationReason}
                             </p>
                           )}
+                        </Link>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span
+                            className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(apt.status)}`}
+                          >
+                            {STATUS_LABELS[apt.status] ?? apt.status}
+                          </span>
+                          {apt.status !== "cancelled" && (
+                            <button
+                              onClick={() => openCancelModal(apt.id)}
+                              className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#DC2626] rounded-[6px] transition-colors duration-100"
+                              aria-label="Cancelar consulta"
+                            >
+                              <Trash2 size={13} strokeWidth={2} />
+                            </button>
+                          )}
                         </div>
-                        <span
-                          className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${statusStyle(apt.status)}`}
-                        >
-                          {STATUS_LABELS[apt.status] ?? apt.status}
-                        </span>
-                      </Link>
+                      </div>
                     ))}
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Create Appointment Modal */}
+      <CreateAppointmentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={fetchAppointments}
+      />
+
+      {/* Cancel Modal */}
+      {isCancelModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={() => setIsCancelModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 py-5 border-b border-[#F3F4F6]">
+              <p className="text-[16px] font-bold text-[#111827]">Cancelar consulta</p>
+              <p className="text-[13px] text-[#6B7280] mt-0.5">
+                Informe o motivo do cancelamento.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              {error && isCancelModalOpen && (
+                <div className="flex items-center gap-2 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold text-[#DC2626]">
+                  {error}
+                </div>
+              )}
+              <textarea
+                value={cancellationReason}
+                onChange={(e) => setCancellationReason(e.target.value)}
+                placeholder="Motivo do cancelamento…"
+                className="w-full px-3 py-2.5 text-[14px] text-[#111827] bg-[#F9FAFB] border border-[#E5E7EB] rounded-[10px] focus:outline-none focus:border-[#2E8B5A] focus:ring-[3px] focus:ring-[rgba(46,139,90,0.16)] focus:bg-white resize-none transition-all"
+                rows={4}
+                maxLength={500}
+              />
+              <p className="text-[11px] text-[#9CA3AF] -mt-2 text-right">
+                {cancellationReason.length}/500
+              </p>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCancelModalOpen(false)}
+                  disabled={cancelling}
+                  className="flex-1 h-11 flex items-center justify-center text-[14px] font-semibold text-[#374151] bg-white border border-[#E5E7EB] rounded-[10px] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] transition-all duration-150 disabled:opacity-50"
+                >
+                  Manter consulta
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 text-[14px] font-semibold text-white bg-[#DC2626] rounded-[10px] hover:bg-[#B91C1C] transition-colors duration-150 disabled:opacity-60"
+                >
+                  {cancelling ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Cancelando…
+                    </>
+                  ) : (
+                    "Cancelar consulta"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

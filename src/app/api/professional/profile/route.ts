@@ -20,6 +20,7 @@ export async function GET() {
         professionalLicense: professionals.professionalLicense,
         specialization: professionals.specialization,
         bio: professionals.bio,
+        logoUrl: professionals.logoUrl,
         email: users.email,
         createdAt: professionals.createdAt,
         updatedAt: professionals.updatedAt,

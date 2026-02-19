@@ -59,6 +59,7 @@ export const professionals = pgTable("professionals", {
   professionalLicense: text("professional_license"),
   specialization: text("specialization"),
   bio: text("bio"),
+  logoUrl: text("logo_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -115,7 +116,6 @@ export const patientsRelations = relations(patients, ({ one, many }) => ({
   progressEntries: many(progress),
   mealPlans: many(mealPlans),
   appointments: many(appointments),
-  muscleGroups: many(muscleGroups),
   exercises: many(exercises),
   workouts: many(workouts),
   trainingSessions: many(trainingSessions),
@@ -406,38 +406,11 @@ export const appointmentsRelations = relations(appointments, ({ one }) => ({
 
 // Training Feature Tables
 
-// Muscle Groups — defaults (isDefault=true, patientId=null) + user-custom
-export const muscleGroups = pgTable("muscle_groups", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  isDefault: boolean("is_default").default(false).notNull(),
-  patientId: integer("patient_id").references(() => patients.id, {
-    onDelete: "cascade",
-  }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const muscleGroupsRelations = relations(
-  muscleGroups,
-  ({ one, many }) => ({
-    patient: one(patients, {
-      fields: [muscleGroups.patientId],
-      references: [patients.id],
-    }),
-    exercises: many(exercises),
-    trainingSessions: many(trainingSessions),
-  })
-);
-
 // Exercises — independent, reusable across workouts
 export const exercises = pgTable("exercises", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  muscleGroupId: integer("muscle_group_id").references(
-    () => muscleGroups.id,
-    { onDelete: "set null" }
-  ),
   patientId: integer("patient_id").references(() => patients.id, {
     onDelete: "cascade",
   }),
@@ -449,10 +422,6 @@ export const exercises = pgTable("exercises", {
 });
 
 export const exercisesRelations = relations(exercises, ({ one, many }) => ({
-  muscleGroup: one(muscleGroups, {
-    fields: [exercises.muscleGroupId],
-    references: [muscleGroups.id],
-  }),
   patient: one(patients, {
     fields: [exercises.patientId],
     references: [patients.id],
@@ -531,9 +500,6 @@ export const trainingSessions = pgTable("training_sessions", {
   workoutId: integer("workout_id").references(() => workouts.id, {
     onDelete: "set null",
   }),
-  muscleGroupId: integer("muscle_group_id").references(() => muscleGroups.id, {
-    onDelete: "set null",
-  }),
   date: date("date").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -550,10 +516,6 @@ export const trainingSessionsRelations = relations(
     workout: one(workouts, {
       fields: [trainingSessions.workoutId],
       references: [workouts.id],
-    }),
-    muscleGroup: one(muscleGroups, {
-      fields: [trainingSessions.muscleGroupId],
-      references: [muscleGroups.id],
     }),
     sessionExercises: many(sessionExercises),
   })

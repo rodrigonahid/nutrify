@@ -6,6 +6,17 @@ import Link from "next/link";
 import { ChevronRight, TrendingUp, UtensilsCrossed, CalendarDays, Dumbbell, Plus } from "lucide-react";
 import { Patient, Progress, MealPlanListItem, PatientPlan } from "@/types";
 import { getPaymentSchedule, PaymentEntry } from "@/lib/payment-schedule";
+import { CreateAppointmentModal } from "@/components/appointments/create-appointment-modal";
+
+interface Appointment {
+  id: number;
+  patientId: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  durationMinutes: number;
+  status: string;
+  notes: string | null;
+}
 
 function calculateAge(dateOfBirth: string | null): number | null {
   if (!dateOfBirth) return null;
@@ -146,8 +157,10 @@ export default function PatientDetailPage() {
   const [recentProgress, setRecentProgress] = useState<Progress[]>([]);
   const [activeMealPlan, setActiveMealPlan] = useState<MealPlanListItem | null>(null);
   const [plan, setPlan] = useState<PatientPlan | null>(null);
+  const [nextAppointment, setNextAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   async function handlePaymentToggle(newLastPaymentDate: string | null) {
     if (!plan) return;
@@ -173,20 +186,22 @@ export default function PatientDetailPage() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [patientRes, progressRes, mealPlanRes, planRes] = await Promise.all([
+        const [patientRes, progressRes, mealPlanRes, planRes, appointmentsRes] = await Promise.all([
           fetch(`/api/professional/patients/${patientId}`),
           fetch(`/api/professional/patients/${patientId}/progress`),
           fetch(`/api/professional/patients/${patientId}/meal-plan`),
           fetch(`/api/professional/patients/${patientId}/plan`),
+          fetch(`/api/professional/appointments?patientId=${patientId}`),
         ]);
 
         if (!patientRes.ok) throw new Error("Failed to load patient");
 
-        const [patientData, progressData, mealPlanData, planData] = await Promise.all([
+        const [patientData, progressData, mealPlanData, planData, appointmentsData] = await Promise.all([
           patientRes.json(),
           progressRes.ok ? progressRes.json() : { progress: [] },
           mealPlanRes.ok ? mealPlanRes.json() : { mealPlans: [] },
           planRes.ok ? planRes.json() : { plan: null },
+          appointmentsRes.ok ? appointmentsRes.json() : { appointments: [] },
         ]);
 
         setPatient(patientData.patient);
@@ -196,6 +211,19 @@ export default function PatientDetailPage() {
         ) ?? null;
         setActiveMealPlan(active);
         setPlan(planData.plan ?? null);
+
+        // Find the next upcoming appointment: date >= today, not cancelled, earliest first
+        const todayStr = new Date().toLocaleDateString("sv-SE"); // "YYYY-MM-DD" in local time
+        const upcoming: Appointment[] = (appointmentsData.appointments ?? [])
+          .filter((a: Appointment) =>
+            a.status !== "cancelled" && a.appointmentDate >= todayStr
+          )
+          .sort((a: Appointment, b: Appointment) =>
+            a.appointmentDate !== b.appointmentDate
+              ? a.appointmentDate.localeCompare(b.appointmentDate)
+              : a.appointmentTime.localeCompare(b.appointmentTime)
+          );
+        setNextAppointment(upcoming[0] ?? null);
       } catch {
         setError("Falha ao carregar dados do paciente");
       } finally {
@@ -209,6 +237,27 @@ export default function PatientDetailPage() {
   const displayName = patient?.name ?? patient?.email ?? "Patient";
   const initial = displayName[0]?.toUpperCase() ?? "?";
   const age = calculateAge(patient?.dateOfBirth ?? null);
+
+  async function refreshNextAppointment() {
+    try {
+      const res = await fetch(`/api/professional/appointments?patientId=${patientId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const todayStr = new Date().toLocaleDateString("sv-SE");
+      const upcoming: Appointment[] = (data.appointments ?? [])
+        .filter((a: Appointment) =>
+          a.status !== "cancelled" && a.appointmentDate >= todayStr
+        )
+        .sort((a: Appointment, b: Appointment) =>
+          a.appointmentDate !== b.appointmentDate
+            ? a.appointmentDate.localeCompare(b.appointmentDate)
+            : a.appointmentTime.localeCompare(b.appointmentTime)
+        );
+      setNextAppointment(upcoming[0] ?? null);
+    } catch {
+      // silently fail — widget just won't update
+    }
+  }
 
   const QUICK_ACTIONS = [
     {
@@ -316,6 +365,87 @@ export default function PatientDetailPage() {
         ))}
       </div>
 
+      {/* Next Appointment widget */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
+          <p className="text-[14px] font-semibold text-[#111827]">Próxima consulta</p>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/professional/patients/${patientId}/appointments`}
+              className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#6B7280] bg-[#F3F4F6] rounded-[6px] hover:bg-[#E5E7EB] transition-colors duration-100"
+            >
+              Ver todas
+            </Link>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-1 h-7 px-3 text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[6px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-100"
+            >
+              <Plus size={11} strokeWidth={2.5} />
+              Agendar
+            </button>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="px-4 py-4 animate-pulse flex items-center gap-3">
+            <div className="w-9 h-9 rounded-[10px] bg-[#F3F4F6] shrink-0" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-3.5 w-36 bg-[#F3F4F6] rounded" />
+              <div className="h-3 w-24 bg-[#F3F4F6] rounded" />
+            </div>
+          </div>
+        ) : nextAppointment ? (
+          <Link
+            href={`/professional/patients/${patientId}/appointments`}
+            className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
+          >
+            <div className="w-9 h-9 rounded-[10px] bg-[rgba(46,139,90,0.08)] flex items-center justify-center shrink-0">
+              <CalendarDays size={16} className="text-[#2E8B5A]" strokeWidth={2} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] font-semibold text-[#111827]">
+                {(() => {
+                  const d = new Date(nextAppointment.appointmentDate + "T00:00:00");
+                  const today = new Date(); today.setHours(0,0,0,0);
+                  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+                  d.setHours(0,0,0,0);
+                  if (d.getTime() === today.getTime()) return "Hoje";
+                  if (d.getTime() === tomorrow.getTime()) return "Amanhã";
+                  return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+                })()}
+              </p>
+              <p className="text-[12px] text-[#9CA3AF]">
+                {(() => {
+                  const [h, m] = nextAppointment.appointmentTime.split(":").map(Number);
+                  const isPM = h >= 12;
+                  const h12 = h % 12 || 12;
+                  return `${h12}:${String(m).padStart(2,"0")} ${isPM ? "PM" : "AM"}`;
+                })()} · {nextAppointment.durationMinutes} min
+              </p>
+            </div>
+            {(() => {
+              const STATUS_LABELS: Record<string,string> = { confirmed:"Confirmada", pending:"Pendente", requested:"Solicitada", completed:"Concluída" };
+              const STATUS_STYLES: Record<string,string> = {
+                confirmed: "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)]",
+                pending: "text-[#B45309] bg-[rgba(180,83,9,0.08)]",
+                requested: "text-[#1D4ED8] bg-[rgba(29,78,216,0.08)]",
+                completed: "text-[#6B7280] bg-[#F3F4F6]",
+              };
+              return (
+                <span className={`shrink-0 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${STATUS_STYLES[nextAppointment.status] ?? "text-[#6B7280] bg-[#F3F4F6]"}`}>
+                  {STATUS_LABELS[nextAppointment.status] ?? nextAppointment.status}
+                </span>
+              );
+            })()}
+            <ChevronRight size={15} strokeWidth={2} className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors shrink-0" />
+          </Link>
+        ) : (
+          <div className="px-4 py-5 text-center">
+            <p className="text-[13px] text-[#9CA3AF]">Nenhuma consulta agendada.</p>
+          </div>
+        )}
+      </div>
+
       {/* Active Meal Plan */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
@@ -416,7 +546,7 @@ export default function PatientDetailPage() {
       </div>
 
       {/* Recent Progress */}
-      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F3F4F6]">
           <p className="text-[14px] font-semibold text-[#111827]">Progresso recente</p>
           <Link
@@ -484,6 +614,12 @@ export default function PatientDetailPage() {
         )}
       </div>
 
+      <CreateAppointmentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={refreshNextAppointment}
+        defaultPatientId={parseInt(patientId, 10)}
+      />
     </div>
   );
 }

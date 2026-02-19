@@ -8,7 +8,6 @@ import { Plus, X } from "lucide-react";
 interface Exercise {
   id: number;
   name: string;
-  muscleGroupName: string | null;
 }
 
 const inputCls = "w-full h-11 px-3.5 bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB] hover:bg-[#F3F4F6] focus:outline-none focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] transition-all duration-150";
@@ -204,11 +203,6 @@ export default function CreateWorkoutPage() {
                     className="w-4 h-4 accent-[#2E8B5A]"
                   />
                   <span className="flex-1 text-[13px] font-medium text-[#374151]">{ex.name}</span>
-                  {ex.muscleGroupName && (
-                    <span className="text-[11px] font-semibold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 rounded-full">
-                      {ex.muscleGroupName}
-                    </span>
-                  )}
                 </label>
               ))}
             </div>

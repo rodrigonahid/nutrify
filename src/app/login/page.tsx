@@ -143,7 +143,7 @@ function LoginForm() {
             {/* Error banner */}
             {error && (
               <div
-                className="flex items-center gap-[9px] bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[14px] py-[11px] text-[13.5px] font-semibold text-[#DC2626] mb-[18px]"
+                className="flex items-center gap-[9px] bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[14px] py-[11px] text-[13.5px] font-semibold text-[#DC2626] mb-[18px] animate-[rise_0.3s_cubic-bezier(0.16,1,0.3,1)_both]"
                 role="alert"
               >
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" className="shrink-0">
@@ -156,7 +156,10 @@ function LoginForm() {
             )}
 
             {/* Email field */}
-            <div className="flex flex-col gap-[6px] mb-[14px]">
+            <div
+              className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "80ms" }}
+            >
               <label htmlFor="email" className="text-[14px] font-semibold text-[#374151]">
                 E-mail
               </label>
@@ -184,10 +187,22 @@ function LoginForm() {
             </div>
 
             {/* Password field */}
-            <div className="flex flex-col gap-[6px] mb-[14px]">
-              <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
-                Senha
-              </label>
+            <div
+              className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "140ms" }}
+            >
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
+                  Senha
+                </label>
+                <a
+                  href="#"
+                  className="text-[13px] font-semibold text-[#2E8B5A] hover:opacity-75 transition-opacity duration-150"
+                  tabIndex={-1}
+                >
+                  Esqueceu a senha?
+                </a>
+              </div>
               <div className="group relative flex items-center">
                 <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -235,7 +250,8 @@ function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-[#2E8B5A] hover:bg-[#277A4F] text-white text-[15px] font-bold rounded-[10px] border-none cursor-pointer flex items-center justify-center gap-2 mb-5 transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:-translate-y-px hover:shadow-[0_1px_3px_rgba(0,0,0,0.10),0_6px_18px_rgba(46,139,90,0.26)] active:translate-y-0 active:scale-[0.99] active:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_2px_6px_rgba(46,139,90,0.18)] disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full h-11 bg-[#2E8B5A] hover:bg-[#277A4F] text-white text-[15px] font-bold rounded-[10px] border-none cursor-pointer flex items-center justify-center gap-2 mb-5 transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:-translate-y-px hover:shadow-[0_1px_3px_rgba(0,0,0,0.10),0_6px_18px_rgba(46,139,90,0.26)] active:translate-y-0 active:scale-[0.99] active:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_2px_6px_rgba(46,139,90,0.18)] disabled:opacity-70 disabled:cursor-not-allowed opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "200ms" }}
             >
               {loading ? (
                 <svg className="w-[17px] h-[17px] animate-spin shrink-0" viewBox="0 0 17 17" fill="none">
@@ -247,7 +263,10 @@ function LoginForm() {
               )}
             </button>
 
-            <p className="text-center text-[14px] font-medium text-[#6B7280]">
+            <p
+              className="text-center text-[14px] font-medium text-[#6B7280] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "260ms" }}
+            >
               Não tem uma conta?{" "}
               <Link
                 href="/signup"

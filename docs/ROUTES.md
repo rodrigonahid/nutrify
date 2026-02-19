@@ -58,62 +58,60 @@
 
 ---
 
-## Nutritionist Routes
+## Nutritionist (Professional) Routes
 
-**Base:** `/nutritionist`
+**Base:** `/professional`
 
-### `/nutritionist/login`
-- Nutritionist-specific login (optional)
+### `/professional`
+- Dashboard with today's appointments carousel
+- Quick actions: Pacientes, Consultas, Convites
 
-### `/nutritionist/dashboard`
-- Overview stats
-- Total patients
-- Recent patient activity
-- Quick actions (generate code, view patients)
+### `/professional/patients`
+- List all patients linked to this professional
 
-### `/nutritionist/patients`
-- List all their patients
-- Search and filter
-- Patient stats overview
+### `/professional/patients/[id]`
+- Patient profile with header (name, age, height, weight)
+- Quick actions grid: Progresso, Planos alimentares, **Consultas**, Treino
+- **Próxima consulta widget**: fetches earliest upcoming non-cancelled appointment; shows date, time, duration, status; links to patient appointments page; "Agendar" button opens modal with patient pre-selected
+- Active meal plan widget
+- Payment plan widget
+- Recent progress widget
 
-### `/nutritionist/patients/[id]`
-- Patient profile
-- Medical notes
-- Progress list (full width)
-- Action buttons: Subscription, Meal Plan, Pictures
-- Add New Progress button
+### `/professional/patients/[id]/appointments`
+- **Patient-specific appointment history**
+- Single flat list, newest date first (descending)
+- No calendar view or filter pills — intentionally distinct from `/professional/appointments`
+- "Agendar consulta" button opens modal with patient pre-selected
+- Past date labels are muted; future labels are emphasized
 
-### `/nutritionist/patients/[id]/progress/create`
-- Form to create new progress entry
-- All body composition, perimeter, and skinfold fields
-- Submit and redirect to patient detail
+### `/professional/patients/[id]/progress`
+- Progress entries for this patient
 
-### `/nutritionist/patients/[id]/meal-plan`
-- List all meal plans for patient
-- Create, activate/deactivate, delete actions
-- View active status
+### `/professional/patients/[id]/meal-plan`
+- Meal plans for this patient
 
-### `/nutritionist/patients/[id]/meal-plan/create`
-- Dynamic form to create meal plans
-- Add/remove meals, options, and ingredients
-- Time selection for each meal
-- Save as draft or activate
+### `/professional/patients/[id]/training`
+- Training plans for this patient
 
-### `/nutritionist/invite-codes`
+### `/professional/appointments`
+- **All appointments across all patients** (merged Agenda + Consultas + Horários)
+- Default view: calendar (react-big-calendar, month view)
+- Toggle between calendar and list view
+- Filter pills: Todos / Próximas / Anteriores
+- "Adicionar horário" button opens create-appointment modal
+- List view includes cancel (trash) button per row + cancel reason modal
+- Calendar labels translated to PT-BR
+
+### `/professional/schedules`
+- **Redirects to `/professional/appointments`** (merged, no longer a separate page)
+
+### `/professional/invite-codes`
 - View all generated codes
 - Generate new invite code
 - Code status (unused, used, expired)
-- Copy code to clipboard
 
-### `/nutritionist/invite-codes/generate`
-- Form to generate new code
-- Optional: Set expiration date
-- Optional: Add note/label
-
-### `/nutritionist/profile`
-- Edit own profile
-- Update credentials
-- Professional information
+### `/professional/settings`
+- Edit own profile and credentials
 
 ---
 
@@ -239,7 +237,7 @@
 
 ---
 
-Last Updated: 2026-01-28
+Last Updated: 2026-02-15
 
 ---
 
@@ -250,16 +248,19 @@ Last Updated: 2026-01-28
 ├── login
 ├── signup
 ├── admin/
-│   ├── professionals/
-│   │   └── create
-├── professional/ (nutritionist)
-│   ├── patients/
-│   │   └── [id]/
-│   │       ├── progress/
-│   │       │   └── create
-│   │       └── meal-plan/
-│   │           └── create
-│   └── invite-codes/
+│   └── professionals/
+│       └── create
+├── professional/
+│   ├── appointments/          ← merged Agenda + Consultas + Horários
+│   ├── schedules/             ← redirects to /professional/appointments
+│   ├── invite-codes/
+│   ├── settings/
+│   └── patients/
+│       └── [id]/
+│           ├── appointments/  ← patient-specific list (newest first, no calendar)
+│           ├── progress/
+│           ├── meal-plan/
+│           └── training/
 └── patient/
     ├── progress/
     │   └── [id]

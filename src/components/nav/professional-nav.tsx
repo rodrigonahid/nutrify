@@ -8,7 +8,6 @@ import {
   Users,
   Calendar,
   KeyRound,
-  Clock,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -25,7 +24,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/professional/patients", icon: Users, label: "Pacientes" },
   { href: "/professional/appointments", icon: Calendar, label: "Consultas" },
   { href: "/professional/invite-codes", icon: KeyRound, label: "Convites" },
-  { href: "/professional/schedules", icon: Clock, label: "Horários" },
   { href: "/professional/settings", icon: Settings, label: "Configurações" },
 ];
 

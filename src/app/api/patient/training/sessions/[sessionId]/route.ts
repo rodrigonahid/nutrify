@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { trainingSessions, patients, muscleGroups, sessionExercises, exercises, exerciseSets } from "@/db/schema";
+import { trainingSessions, patients, sessionExercises, exercises, exerciseSets } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { eq, and, asc } from "drizzle-orm";
 
@@ -28,13 +28,10 @@ export async function GET(
         date: trainingSessions.date,
         notes: trainingSessions.notes,
         workoutId: trainingSessions.workoutId,
-        muscleGroupId: trainingSessions.muscleGroupId,
-        muscleGroupName: muscleGroups.name,
         createdAt: trainingSessions.createdAt,
         updatedAt: trainingSessions.updatedAt,
       })
       .from(trainingSessions)
-      .leftJoin(muscleGroups, eq(trainingSessions.muscleGroupId, muscleGroups.id))
       .where(
         and(
           eq(trainingSessions.id, parseInt(sessionId)),
@@ -55,7 +52,6 @@ export async function GET(
         exerciseId: exercises.id,
         exerciseName: exercises.name,
         exerciseDescription: exercises.description,
-        muscleGroupName: muscleGroups.name,
         setId: exerciseSets.id,
         setNumber: exerciseSets.setNumber,
         weightKg: exerciseSets.weightKg,
@@ -64,7 +60,6 @@ export async function GET(
       })
       .from(sessionExercises)
       .innerJoin(exercises, eq(sessionExercises.exerciseId, exercises.id))
-      .leftJoin(muscleGroups, eq(exercises.muscleGroupId, muscleGroups.id))
       .leftJoin(exerciseSets, eq(exerciseSets.sessionExerciseId, sessionExercises.id))
       .where(eq(sessionExercises.sessionId, parseInt(sessionId)))
       .orderBy(asc(sessionExercises.orderIndex), asc(exerciseSets.setNumber));
@@ -78,7 +73,6 @@ export async function GET(
         exerciseId: number;
         exerciseName: string;
         exerciseDescription: string | null;
-        muscleGroupName: string | null;
         sets: Array<{
           id: number;
           setNumber: number;
@@ -97,7 +91,6 @@ export async function GET(
           exerciseId: row.exerciseId,
           exerciseName: row.exerciseName,
           exerciseDescription: row.exerciseDescription,
-          muscleGroupName: row.muscleGroupName,
           sets: [],
         });
       }
