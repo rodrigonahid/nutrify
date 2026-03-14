@@ -18,6 +18,11 @@ export const userRoleEnum = pgEnum("user_role", [
   "patient",
 ]);
 
+export const preparationCategoryEnum = pgEnum("preparation_category", [
+  "food",
+  "preparation",
+]);
+
 export const appointmentStatusEnum = pgEnum("appointment_status", [
   "pending",
   "confirmed",
@@ -78,6 +83,7 @@ export const professionalsRelations = relations(
     exercises: many(exercises),
     workouts: many(workouts),
     patientPlans: many(patientPlans),
+    preparations: many(preparations),
   })
 );
 
@@ -184,6 +190,7 @@ export const progress = pgTable("progress", {
   bmi: decimal("bmi", { precision: 4, scale: 2 }),
 
   // Perimeters - Trunk (cm)
+  perimeterNeck: decimal("perimeter_neck", { precision: 5, scale: 2 }),
   perimeterChest: decimal("perimeter_chest", { precision: 5, scale: 2 }),
   perimeterShoulder: decimal("perimeter_shoulder", { precision: 5, scale: 2 }),
   perimeterWaist: decimal("perimeter_waist", { precision: 5, scale: 2 }),
@@ -215,6 +222,8 @@ export const progress = pgTable("progress", {
     precision: 5,
     scale: 2,
   }),
+  perimeterWristLeft: decimal("perimeter_wrist_left", { precision: 5, scale: 2 }),
+  perimeterWristRight: decimal("perimeter_wrist_right", { precision: 5, scale: 2 }),
 
   // Perimeters - Lower Limbs (cm)
   perimeterThighProximalLeft: decimal("perimeter_thigh_proximal_left", {
@@ -630,3 +639,47 @@ export const patientPlansRelations = relations(patientPlans, ({ one }) => ({
     references: [professionals.id],
   }),
 }));
+
+// Preparations — professional-owned recipe/food templates
+export const preparations = pgTable("preparations", {
+  id: serial("id").primaryKey(),
+  professionalId: integer("professional_id")
+    .notNull()
+    .references(() => professionals.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  category: preparationCategoryEnum("category").notNull().default("preparation"),
+  description: text("description"),
+  preparationMethod: text("preparation_method"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const preparationsRelations = relations(preparations, ({ one, many }) => ({
+  professional: one(professionals, {
+    fields: [preparations.professionalId],
+    references: [professionals.id],
+  }),
+  ingredients: many(preparationIngredients),
+}));
+
+// Preparation Ingredients — template ingredients (name + unit, no amounts)
+export const preparationIngredients = pgTable("preparation_ingredients", {
+  id: serial("id").primaryKey(),
+  preparationId: integer("preparation_id")
+    .notNull()
+    .references(() => preparations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  unit: text("unit").notNull().default("g"),
+  orderIndex: integer("order_index").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const preparationIngredientsRelations = relations(
+  preparationIngredients,
+  ({ one }) => ({
+    preparation: one(preparations, {
+      fields: [preparationIngredients.preparationId],
+      references: [preparations.id],
+    }),
+  })
+);

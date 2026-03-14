@@ -287,11 +287,51 @@ Patient progress tracking with detailed body composition and measurements.
 
 ---
 
+---
+
+### preparations
+Professional-owned recipe/food templates (Preparations Library).
+
+```typescript
+{
+  id: serial (PK)
+  professionalId: integer (FK → professionals.id, cascade delete)
+  name: text (not null)
+  category: enum ('food', 'preparation') (default: 'preparation')
+  description: text (nullable)
+  preparationMethod: text (nullable)
+  createdAt: timestamp (default: now)
+  updatedAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `professionals`
+- Has many `preparationIngredients`
+
+---
+
+### preparation_ingredients
+Template ingredients for a preparation — stores name and unit only (no quantity, since amounts are set per-patient when inserting into a meal plan).
+
+```typescript
+{
+  id: serial (PK)
+  preparationId: integer (FK → preparations.id, cascade delete)
+  name: text (not null)
+  unit: text (default: 'g')
+  orderIndex: integer (default: 0)
+  createdAt: timestamp (default: now)
+}
+```
+
+**Relationships:**
+- Belongs to `preparations`
+
+---
+
 ## Future Tables (Planned)
 
-- `mealPlans` - Nutrition plans created by nutritionists
-- `meals` - Individual meals logged by patients
-- `appointments` - Scheduled consultations
 - `messages` - Communication between nutritionist and patient
 
 ---

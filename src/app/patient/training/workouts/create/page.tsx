@@ -34,7 +34,7 @@ export default function CreateWorkoutPage() {
       .then((d) => setExercises(d.exercises ?? []));
 
   useEffect(() => {
-    loadExercises().catch(() => setError("Failed to load exercises"));
+    loadExercises().catch(() => setError("Falha ao carregar exercícios"));
   }, []);
 
   const handleCreateExercise = async () => {
@@ -74,7 +74,7 @@ export default function CreateWorkoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedIds.size === 0) { setError("Please select at least one exercise"); return; }
+    if (selectedIds.size === 0) { setError("Selecione pelo menos um exercício"); return; }
     setLoading(true);
     setError("");
     try {
@@ -105,11 +105,11 @@ export default function CreateWorkoutPage() {
         href="/patient/training/workouts"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Workouts
+        ← Voltar aos treinos
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight">New Workout</h1>
+        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight">Novo treino</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -120,24 +120,24 @@ export default function CreateWorkoutPage() {
         )}
 
         <div>
-          <label htmlFor="name" className={labelCls}>Workout Name *</label>
+          <label htmlFor="name" className={labelCls}>Nome do treino *</label>
           <input
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder="e.g. Push Day A"
+            placeholder="ex.: Treino A — Peito e Tríceps"
             className={inputCls}
           />
         </div>
 
         <div>
-          <label htmlFor="description" className={labelCls}>Description</label>
+          <label htmlFor="description" className={labelCls}>Descrição</label>
           <textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
+            placeholder="Descrição opcional"
             rows={2}
             className="w-full px-3.5 py-2.5 bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB] focus:outline-none focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] transition-all duration-150 resize-none"
           />
@@ -145,16 +145,16 @@ export default function CreateWorkoutPage() {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className={labelCls.replace(" mb-1.5", "")}>Exercises *</label>
+            <label className={labelCls.replace(" mb-1.5", "")}>Exercícios *</label>
             <button
               type="button"
               onClick={() => { setShowCreate((v) => !v); setCreateError(""); }}
               className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#6B7280] hover:text-[#2E8B5A] transition-colors"
             >
               {showCreate ? (
-                <><X size={12} /> Cancel</>
+                <><X size={12} /> Cancelar</>
               ) : (
-                <><Plus size={12} /> New exercise</>
+                <><Plus size={12} /> Novo exercício</>
               )}
             </button>
           </div>
@@ -162,7 +162,7 @@ export default function CreateWorkoutPage() {
           {showCreate && (
             <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-3.5 mb-3 space-y-2.5">
               <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">
-                Create new exercise
+                Criar novo exercício
               </p>
               {createError && (
                 <p className="text-[12px] font-semibold text-[#DC2626]">{createError}</p>
@@ -171,7 +171,7 @@ export default function CreateWorkoutPage() {
                 value={newExName}
                 onChange={(e) => setNewExName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateExercise(); } }}
-                placeholder="Exercise name"
+                placeholder="Nome do exercício"
                 className={inputCls}
               />
               <button
@@ -180,14 +180,14 @@ export default function CreateWorkoutPage() {
                 disabled={creatingEx}
                 className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold text-white bg-[#2E8B5A] rounded-[8px] hover:bg-[#277A4F] disabled:opacity-60 transition-colors"
               >
-                {creatingEx ? "Creating…" : "Create & add"}
+                {creatingEx ? "Criando…" : "Criar e adicionar"}
               </button>
             </div>
           )}
 
           {exercises.length === 0 && !showCreate ? (
             <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-[13px] text-[#6B7280]">
-              No exercises yet. Click <strong>New exercise</strong> above to create one.
+              Nenhum exercício ainda. Clique em <strong>Novo exercício</strong> acima para criar um.
             </div>
           ) : exercises.length > 0 ? (
             <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6] max-h-64 overflow-y-auto">
@@ -215,14 +215,14 @@ export default function CreateWorkoutPage() {
             disabled={loading}
             className="inline-flex items-center justify-center h-11 px-5 text-[14px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150"
           >
-            {loading ? "Creating…" : "Create Workout"}
+            {loading ? "Criando…" : "Criar treino"}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
             className="inline-flex items-center justify-center h-11 px-5 text-[14px] font-semibold text-[#374151] bg-white border-[1.5px] border-[#E5E7EB] rounded-[10px] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] transition-all duration-150"
           >
-            Cancel
+            Cancelar
           </button>
         </div>
       </form>

@@ -105,6 +105,22 @@
 ### `/professional/schedules`
 - **Redirects to `/professional/appointments`** (merged, no longer a separate page)
 
+### `/professional/preparations`
+- List all preparation templates owned by the professional
+- Search by name
+- Category badges: Alimento / Preparação
+- Edit link and delete button per row
+- "Nova preparação" button
+
+### `/professional/preparations/create`
+- Form: name*, category toggle (Alimento | Preparação)*, description, preparation method (shown for Preparação only)
+- Dynamic ingredient list: name + unit rows (no quantity)
+- Submit → POST `/api/professional/preparations`
+
+### `/professional/preparations/[preparationId]`
+- Same form pre-filled for editing
+- Submit → PUT, delete button at bottom
+
 ### `/professional/invite-codes`
 - View all generated codes
 - Generate new invite code
@@ -160,6 +176,41 @@
 - Ingredients with weights
 - Preparation notes
 
+### `/patient/training`
+- Training dashboard (nav cards: Sessions, Workouts, Exercise Library)
+
+### `/patient/training/sessions`
+- List all training sessions (newest first)
+- "Nova sessão" button
+
+### `/patient/training/sessions/new`
+- Create session form: date, optional workout template, exercise checklist, notes
+
+### `/patient/training/sessions/[sessionId]`
+- Session detail: sets per exercise (weight, reps, notes)
+- Add/delete sets inline
+- Tap exercise name to open exercise detail sheet
+
+### `/patient/training/workouts`
+- List all workouts (own + assigned by professional)
+- "Novo treino" button
+
+### `/patient/training/workouts/create`
+- Create workout: name, description, exercise checklist (with inline create)
+
+### `/patient/training/workouts/[workoutId]`
+- Workout detail: ordered exercise list
+- "Adicionar exercício" modal (existing or create new)
+- "Iniciar sessão" button (pre-selects this workout)
+
+### `/patient/training/exercises`
+- Exercise library list
+- Create exercise modal (name + description)
+- Tap to open exercise detail sheet
+
+### `/patient/training/exercises/create`
+- Standalone create exercise form (fallback page)
+
 ### `/patient/nutritionist`
 - View nutritionist profile
 - Contact information
@@ -204,6 +255,11 @@
 - `PUT /api/professional/patients/[patientId]/meal-plan/[id]` - Update meal plan
 - `DELETE /api/professional/patients/[patientId]/meal-plan/[id]` - Delete meal plan
 - `PATCH /api/professional/patients/[patientId]/meal-plan/[id]` - Toggle active status
+- `GET /api/professional/preparations` - List own preparations (with ingredient count)
+- `POST /api/professional/preparations` - Create preparation + ingredients
+- `GET /api/professional/preparations/[id]` - Get preparation + all ingredients
+- `PUT /api/professional/preparations/[id]` - Update preparation (recreates ingredients)
+- `DELETE /api/professional/preparations/[id]` - Delete preparation (cascade)
 
 ### Patient
 - `GET /api/patient/profile` - Get own profile
@@ -213,6 +269,22 @@
 - `GET /api/patient/progress/[id]` - Get own progress entry
 - `GET /api/patient/meal-plan` - List own meal plans
 - `GET /api/patient/meal-plan/[id]` - Get meal plan details
+- `GET /api/patient/training/exercises` - List exercises
+- `POST /api/patient/training/exercises` - Create exercise
+- `GET /api/patient/training/exercises/[id]` - Exercise detail + history
+- `GET /api/patient/training/exercises/[id]/prs` - List PRs
+- `POST /api/patient/training/exercises/[id]/prs` - Log PR
+- `DELETE /api/patient/training/exercises/[id]/prs/[prId]` - Delete PR
+- `GET /api/patient/training/workouts` - List workouts
+- `POST /api/patient/training/workouts` - Create workout
+- `GET /api/patient/training/workouts/[id]` - Get workout + exercises
+- `DELETE /api/patient/training/workouts/[id]` - Delete workout
+- `POST /api/patient/training/workouts/[id]/exercises` - Add exercise to workout
+- `GET /api/patient/training/sessions` - List sessions
+- `POST /api/patient/training/sessions` - Create session
+- `GET /api/patient/training/sessions/[id]` - Session detail + sets
+- `POST /api/patient/training/sessions/[id]/sets` - Add set
+- `DELETE /api/patient/training/sessions/[id]/sets/[setId]` - Delete set
 
 ### Invite Codes
 - `GET /api/invite-codes/validate?code={code}` - Validate 8-digit code
@@ -237,7 +309,7 @@
 
 ---
 
-Last Updated: 2026-02-15
+Last Updated: 2026-03-14
 
 ---
 
@@ -253,6 +325,9 @@ Last Updated: 2026-02-15
 ├── professional/
 │   ├── appointments/          ← merged Agenda + Consultas + Horários
 │   ├── schedules/             ← redirects to /professional/appointments
+│   ├── preparations/          ← Preparations Library
+│   │   ├── create
+│   │   └── [preparationId]
 │   ├── invite-codes/
 │   ├── settings/
 │   └── patients/
@@ -264,6 +339,15 @@ Last Updated: 2026-02-15
 └── patient/
     ├── progress/
     │   └── [id]
-    └── meal-plan/
-        └── [id]
+    ├── meal-plan/
+    │   └── [id]
+    └── training/
+        ├── sessions/
+        │   ├── new
+        │   └── [sessionId]
+        ├── workouts/
+        │   ├── create
+        │   └── [workoutId]
+        └── exercises/
+            └── create
 ```

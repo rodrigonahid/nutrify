@@ -48,7 +48,7 @@ export default function ExercisesPage() {
     fetch("/api/patient/training/exercises")
       .then((r) => r.json())
       .then((d) => setExercises(d.exercises ?? []))
-      .catch(() => setError("Failed to load exercises"))
+      .catch(() => setError("Falha ao carregar exercícios"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -78,7 +78,7 @@ export default function ExercisesPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Failed to create exercise");
+      if (!res.ok) throw new Error(data.error ?? "Falha ao criar exercício");
       setExercises((prev) => [...prev, data.exercise]);
       closeModal();
       setDetailExerciseId(data.exercise.id);
@@ -94,19 +94,19 @@ export default function ExercisesPage() {
         href="/patient/training"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Training
+        ← Voltar ao treino
       </Link>
 
       <div className="flex items-start justify-between mb-4">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-            Exercise Library
+            Biblioteca de Exercícios
           </h1>
           {!loading && (
             <p className="text-sm font-medium text-[#6B7280]">
               {exercises.length === 0
-                ? "No exercises yet"
-                : `${exercises.length} exercise${exercises.length !== 1 ? "s" : ""}`}
+                ? "Nenhum exercício ainda"
+                : `${exercises.length} exercício${exercises.length !== 1 ? "s" : ""}`}
             </p>
           )}
         </div>
@@ -115,7 +115,7 @@ export default function ExercisesPage() {
           className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px transition-all duration-150"
         >
           <Plus size={14} />
-          New Exercise
+          Novo exercício
         </button>
       </div>
 
@@ -137,14 +137,14 @@ export default function ExercisesPage() {
           <div className="w-12 h-12 rounded-[12px] bg-[#F3F4F6] flex items-center justify-center mb-4">
             <BookOpen size={22} className="text-[#9CA3AF]" />
           </div>
-          <p className="text-[15px] font-semibold text-[#374151] mb-1">No exercises yet</p>
-          <p className="text-[13px] text-[#9CA3AF] mb-4">Create your first exercise.</p>
+          <p className="text-[15px] font-semibold text-[#374151] mb-1">Nenhum exercício ainda</p>
+          <p className="text-[13px] text-[#9CA3AF] mb-4">Crie seu primeiro exercício.</p>
           <button
             onClick={openModal}
             className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] transition-all duration-150"
           >
             <Plus size={14} />
-            Create your first exercise
+            Criar primeiro exercício
           </button>
         </div>
       ) : (
@@ -190,7 +190,7 @@ export default function ExercisesPage() {
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4">
-              <h2 className="text-[16px] font-extrabold text-[#111827]">New Exercise</h2>
+              <h2 className="text-[16px] font-extrabold text-[#111827]">Novo exercício</h2>
               <button
                 onClick={closeModal}
                 className="w-7 h-7 flex items-center justify-center rounded-lg text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors duration-100"

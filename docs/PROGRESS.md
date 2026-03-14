@@ -183,6 +183,62 @@ Track the implementation status of all features and tasks.
 
 ---
 
+---
+
+## Phase 4: Training
+
+### Database
+- ✅ Exercises table
+- ✅ Workouts table (patient-owned, optionally assigned by professional)
+- ✅ Workout exercises table (ordered exercise list per workout)
+- ✅ Training sessions table (patient logs, optionally from a workout template)
+- ✅ Session exercises table (exercises done in a session)
+- ✅ Training sets table (sets per exercise per session: weight, reps, notes)
+- ✅ Personal records (PRs) table per exercise
+
+### API Routes — Patient
+| Method | Endpoint | Description | Status |
+|--------|----------|-------------|--------|
+| GET | `/api/patient/training/exercises` | List own exercises | ✅ |
+| POST | `/api/patient/training/exercises` | Create exercise | ✅ |
+| GET | `/api/patient/training/exercises/:id` | Get exercise + history | ✅ |
+| GET | `/api/patient/training/exercises/:id/prs` | List PRs | ✅ |
+| POST | `/api/patient/training/exercises/:id/prs` | Log PR | ✅ |
+| DELETE | `/api/patient/training/exercises/:id/prs/:prId` | Delete PR | ✅ |
+| GET | `/api/patient/training/workouts` | List workouts | ✅ |
+| POST | `/api/patient/training/workouts` | Create workout | ✅ |
+| GET | `/api/patient/training/workouts/:id` | Get workout + exercises | ✅ |
+| DELETE | `/api/patient/training/workouts/:id` | Delete workout | ✅ |
+| POST | `/api/patient/training/workouts/:id/exercises` | Add exercise to workout | ✅ |
+| GET | `/api/patient/training/sessions` | List sessions | ✅ |
+| POST | `/api/patient/training/sessions` | Create session | ✅ |
+| GET | `/api/patient/training/sessions/:id` | Get session + sets | ✅ |
+| POST | `/api/patient/training/sessions/:id/sets` | Add set | ✅ |
+| DELETE | `/api/patient/training/sessions/:id/sets/:setId` | Delete set | ✅ |
+
+### API Routes — Professional
+| Method | Endpoint | Description | Status |
+|--------|----------|-------------|--------|
+| GET | `/api/professional/patients/:id/training/sessions` | View patient sessions | ✅ |
+| GET | `/api/professional/patients/:id/training/workouts` | View patient workouts | ✅ |
+| POST | `/api/professional/patients/:id/training/workouts` | Assign workout to patient | ✅ |
+
+### Patient Features
+- ✅ Training dashboard (sessions / workouts / exercises nav)
+- ✅ Exercise library with create modal
+- ✅ Exercise detail sheet with PR hero, PR history, session history
+- ✅ Workout list + create page
+- ✅ Workout detail page (exercises list, add exercise modal, start session)
+- ✅ Session list page
+- ✅ New session form (date, optional workout template, exercises)
+- ✅ Session detail page (add/delete sets per exercise)
+
+### Professional Features
+- ✅ Patient training page with sessions tab + workouts tab
+- ✅ Create/assign workout to patient from professional UI
+
+---
+
 ## Next Steps
 
 1. ✅ ~~Session management~~
@@ -195,12 +251,13 @@ Track the implementation status of all features and tasks.
 8. ✅ ~~Simplified signup flow (8-digit codes)~~
 9. ✅ ~~Progress Tracking Feature~~
 10. ✅ ~~Meal Plan Feature~~
-11. ⏳ Meal consumption tracking
-12. ⏳ Professional: Patient profile editing
-13. ⏳ Admin: Professional detail view
-14. ⏳ Nutrition calculator (calories, macros)
-15. ⏳ Analytics and reporting
+11. ✅ ~~Training Feature~~
+12. ⏳ Meal consumption tracking
+13. ⏳ Professional: Patient profile editing
+14. ⏳ Admin: Professional detail view
+15. ⏳ Nutrition calculator (calories, macros)
+16. ⏳ Analytics and reporting
 
 ---
 
-Last Updated: 2026-01-31
+Last Updated: 2026-03-13

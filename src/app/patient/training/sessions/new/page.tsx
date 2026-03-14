@@ -87,7 +87,7 @@ function NewSessionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedIds.size === 0) { setError("Please select at least one exercise"); return; }
+    if (selectedIds.size === 0) { setError("Selecione pelo menos um exercício"); return; }
     setLoading(true);
     setError("");
     try {
@@ -123,7 +123,7 @@ function NewSessionForm() {
       )}
 
       <div>
-        <label htmlFor="date" className={labelCls}>Date *</label>
+        <label htmlFor="date" className={labelCls}>Data *</label>
         <input
           id="date"
           type="date"
@@ -135,14 +135,14 @@ function NewSessionForm() {
       </div>
 
       <div>
-        <label htmlFor="workout" className={labelCls}>Workout Template (optional)</label>
+        <label htmlFor="workout" className={labelCls}>Modelo de treino (opcional)</label>
         <select
           id="workout"
           value={workoutId}
           onChange={(e) => handleWorkoutChange(e.target.value)}
           className={inputCls}
         >
-          <option value="">— No template —</option>
+          <option value="">— Sem modelo —</option>
           {workouts.map((w) => (
             <option key={w.id} value={w.id}>{w.name}</option>
           ))}
@@ -150,12 +150,12 @@ function NewSessionForm() {
       </div>
 
       <div>
-        <label className={labelCls}>Exercises *</label>
+        <label className={labelCls}>Exercícios *</label>
         {exercises.length === 0 ? (
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-[13px] text-[#6B7280]">
-            No exercises yet.{" "}
+            Nenhum exercício ainda.{" "}
             <Link href="/patient/training/exercises/create" className="text-[#2E8B5A] font-semibold hover:underline">
-              Create exercises first
+              Cadastre exercícios primeiro
             </Link>
           </div>
         ) : (
@@ -179,12 +179,12 @@ function NewSessionForm() {
       </div>
 
       <div>
-        <label htmlFor="notes" className={labelCls}>Notes</label>
+        <label htmlFor="notes" className={labelCls}>Observações</label>
         <textarea
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Optional session notes"
+          placeholder="Observações opcionais"
           rows={2}
           className="w-full px-3.5 py-2.5 bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] hover:border-[#D1D5DB] focus:outline-none focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] transition-all duration-150 resize-none"
         />
@@ -196,14 +196,14 @@ function NewSessionForm() {
           disabled={loading}
           className="inline-flex items-center justify-center h-11 px-5 text-[14px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150"
         >
-          {loading ? "Creating…" : "Start Session"}
+          {loading ? "Criando…" : "Iniciar sessão"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
           className="inline-flex items-center justify-center h-11 px-5 text-[14px] font-semibold text-[#374151] bg-white border-[1.5px] border-[#E5E7EB] rounded-[10px] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] transition-all duration-150"
         >
-          Cancel
+          Cancelar
         </button>
       </div>
     </form>
@@ -217,12 +217,12 @@ export default function NewSessionPage() {
         href="/patient/training/sessions"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Sessions
+        ← Voltar às sessões
       </Link>
 
       <div className="mb-6">
         <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight">
-          New Training Session
+          Nova sessão de treino
         </h1>
       </div>
 

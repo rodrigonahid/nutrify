@@ -51,7 +51,7 @@ function SkeletonExercise() {
 
 function formatSessionDate(dateStr: string) {
   const [y, m, d] = dateStr.split("-");
-  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("en-US", {
+  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("pt-BR", {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -73,7 +73,7 @@ export default function SessionDetailPage() {
 
   const loadSession = useCallback(async () => {
     const res = await fetch(`/api/patient/training/sessions/${sessionId}`);
-    if (!res.ok) throw new Error("Failed to load session");
+    if (!res.ok) throw new Error("Falha ao carregar sessão");
     const data = await res.json();
     setSession(data.session);
     setExercises(data.exercises);
@@ -92,7 +92,7 @@ export default function SessionDetailPage() {
 
   useEffect(() => {
     loadSession()
-      .catch(() => setError("Failed to load session"))
+      .catch(() => setError("Falha ao carregar sessão"))
       .finally(() => setLoading(false));
   }, [loadSession]);
 
@@ -111,14 +111,14 @@ export default function SessionDetailPage() {
           notes: form.notes || undefined,
         }),
       });
-      if (!res.ok) throw new Error("Failed to add set");
+      if (!res.ok) throw new Error("Falha ao adicionar série");
       setAddForms((prev) => ({
         ...prev,
         [sessionExerciseId]: { weightKg: "", reps: "", notes: "" },
       }));
       await loadSession();
     } catch {
-      setError("Failed to add set");
+      setError("Falha ao adicionar série");
     } finally {
       setSubmitting((prev) => ({ ...prev, [sessionExerciseId]: false }));
     }
@@ -130,10 +130,10 @@ export default function SessionDetailPage() {
         `/api/patient/training/sessions/${sessionId}/sets/${setId}`,
         { method: "DELETE" }
       );
-      if (!res.ok) throw new Error("Failed to delete set");
+      if (!res.ok) throw new Error("Falha ao excluir série");
       await loadSession();
     } catch {
-      setError("Failed to delete set");
+      setError("Falha ao excluir série");
     }
   };
 
@@ -143,7 +143,7 @@ export default function SessionDetailPage() {
         href="/patient/training/sessions"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Sessions
+        ← Voltar às sessões
       </Link>
 
       <div className="mb-6">
@@ -151,7 +151,7 @@ export default function SessionDetailPage() {
           {loading ? (
             <span className="inline-block w-48 h-6 bg-[#F3F4F6] rounded animate-pulse" />
           ) : (
-            session ? formatSessionDate(session.date) : "Session"
+            session ? formatSessionDate(session.date) : "Sessão"
           )}
         </h1>
         {!loading && session?.notes && (
@@ -195,10 +195,10 @@ export default function SessionDetailPage() {
                   <table className="w-full text-[13px]">
                     <thead>
                       <tr className="border-b border-[#F3F4F6]">
-                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider w-10">Set</th>
-                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Weight</th>
+                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider w-10">Série</th>
+                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Peso</th>
                         <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Reps</th>
-                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Notes</th>
+                        <th className="text-left px-4 py-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Obs.</th>
                         <th className="w-10" />
                       </tr>
                     </thead>
@@ -230,7 +230,7 @@ export default function SessionDetailPage() {
               {/* Add set form */}
               <div className="px-4 py-3 bg-[#F9FAFB] border-t border-[#F3F4F6]">
                 <p className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">
-                  Add Set
+                  Adicionar série
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex items-center gap-1">
@@ -272,7 +272,7 @@ export default function SessionDetailPage() {
                   </div>
                   <input
                     type="text"
-                    placeholder="notes (optional)"
+                    placeholder="obs. (opcional)"
                     value={addForms[ex.sessionExerciseId]?.notes ?? ""}
                     onChange={(e) =>
                       setAddForms((prev) => ({
@@ -291,7 +291,7 @@ export default function SessionDetailPage() {
                     className="inline-flex items-center gap-1 h-9 px-3 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[8px] hover:bg-[#277A4F] disabled:opacity-60 transition-colors duration-100"
                   >
                     <Plus size={13} />
-                    {submitting[ex.sessionExerciseId] ? "Adding…" : "Add"}
+                    {submitting[ex.sessionExerciseId] ? "Adicionando…" : "Adicionar"}
                   </button>
                 </div>
               </div>

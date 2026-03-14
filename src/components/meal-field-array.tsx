@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import {
   Control,
   useFieldArray,
@@ -16,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { X, ChefHat, Search } from "lucide-react";
 import { z } from "zod";
 import { mealPlanFormSchema } from "@/lib/validation";
+import { Preparation, PreparationListItem } from "@/types";
 
 type MealPlanFormData = z.infer<typeof mealPlanFormSchema>;
 
@@ -110,6 +112,138 @@ export function MealFieldArray({
   );
 }
 
+// ── Preparation picker modal ──────────────────────────────────────────────
+
+interface PreparationPickerProps {
+  onClose: () => void;
+  onSelect: (preparation: Preparation) => void;
+}
+
+function PreparationPicker({ onClose, onSelect }: PreparationPickerProps) {
+  const [list, setList] = useState<PreparationListItem[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const fetchedRef = useRef(false);
+
+  // Fetch on first open
+  if (!fetchedRef.current) {
+    fetchedRef.current = true;
+    fetch("/api/professional/preparations")
+      .then((r) => r.json())
+      .then((data) => setList(data.preparations ?? []))
+      .catch(() => setList([]))
+      .finally(() => setLoading(false));
+  }
+
+  async function handleSelect(item: PreparationListItem) {
+    const res = await fetch(`/api/professional/preparations/${item.id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    onSelect(data.preparation as Preparation);
+  }
+
+  const filtered = (list ?? []).filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[440px] max-h-[80vh] flex flex-col overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#E5E7EB] shrink-0">
+          <div className="flex items-center gap-2">
+            <ChefHat size={16} className="text-[#2E8B5A]" strokeWidth={2} />
+            <p className="text-[14px] font-semibold text-[#111827]">
+              Inserir preparação
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-7 w-7 flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] rounded-[6px] transition-colors duration-100"
+          >
+            <X size={14} strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-4 py-3 border-b border-[#F3F4F6] shrink-0">
+          <div className="relative">
+            <span className="absolute left-[11px] top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none">
+              <Search size={14} strokeWidth={2} />
+            </span>
+            <input
+              type="search"
+              placeholder="Buscar preparação…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+              className="w-full h-9 pl-[34px] pr-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.12)]"
+            />
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto">
+          {loading && (
+            <div className="divide-y divide-[#F3F4F6]">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3 animate-pulse">
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3.5 w-40 bg-[#F3F4F6] rounded" />
+                    <div className="h-3 w-24 bg-[#F3F4F6] rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && filtered.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+              <ChefHat size={24} className="text-[#D1D5DB] mb-3" />
+              <p className="text-[13px] font-medium text-[#9CA3AF]">
+                {search ? `Nenhuma preparação encontrada para "${search}"` : "Nenhuma preparação criada ainda"}
+              </p>
+            </div>
+          )}
+
+          {!loading && filtered.length > 0 && (
+            <div className="divide-y divide-[#F3F4F6]">
+              {filtered.map((prep) => (
+                <button
+                  key={prep.id}
+                  type="button"
+                  onClick={() => handleSelect(prep)}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-[#111827] truncate">
+                      {prep.name}
+                    </p>
+                    <p className="text-[11px] text-[#9CA3AF]">
+                      {prep.category === "food" ? "Alimento" : "Preparação"} · {prep.ingredientCount}{" "}
+                      {prep.ingredientCount !== 1 ? "ingredientes" : "ingrediente"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[11px] font-semibold text-[#2E8B5A]">
+                    Inserir →
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Option field array ────────────────────────────────────────────────────
+
 interface OptionFieldArrayProps {
   mealIndex: number;
   optionIndex: number;
@@ -127,6 +261,8 @@ function OptionFieldArray({
   errors,
   onRemove,
 }: OptionFieldArrayProps) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   const {
     fields: ingredients,
     append: appendIngredient,
@@ -143,6 +279,18 @@ function OptionFieldArray({
       unit: "g",
       orderIndex: ingredients.length,
     });
+  }
+
+  function insertPreparation(preparation: Preparation) {
+    preparation.ingredients.forEach((ing, i) => {
+      appendIngredient({
+        ingredientName: ing.name,
+        quantity: 0,
+        unit: ing.unit as "g" | "ml" | "cups" | "spoons" | "scoops" | "units",
+        orderIndex: ingredients.length + i,
+      });
+    });
+    setPickerOpen(false);
   }
 
   const optionErrors = errors.meals?.[mealIndex]?.options?.[optionIndex];
@@ -286,15 +434,32 @@ function OptionFieldArray({
               </p>
             )}
 
-          <button
-            type="button"
-            onClick={addIngredient}
-            className="h-8 px-3 text-[12px] font-semibold text-[#6B7280] border border-dashed border-[#D1D5DB] rounded-[6px] hover:border-[#2E8B5A] hover:text-[#2E8B5A] transition-colors duration-150"
-          >
-            + Add Ingredient
-          </button>
+          <div className="flex gap-2 flex-wrap">
+            <button
+              type="button"
+              onClick={addIngredient}
+              className="h-8 px-3 text-[12px] font-semibold text-[#6B7280] border border-dashed border-[#D1D5DB] rounded-[6px] hover:border-[#2E8B5A] hover:text-[#2E8B5A] transition-colors duration-150"
+            >
+              + Add Ingredient
+            </button>
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="h-8 px-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#2E8B5A] border border-dashed border-[rgba(46,139,90,0.4)] rounded-[6px] hover:border-[#2E8B5A] hover:bg-[rgba(46,139,90,0.04)] transition-colors duration-150"
+            >
+              <ChefHat size={12} strokeWidth={2} />
+              Inserir preparação
+            </button>
+          </div>
         </div>
       </div>
+
+      {pickerOpen && (
+        <PreparationPicker
+          onClose={() => setPickerOpen(false)}
+          onSelect={insertPreparation}
+        />
+      )}
     </div>
   );
 }

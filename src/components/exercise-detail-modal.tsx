@@ -31,7 +31,7 @@ interface SessionGroup {
 
 function formatDate(iso: string) {
   const [y, m, d] = iso.split("-");
-  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("en-US", {
+  return new Date(parseInt(y), parseInt(m) - 1, parseInt(d)).toLocaleDateString("pt-BR", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -114,7 +114,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
   }
 
   async function handleAddPr() {
-    if (!prWeight) { setPrError("Weight is required"); return; }
+    if (!prWeight) { setPrError("Peso é obrigatório"); return; }
     setSubmittingPr(true);
     setPrError("");
     try {
@@ -130,12 +130,12 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
       });
       if (!res.ok) {
         const d = await res.json();
-        throw new Error(d.error || "Failed to save PR");
+        throw new Error(d.error || "Falha ao salvar PR");
       }
       await queryClient.invalidateQueries({ queryKey: ["exercise-prs", exerciseId] });
       setShowPrForm(false);
     } catch (err) {
-      setPrError(err instanceof Error ? err.message : "Failed to save PR");
+      setPrError(err instanceof Error ? err.message : "Falha ao salvar PR");
     } finally {
       setSubmittingPr(false);
     }
@@ -226,7 +226,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                   <div className="h-6 w-36 bg-[#F3F4F6] rounded animate-pulse mb-1.5" />
                 ) : (
                   <h2 className="text-[18px] font-extrabold text-[#111827] tracking-tight leading-snug">
-                    {exercise?.name ?? "Exercise"}
+                    {exercise?.name ?? "Exercício"}
                   </h2>
                 )}
                 {!loading && exercise?.description && (
@@ -238,7 +238,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                 onClick={handleClose}
                 className="md:hidden ml-3 shrink-0 text-[13px] font-semibold text-[#9CA3AF] hover:text-[#374151] transition-colors"
               >
-                Close
+                Fechar
               </button>
             </div>
 
@@ -258,7 +258,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                   <div className="flex items-center gap-2 mb-2">
                     <Trophy size={13} className="text-[#F59E0B]" />
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
-                      Personal Record
+                      Recorde Pessoal
                     </span>
                   </div>
                   {bestPr ? (
@@ -280,14 +280,14 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                           <div className="flex items-center gap-1 mt-2">
                             <TrendingUp size={12} className="text-[#2E8B5A]" />
                             <span className="text-[11px] text-[#2E8B5A] font-semibold">
-                              +{gain % 1 === 0 ? gain : gain.toFixed(1)} kg from previous best
+                              +{gain % 1 === 0 ? gain : gain.toFixed(1)} kg do melhor anterior
                             </span>
                           </div>
                         ) : null;
                       })()}
                     </>
                   ) : (
-                    <p className="text-[13px] font-medium text-[#9CA3AF]">No PR logged yet.</p>
+                    <p className="text-[13px] font-medium text-[#9CA3AF]">Nenhum PR registrado ainda.</p>
                   )}
                 </div>
               </div>
@@ -300,7 +300,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#D1D5DB] py-3 text-[13px] font-semibold text-[#6B7280] hover:border-[#2E8B5A] hover:text-[#2E8B5A] hover:bg-[rgba(46,139,90,0.04)] transition-all duration-150 mb-5"
               >
                 <Plus size={14} />
-                Log new PR
+                Registrar novo PR
               </button>
             )}
 
@@ -308,12 +308,12 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
             {showPrForm && (
               <div className="mb-5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[13px] font-bold text-[#111827]">Log new PR</p>
+                  <p className="text-[13px] font-bold text-[#111827]">Registrar novo PR</p>
                   <button
                     onClick={() => setShowPrForm(false)}
                     className="text-[12px] font-semibold text-[#9CA3AF] hover:text-[#374151] transition-colors"
                   >
-                    Cancel
+                    Cancelar
                   </button>
                 </div>
 
@@ -326,7 +326,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                 <div className="grid grid-cols-3 gap-2 mb-2.5">
                   <div>
                     <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1.5">
-                      Weight (kg) <span className="text-[#DC2626]">*</span>
+                      Peso (kg) <span className="text-[#DC2626]">*</span>
                     </label>
                     <input
                       ref={prWeightRef}
@@ -354,7 +354,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                   </div>
                   <div>
                     <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1.5">
-                      Date
+                      Data
                     </label>
                     <input
                       type="date"
@@ -367,11 +367,11 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
 
                 <div className="mb-3">
                   <label className="block text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider mb-1.5">
-                    Notes
+                    Obs.
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. paused reps, belt used…"
+                    placeholder="ex.: repetições pausadas, cinto..."
                     value={prNotes}
                     onChange={(e) => setPrNotes(e.target.value)}
                     className={inputCls + " w-full"}
@@ -383,7 +383,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                   disabled={submittingPr || !prWeight}
                   className="w-full h-10 rounded-[10px] bg-[#2E8B5A] text-white text-[13px] font-bold hover:bg-[#267a50] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
                 >
-                  {submittingPr ? "Saving…" : "Save PR"}
+                  {submittingPr ? "Salvando…" : "Salvar PR"}
                 </button>
               </div>
             )}
@@ -392,7 +392,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
             {!loading && sortedPrs.length > 0 && (
               <div className="mb-5">
                 <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF] mb-3">
-                  PR History
+                  Histórico de PRs
                 </p>
                 <div className="relative">
                   <div className="absolute left-3 top-0 bottom-0 w-px bg-[#E5E7EB]" />
@@ -464,14 +464,14 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                   onClick={() => setShowHistory((v) => !v)}
                   className="w-full flex items-center justify-between py-3 text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF] hover:text-[#374151] transition-colors border-t border-[#F3F4F6]"
                 >
-                  <span>Session History</span>
+                  <span>Histórico de sessões</span>
                   {showHistory ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                 </button>
 
                 {showHistory && (
                   <div className="mt-2 mb-2">
                     {sessions.length === 0 ? (
-                      <p className="text-[13px] text-[#9CA3AF]">No sets logged yet.</p>
+                      <p className="text-[13px] text-[#9CA3AF]">Nenhuma série registrada ainda.</p>
                     ) : (
                       <div className="space-y-2">
                         {sessions.map((session) => (
@@ -487,7 +487,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                               >
                                 {formatDate(session.date)}
                               </Link>
-                              <span className="text-[10px] text-[#9CA3AF]">{session.sets.length} sets</span>
+                              <span className="text-[10px] text-[#9CA3AF]">{session.sets.length} {session.sets.length !== 1 ? "séries" : "série"}</span>
                             </div>
                             <table className="w-full text-[12px]">
                               <thead>
@@ -495,7 +495,7 @@ export function ExerciseDetailModal({ exerciseId, onClose }: ExerciseDetailModal
                                   <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Set</th>
                                   <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">kg</th>
                                   <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Reps</th>
-                                  <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Notes</th>
+                                  <th className="text-left px-4 py-1.5 text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-wider">Obs.</th>
                                 </tr>
                               </thead>
                               <tbody>

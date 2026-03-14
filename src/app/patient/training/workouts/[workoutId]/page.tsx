@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Play, Plus, X } from "lucide-react";
+import { Play, Plus, X, ChevronUp, ChevronDown, ArrowUpDown, Trophy } from "lucide-react";
 import { ExerciseDetailModal } from "@/components/exercise-detail-modal";
 
 interface WorkoutExercise {
@@ -28,6 +28,11 @@ interface Exercise {
   description: string | null;
 }
 
+function fmtWeight(w: string) {
+  const n = parseFloat(w);
+  return n % 1 === 0 ? String(parseInt(w)) : String(n);
+}
+
 function SkeletonPanel() {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden animate-pulse">
@@ -49,51 +54,65 @@ export default function WorkoutDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Exercise detail modal
+  // Exercise detail sheet
   const [detailExerciseId, setDetailExerciseId] = useState<number | null>(null);
 
-  // Add-exercise modal state
+  // Add-exercise modal
   const [modalOpen, setModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"existing" | "new">("existing");
-
-  // Existing exercise selection
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [exercisesLoading, setExercisesLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedExerciseId, setSelectedExerciseId] = useState<number | null>(null);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState<number | "new" | null>(null);
   const [modalError, setModalError] = useState("");
-
-  // New exercise form
-  const [newName, setNewName] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [creating, setCreating] = useState(false);
-
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // Reorder state
+  const [reorderMode, setReorderMode] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+
+  // PRs: exerciseId -> best { weightKg, reps } or null
+  const [prs, setPrs] = useState<Record<number, { weightKg: string; reps: number | null } | null>>({});
 
   useEffect(() => {
     fetch(`/api/patient/training/workouts/${workoutId}`)
       .then((r) => r.json())
-      .then((d) => { setWorkout(d.workout); setExercises(d.exercises ?? []); })
+      .then(async (d) => {
+        setWorkout(d.workout);
+        const sorted = [...(d.exercises ?? [])].sort((a: WorkoutExercise, b: WorkoutExercise) => a.orderIndex - b.orderIndex);
+        setExercises(sorted);
+
+        const results = await Promise.all(
+          sorted.map((ex: WorkoutExercise) =>
+            fetch(`/api/patient/training/exercises/${ex.exerciseId}/prs`)
+              .then((r) => r.json())
+              .then((data) => ({ exerciseId: ex.exerciseId, prs: data.prs ?? [] }))
+              .catch(() => ({ exerciseId: ex.exerciseId, prs: [] }))
+          )
+        );
+        const map: Record<number, { weightKg: string; reps: number | null } | null> = {};
+        for (const { exerciseId, prs: list } of results) {
+          if (list.length === 0) { map[exerciseId] = null; continue; }
+          const best = list.reduce((b: { weightKg: string; reps: number | null }, p: { weightKg: string; reps: number | null }) =>
+            parseFloat(p.weightKg) > parseFloat(b.weightKg) ? p : b
+          );
+          map[exerciseId] = { weightKg: best.weightKg, reps: best.reps };
+        }
+        setPrs(map);
+      })
       .catch(() => setError("Falha ao carregar treino"))
       .finally(() => setLoading(false));
   }, [workoutId]);
 
   function openModal() {
-    setModalOpen(true);
-    setActiveTab("existing");
     setSearch("");
-    setSelectedExerciseId(null);
     setModalError("");
-    setNewName("");
-    setNewDescription("");
+    setModalOpen(true);
 
-    // Fetch exercises if not yet loaded
     if (allExercises.length === 0) {
       setExercisesLoading(true);
       fetch("/api/patient/training/exercises")
         .then((r) => r.json())
-        .then((exData) => setAllExercises(exData.exercises ?? []))
+        .then((d) => setAllExercises(d.exercises ?? []))
         .finally(() => setExercisesLoading(false));
     }
 
@@ -104,47 +123,43 @@ export default function WorkoutDetailPage() {
     setModalOpen(false);
   }
 
-  async function handleAddExisting() {
-    if (!selectedExerciseId) return;
-    setAdding(true);
+  async function handleAddExercise(exerciseId: number) {
+    setAdding(exerciseId);
     setModalError("");
     try {
       const res = await fetch(`/api/patient/training/workouts/${workoutId}/exercises`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ exerciseId: selectedExerciseId }),
+        body: JSON.stringify({ exerciseId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Falha ao adicionar exercício");
       setExercises((prev) => [...prev, data.workoutExercise]);
+      setPrs((prev) => ({ ...prev, [exerciseId]: prev[exerciseId] ?? null }));
       closeModal();
     } catch (err) {
       setModalError(err instanceof Error ? err.message : "Falha ao adicionar exercício");
     } finally {
-      setAdding(false);
+      setAdding(null);
     }
   }
 
   async function handleCreateAndAdd() {
-    if (!newName.trim()) return;
-    setCreating(true);
+    const name = search.trim();
+    if (!name) return;
+    setAdding("new");
     setModalError("");
     try {
-      // 1. Create the exercise
       const createRes = await fetch("/api/patient/training/exercises", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newName.trim(),
-          description: newDescription.trim() || null,
-        }),
+        body: JSON.stringify({ name }),
       });
       const createData = await createRes.json();
       if (!createRes.ok) throw new Error(createData.error ?? "Falha ao criar exercício");
 
       const exerciseId = createData.exercise?.id;
 
-      // 2. Add to workout
       const addRes = await fetch(`/api/patient/training/workouts/${workoutId}/exercises`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,23 +169,55 @@ export default function WorkoutDetailPage() {
       if (!addRes.ok) throw new Error(addData.error ?? "Falha ao adicionar exercício");
 
       setExercises((prev) => [...prev, addData.workoutExercise]);
-      // Also add to allExercises for future modal opens
       setAllExercises((prev) => [...prev, createData.exercise]);
+      setPrs((prev) => ({ ...prev, [exerciseId]: null }));
       closeModal();
     } catch (err) {
       setModalError(err instanceof Error ? err.message : "Falha ao criar exercício");
     } finally {
-      setCreating(false);
+      setAdding(null);
+    }
+  }
+
+  async function handleMove(index: number, direction: "up" | "down") {
+    const sorted = [...exercises];
+    const swapIndex = direction === "up" ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= sorted.length) return;
+
+    // Optimistic swap
+    const newOrder = [...sorted];
+    const aIdx = newOrder[index].orderIndex;
+    const bIdx = newOrder[swapIndex].orderIndex;
+    newOrder[index] = { ...newOrder[index], orderIndex: bIdx };
+    newOrder[swapIndex] = { ...newOrder[swapIndex], orderIndex: aIdx };
+    newOrder.sort((a, b) => a.orderIndex - b.orderIndex);
+    setExercises(newOrder);
+    setSavingOrder(true);
+
+    try {
+      const res = await fetch(`/api/patient/training/workouts/${workoutId}/exercises`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exercises: newOrder.map((e) => ({ id: e.id, orderIndex: e.orderIndex })),
+        }),
+      });
+      if (!res.ok) throw new Error("Falha ao reordenar");
+    } catch {
+      setExercises(sorted);
+    } finally {
+      setSavingOrder(false);
     }
   }
 
   const filteredExercises = allExercises.filter((ex) =>
-    ex.name.toLowerCase().includes(search.toLowerCase())
+    ex.name.toLowerCase().includes(search.trim().toLowerCase())
   );
+
+  const showCreateButton = search.trim().length > 0 && filteredExercises.length === 0 && !exercisesLoading;
 
   const inputClass =
     "w-full h-10 px-3 rounded-[10px] border border-[#E5E7EB] bg-[#F9FAFB] text-[14px] text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none focus:border-[#2E8B5A] focus:ring-2 focus:ring-[rgba(46,139,90,0.15)] transition-all duration-150";
-  const labelClass = "block text-[12px] font-semibold text-[#374151] mb-1";
 
   return (
     <div className="p-4 md:p-8 max-w-[900px]">
@@ -178,7 +225,7 @@ export default function WorkoutDetailPage() {
         href="/patient/training/workouts"
         className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
       >
-        ← Back to Workouts
+        ← Voltar aos treinos
       </Link>
 
       <div className="flex items-start justify-between mb-6">
@@ -188,12 +235,12 @@ export default function WorkoutDetailPage() {
               {loading ? (
                 <span className="inline-block w-40 h-6 bg-[#F3F4F6] rounded animate-pulse" />
               ) : (
-                workout?.name ?? "Workout"
+                workout?.name ?? "Treino"
               )}
             </h1>
             {!loading && workout?.assignedByProfessionalId && (
               <span className="text-[11px] font-semibold text-[#2563EB] bg-[rgba(37,99,235,0.08)] px-2.5 py-0.5 rounded-full">
-                Assigned
+                Atribuído
               </span>
             )}
           </div>
@@ -216,7 +263,7 @@ export default function WorkoutDetailPage() {
               className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] hover:-translate-y-px transition-all duration-150"
             >
               <Play size={13} />
-              Start Session
+              Iniciar sessão
             </Link>
           </div>
         )}
@@ -232,39 +279,106 @@ export default function WorkoutDetailPage() {
         <SkeletonPanel />
       ) : exercises.length === 0 ? (
         <div className="bg-white border border-[#E5E7EB] rounded-xl p-8 text-center">
-          <p className="text-[14px] text-[#6B7280]">No exercises in this workout.</p>
+          <p className="text-[14px] text-[#6B7280]">Nenhum exercício neste treino.</p>
         </div>
       ) : (
         <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#F3F4F6]">
+          <div className="px-4 py-3 border-b border-[#F3F4F6] flex items-center justify-between">
             <p className="text-[14px] font-semibold text-[#111827]">
-              {exercises.length} Exercise{exercises.length !== 1 ? "s" : ""}
+              {exercises.length} exercício{exercises.length !== 1 ? "s" : ""}
             </p>
+            <button
+              onClick={() => setReorderMode((v) => !v)}
+              className={`w-7 h-7 flex items-center justify-center rounded-[8px] transition-all duration-200 ${
+                reorderMode
+                  ? "bg-[rgba(46,139,90,0.12)] text-[#2E8B5A]"
+                  : "text-[#9CA3AF] hover:text-[#6B7280] hover:bg-[#F3F4F6]"
+              }`}
+              aria-label="Reordenar exercícios"
+            >
+              <ArrowUpDown size={14} />
+            </button>
           </div>
           <div className="divide-y divide-[#F3F4F6]">
-            {[...exercises]
-              .sort((a, b) => a.orderIndex - b.orderIndex)
-              .map((ex, idx) => (
-                <button
-                  key={ex.id}
-                  onClick={() => setDetailExerciseId(ex.exerciseId)}
-                  className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-[#F9FAFB] transition-colors duration-100 text-left"
+            {exercises.map((ex, idx) => (
+              <div
+                key={ex.id}
+                className="flex items-center gap-3 px-4 py-3"
+              >
+                {/* Animated reorder buttons — slide in from left */}
+                <div
+                  style={{
+                    width: reorderMode ? 28 : 0,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    transition: "width 220ms cubic-bezier(0.4, 0, 0.2, 1)",
+                  }}
                 >
-                  <span className="text-[12px] font-semibold text-[#9CA3AF] w-5 shrink-0">{idx + 1}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold text-[#111827]">{ex.exerciseName}</p>
-                    {ex.exerciseDescription && (
-                      <p className="text-[12px] text-[#9CA3AF] mt-0.5 truncate">{ex.exerciseDescription}</p>
-                    )}
+                  <div
+                    style={{
+                      width: 28,
+                      transform: reorderMode ? "translateX(0)" : "translateX(-28px)",
+                      opacity: reorderMode ? 1 : 0,
+                      transition: "transform 220ms cubic-bezier(0.4, 0, 0.2, 1), opacity 160ms ease",
+                    }}
+                    className="flex flex-col gap-0.5"
+                  >
+                    <button
+                      onClick={() => handleMove(idx, "up")}
+                      disabled={idx === 0 || savingOrder}
+                      className="w-7 h-6 flex items-center justify-center rounded text-[#9CA3AF] hover:text-[#2E8B5A] hover:bg-[rgba(46,139,90,0.08)] disabled:opacity-20 disabled:cursor-default transition-all duration-100"
+                      aria-label="Mover para cima"
+                    >
+                      <ChevronUp size={13} />
+                    </button>
+                    <button
+                      onClick={() => handleMove(idx, "down")}
+                      disabled={idx === exercises.length - 1 || savingOrder}
+                      className="w-7 h-6 flex items-center justify-center rounded text-[#9CA3AF] hover:text-[#2E8B5A] hover:bg-[rgba(46,139,90,0.08)] disabled:opacity-20 disabled:cursor-default transition-all duration-100"
+                      aria-label="Mover para baixo"
+                    >
+                      <ChevronDown size={13} />
+                    </button>
                   </div>
-                  <span className="text-[12px] font-semibold text-[#2E8B5A] shrink-0">→</span>
+                </div>
+
+                {/* Index */}
+                <span className="text-[12px] font-semibold text-[#9CA3AF] w-5 shrink-0 text-center">
+                  {idx + 1}
+                </span>
+
+                {/* Name — tap to open detail */}
+                <button
+                  onClick={() => setDetailExerciseId(ex.exerciseId)}
+                  className="flex-1 min-w-0 text-left py-0.5"
+                >
+                  <p className="text-[14px] font-semibold text-[#111827] hover:text-[#2E8B5A] transition-colors">
+                    {ex.exerciseName}
+                  </p>
+                  {ex.exerciseDescription && (
+                    <p className="text-[12px] text-[#9CA3AF] mt-0.5 truncate">{ex.exerciseDescription}</p>
+                  )}
                 </button>
-              ))}
+
+                {/* PR badge */}
+                {prs[ex.exerciseId] && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Trophy size={10} className="text-[#F59E0B]" />
+                    <span className="text-[12px] font-semibold text-[#6B7280]">
+                      {fmtWeight(prs[ex.exerciseId]!.weightKg)} kg
+                      {prs[ex.exerciseId]!.reps ? ` × ${prs[ex.exerciseId]!.reps}` : ""}
+                    </span>
+                  </div>
+                )}
+
+                <span className="text-[12px] font-semibold text-[#2E8B5A] shrink-0">→</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Exercise Detail Modal */}
+      {/* Exercise Detail Sheet */}
       {detailExerciseId !== null && (
         <ExerciseDetailModal
           exerciseId={detailExerciseId}
@@ -279,9 +393,9 @@ export default function WorkoutDetailPage() {
           style={{ background: "rgba(0,0,0,0.4)" }}
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col max-h-[85vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col h-[480px] max-h-[85vh]">
 
-            {/* Modal header */}
+            {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0">
               <h2 className="text-[16px] font-extrabold text-[#111827]">Adicionar exercício</h2>
               <button
@@ -292,141 +406,71 @@ export default function WorkoutDetailPage() {
               </button>
             </div>
 
-            {/* Tabs */}
+            {/* Search */}
             <div className="px-5 pb-3 shrink-0">
-              <div className="flex gap-1 bg-[#F3F4F6] rounded-[10px] p-1">
-                {(["existing", "new"] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => { setActiveTab(tab); setModalError(""); }}
-                    className={`flex-1 h-8 rounded-[8px] text-[13px] font-semibold transition-all duration-150 ${
-                      activeTab === tab
-                        ? "bg-white text-[#111827] shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
-                        : "text-[#6B7280] hover:text-[#374151]"
-                    }`}
-                  >
-                    {tab === "existing" ? "Existentes" : "Novo exercício"}
-                  </button>
-                ))}
-              </div>
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setModalError(""); }}
+                placeholder="Buscar exercício…"
+                className={inputClass}
+              />
             </div>
 
-            {/* Modal error */}
             {modalError && (
               <div className="mx-5 mb-3 bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-3 py-2 text-[12.5px] font-semibold text-[#DC2626] shrink-0">
                 {modalError}
               </div>
             )}
 
-            {/* Tab content */}
-            {activeTab === "existing" ? (
-              <>
-                {/* Search */}
-                <div className="px-5 pb-3 shrink-0">
-                  <input
-                    ref={searchRef}
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Buscar exercício…"
-                    className={inputClass}
-                  />
+            {/* List */}
+            <div className="flex-1 overflow-y-auto px-5 pb-5 min-h-0">
+              {exercisesLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-12 bg-[#F3F4F6] rounded-[10px] animate-pulse" />
+                  ))}
                 </div>
-
-                {/* Exercise list */}
-                <div className="flex-1 overflow-y-auto px-5 pb-3 min-h-0">
-                  {exercisesLoading ? (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 bg-[#F3F4F6] rounded-[10px] animate-pulse" />
-                      ))}
-                    </div>
-                  ) : filteredExercises.length === 0 ? (
-                    <p className="text-[13px] text-[#9CA3AF] text-center py-6">
-                      {search ? "Nenhum exercício encontrado." : "Nenhum exercício cadastrado."}
-                    </p>
-                  ) : (
-                    <div className="space-y-1">
-                      {filteredExercises.map((ex) => (
-                        <button
-                          key={ex.id}
-                          onClick={() => setSelectedExerciseId(ex.id === selectedExerciseId ? null : ex.id)}
-                          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-left transition-all duration-100 ${
-                            selectedExerciseId === ex.id
-                              ? "bg-[rgba(46,139,90,0.08)] border border-[rgba(46,139,90,0.2)]"
-                              : "border border-transparent hover:bg-[#F9FAFB]"
-                          }`}
-                        >
-                          <div
-                            className={`w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors duration-100 ${
-                              selectedExerciseId === ex.id
-                                ? "border-[#2E8B5A] bg-[#2E8B5A]"
-                                : "border-[#D1D5DB]"
-                            }`}
-                          >
-                            {selectedExerciseId === ex.id && (
-                              <div className="w-1.5 h-1.5 bg-white rounded-full" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-semibold text-[#111827] truncate">{ex.name}</p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 pt-3 pb-5 border-t border-[#F3F4F6] shrink-0">
-                  <button
-                    onClick={handleAddExisting}
-                    disabled={!selectedExerciseId || adding}
-                    className="w-full h-10 rounded-[10px] bg-[#2E8B5A] text-white text-[13px] font-bold hover:bg-[#267a50] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-                  >
-                    {adding ? "Adicionando…" : "Adicionar ao treino"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* New exercise form */}
-                <div className="flex-1 overflow-y-auto px-5 pb-3 space-y-3">
-                  <div>
-                    <label className={labelClass}>Nome <span className="text-[#DC2626]">*</span></label>
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      placeholder="ex.: Supino reto"
-                      className={inputClass}
-                      autoFocus
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Descrição <span className="font-normal text-[#9CA3AF]">(opcional)</span></label>
-                    <input
-                      type="text"
-                      value={newDescription}
-                      onChange={(e) => setNewDescription(e.target.value)}
-                      placeholder="Observações sobre o exercício"
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="px-5 pt-3 pb-5 border-t border-[#F3F4F6] shrink-0">
+              ) : showCreateButton ? (
+                <div className="py-4 text-center">
+                  <p className="text-[13px] text-[#9CA3AF] mb-3">Nenhum resultado para "{search}"</p>
                   <button
                     onClick={handleCreateAndAdd}
-                    disabled={!newName.trim() || creating}
-                    className="w-full h-10 rounded-[10px] bg-[#2E8B5A] text-white text-[13px] font-bold hover:bg-[#267a50] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+                    disabled={adding === "new"}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-semibold text-white bg-[#2E8B5A] rounded-[10px] shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:bg-[#277A4F] disabled:opacity-60 transition-all duration-150"
                   >
-                    {creating ? "Criando…" : "Criar e adicionar"}
+                    <Plus size={13} />
+                    {adding === "new" ? "Criando…" : `Criar "${search.trim()}" e adicionar`}
                   </button>
                 </div>
-              </>
-            )}
+              ) : filteredExercises.length === 0 ? (
+                <p className="text-[13px] text-[#9CA3AF] text-center py-6">
+                  Nenhum exercício cadastrado ainda.
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  {filteredExercises.map((ex) => (
+                    <button
+                      key={ex.id}
+                      onClick={() => handleAddExercise(ex.id)}
+                      disabled={adding === ex.id}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-[10px] text-left border border-transparent hover:bg-[#F9FAFB] hover:border-[#E5E7EB] disabled:opacity-50 transition-all duration-100"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-[#111827] truncate">{ex.name}</p>
+                        {ex.description && (
+                          <p className="text-[11px] text-[#9CA3AF] truncate mt-0.5">{ex.description}</p>
+                        )}
+                      </div>
+                      <span className="shrink-0 text-[12px] font-semibold text-[#2E8B5A]">
+                        {adding === ex.id ? "…" : "+"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

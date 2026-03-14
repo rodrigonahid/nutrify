@@ -26,18 +26,23 @@ Nutrify is a nutrition management platform that connects nutritionists with thei
 - Patient progress viewing
 - Historical comparison
 
-### Phase 3: Meal Plans (Current)
+### Phase 3: Meal Plans (Completed)
 - Create complex meal plans with multiple meals
 - Multiple meal options for flexibility
 - Detailed ingredient lists with weights
 - Active/inactive plan management
 - Patient viewing interface
 
+### Phase 4: Preparations Library (Completed)
+- Professional-owned catalogue of reusable Alimentos and Preparações
+- Each preparation stores template ingredients (name + unit, no quantity)
+- "Inserir preparação" button in meal plan editor — pre-fills ingredients (quantities left blank for per-patient entry)
+- Full CRUD: list, create, edit, delete
+
 ### Future Phases
 - Meal tracking and consumption logging
 - Analytics and reporting
 - Communication tools
-- Appointment scheduling
 
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router)
@@ -47,6 +52,6 @@ Nutrify is a nutrition management platform that connects nutritionists with thei
 - **Language**: TypeScript
 
 ## Project Status
-🟡 In Development - Phase 3: Meal Plans
+🟢 Phases 1–4 complete.
 
-Last Updated: 2026-01-28
+Last Updated: 2026-03-14

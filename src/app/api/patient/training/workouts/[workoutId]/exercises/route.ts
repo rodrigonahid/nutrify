@@ -7,7 +7,7 @@ import {
   exercises,
 } from "@/db/schema";
 import { requireRole } from "@/lib/session";
-import { eq, and, or, max as sqlMax } from "drizzle-orm";
+import { eq, and, or, max as sqlMax, inArray } from "drizzle-orm";
 
 export async function POST(
   request: NextRequest,
@@ -97,6 +97,79 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     console.error("Error adding exercise to workout:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ workoutId: string }> }
+) {
+  try {
+    const user = await requireRole(["patient"]);
+    const { workoutId } = await params;
+
+    const [patient] = await db
+      .select()
+      .from(patients)
+      .where(eq(patients.userId, user.id))
+      .limit(1);
+
+    if (!patient) {
+      return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+    }
+
+    const [workout] = await db
+      .select()
+      .from(workouts)
+      .where(
+        and(
+          eq(workouts.id, parseInt(workoutId)),
+          eq(workouts.patientId, patient.id)
+        )
+      )
+      .limit(1);
+
+    if (!workout) {
+      return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+    }
+
+    const body = await request.json();
+    const updates: { id: number; orderIndex: number }[] = body.exercises;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return NextResponse.json({ error: "exercises array required" }, { status: 400 });
+    }
+
+    // Verify all ids belong to this workout
+    const ids = updates.map((u) => u.id);
+    const existing = await db
+      .select({ id: workoutExercises.id })
+      .from(workoutExercises)
+      .where(and(eq(workoutExercises.workoutId, workout.id), inArray(workoutExercises.id, ids)));
+
+    if (existing.length !== ids.length) {
+      return NextResponse.json({ error: "Invalid exercise ids" }, { status: 400 });
+    }
+
+    await db.transaction(async (tx) => {
+      for (const { id, orderIndex } of updates) {
+        await tx
+          .update(workoutExercises)
+          .set({ orderIndex })
+          .where(eq(workoutExercises.id, id));
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (error instanceof Error && error.message === "Forbidden") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    console.error("Error reordering workout exercises:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

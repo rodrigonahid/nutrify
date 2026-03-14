@@ -10,6 +10,7 @@ import {
   KeyRound,
   Settings,
   LogOut,
+  ChefHat,
 } from "lucide-react";
 
 interface NavItem {
@@ -23,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/professional", icon: LayoutDashboard, label: "Painel", exact: true },
   { href: "/professional/patients", icon: Users, label: "Pacientes" },
   { href: "/professional/appointments", icon: Calendar, label: "Consultas" },
+  { href: "/professional/preparations", icon: ChefHat, label: "Preparações" },
   { href: "/professional/invite-codes", icon: KeyRound, label: "Convites" },
   { href: "/professional/settings", icon: Settings, label: "Configurações" },
 ];

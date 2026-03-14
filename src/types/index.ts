@@ -90,6 +90,7 @@ export interface Progress {
   bmi: string | null;
 
   // Perimeters - Trunk (cm)
+  perimeterNeck: string | null;
   perimeterChest: string | null;
   perimeterShoulder: string | null;
   perimeterWaist: string | null;
@@ -103,6 +104,8 @@ export interface Progress {
   perimeterBicepsRightContracted: string | null;
   perimeterForearmLeft: string | null;
   perimeterForearmRight: string | null;
+  perimeterWristLeft: string | null;
+  perimeterWristRight: string | null;
 
   // Perimeters - Lower Limbs (cm)
   perimeterThighProximalLeft: string | null;
@@ -211,4 +214,30 @@ export interface UpdateAppointmentRequest {
   durationMinutes?: number;
   notes?: string;
   status?: AppointmentStatus;
+}
+
+// Preparation Types
+export interface PreparationIngredient {
+  id: number;
+  name: string;
+  unit: string;
+  orderIndex: number;
+}
+
+export interface Preparation {
+  id: number;
+  name: string;
+  category: "food" | "preparation";
+  description: string | null;
+  preparationMethod: string | null;
+  createdAt: string;
+  ingredients: PreparationIngredient[];
+}
+
+export interface PreparationListItem {
+  id: number;
+  name: string;
+  category: "food" | "preparation";
+  ingredientCount: number;
+  createdAt: string;
 }

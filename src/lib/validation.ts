@@ -119,6 +119,11 @@ export const progressSchema = z.object({
     .optional(),
 
   // Perimeters - Trunk (cm)
+  perimeterNeck: z
+    .number()
+    .min(5, "Neck perimeter must be at least 5 cm")
+    .max(100, "Neck perimeter must be less than 100 cm")
+    .optional(),
   perimeterChest: z
     .number()
     .min(10, "Chest perimeter must be at least 10 cm")
@@ -175,6 +180,16 @@ export const progressSchema = z.object({
     .number()
     .min(5, "Forearm perimeter must be at least 5 cm")
     .max(100, "Forearm perimeter must be less than 100 cm")
+    .optional(),
+  perimeterWristLeft: z
+    .number()
+    .min(5, "Wrist perimeter must be at least 5 cm")
+    .max(60, "Wrist perimeter must be less than 60 cm")
+    .optional(),
+  perimeterWristRight: z
+    .number()
+    .min(5, "Wrist perimeter must be at least 5 cm")
+    .max(60, "Wrist perimeter must be less than 60 cm")
     .optional(),
 
   // Perimeters - Lower Limbs (cm)
@@ -427,4 +442,22 @@ export const createPrSchema = z.object({
   reps: z.number().int().min(1).max(9999).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
   notes: z.string().max(500).optional(),
+});
+
+/**
+ * Preparations validation schemas
+ */
+
+export const preparationIngredientSchema = z.object({
+  name: z.string().min(1, "Ingredient name is required"),
+  unit: z.enum(["g", "ml", "cups", "spoons", "scoops", "units"]),
+  orderIndex: z.number().int().default(0),
+});
+
+export const preparationSchema = z.object({
+  name: z.string().min(1, "Name is required").max(200, "Name is too long"),
+  category: z.enum(["food", "preparation"]),
+  description: z.string().optional(),
+  preparationMethod: z.string().optional(),
+  ingredients: z.array(preparationIngredientSchema).default([]),
 });
