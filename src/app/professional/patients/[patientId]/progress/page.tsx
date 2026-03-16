@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, TrendingUp, Plus } from "lucide-react";
+import { ChevronRight, TrendingUp, Plus, BarChart2 } from "lucide-react";
 import { Progress } from "@/types";
 
 function formatDate(dateString: string) {
@@ -54,7 +54,7 @@ export default function PatientProgressPage() {
       </Link>
 
       {/* Page heading */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-start justify-between gap-3 mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
             Progresso
@@ -67,13 +67,32 @@ export default function PatientProgressPage() {
             </p>
           )}
         </div>
-        <Link
-          href={`/professional/patients/${patientId}/progress/create`}
-          className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
-        >
-          <Plus size={13} strokeWidth={2.5} />
-          Adicionar registro
-        </Link>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Ver evolução — always visible, disabled until 2+ entries */}
+          <span title={!loading && progress.length < 2 ? "Você precisa de pelo menos 2 registros para comparar" : undefined}>
+            {!loading && progress.length >= 2 ? (
+              <Link
+                href={`/professional/patients/${patientId}/progress/evolution`}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] rounded-[8px] hover:bg-[rgba(46,139,90,0.14)] transition-colors duration-150"
+              >
+                <BarChart2 size={14} strokeWidth={2.2} />
+                Ver evolução
+              </Link>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold text-[#9CA3AF] bg-[#F3F4F6] rounded-[8px] cursor-not-allowed">
+                <BarChart2 size={14} strokeWidth={2.2} />
+                Ver evolução
+              </span>
+            )}
+          </span>
+          <Link
+            href={`/professional/patients/${patientId}/progress/create`}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
+          >
+            <Plus size={13} strokeWidth={2.5} />
+            Adicionar
+          </Link>
+        </div>
       </div>
 
       {/* Error */}
@@ -100,16 +119,9 @@ export default function PatientProgressPage() {
             <p className="text-[15px] font-semibold text-[#374151] mb-1">
               Nenhum registro de progresso ainda
             </p>
-            <p className="text-[13px] text-[#9CA3AF] mb-5">
+            <p className="text-[13px] text-[#9CA3AF]">
               Adicione o primeiro registro para começar a acompanhar o progresso deste paciente.
             </p>
-            <Link
-              href={`/professional/patients/${patientId}/progress/create`}
-              className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150"
-            >
-              <Plus size={13} strokeWidth={2.5} />
-              Adicionar primeiro registro
-            </Link>
           </div>
         )}
 

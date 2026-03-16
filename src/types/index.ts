@@ -216,6 +216,15 @@ export interface UpdateAppointmentRequest {
   status?: AppointmentStatus;
 }
 
+// Pending invite (unused invite code shown in patients list)
+export interface PendingInvite {
+  id: number;
+  code: string;
+  patientName: string;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
 // Preparation Types
 export interface PreparationIngredient {
   id: number;

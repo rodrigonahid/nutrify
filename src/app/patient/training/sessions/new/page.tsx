@@ -23,7 +23,7 @@ function NewSessionForm() {
   const searchParams = useSearchParams();
   const preselectedWorkoutId = searchParams.get("workoutId");
 
-  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +44,7 @@ function NewSessionForm() {
         exRes.json(),
         workoutsRes.json(),
       ]);
-      setExercises(exData.exercises ?? []);
+      setAllExercises(exData.exercises ?? []);
 
       const workoutDetails: Workout[] = [];
       for (const w of workoutsData.workouts ?? []) {
@@ -53,27 +53,35 @@ function NewSessionForm() {
         workoutDetails.push({
           id: w.id,
           name: w.name,
-          exercises: wData.exercises.map((e: { exerciseId: number; exerciseName: string }) => ({
+          exercises: (wData.exercises ?? []).map((e: { exerciseId: number; exerciseName: string }) => ({
             exerciseId: e.exerciseId,
             exerciseName: e.exerciseName,
           })),
         });
       }
       setWorkouts(workoutDetails);
-
-      if (preselectedWorkoutId) {
-        const found = workoutDetails.find((w) => w.id === parseInt(preselectedWorkoutId));
-        if (found) setSelectedIds(new Set(found.exercises.map((e) => e.exerciseId)));
-      }
     };
-    loadAll().catch(() => setError("Failed to load data"));
-  }, [preselectedWorkoutId]);
+    loadAll().catch(() => setError("Falha ao carregar dados"));
+  }, []);
+
+  // Exercises to show in the checklist — filtered by selected workout
+  const displayedExercises: Exercise[] = (() => {
+    if (!workoutId) return allExercises;
+    const found = workouts.find((w) => w.id === parseInt(workoutId));
+    if (!found) return allExercises;
+    const seen = new Set<number>();
+    return found.exercises
+      .filter((we) => {
+        if (seen.has(we.exerciseId)) return false;
+        seen.add(we.exerciseId);
+        return true;
+      })
+      .map((we) => ({ id: we.exerciseId, name: we.exerciseName }));
+  })();
 
   const handleWorkoutChange = (wId: string) => {
     setWorkoutId(wId);
-    if (!wId) return;
-    const found = workouts.find((w) => w.id === parseInt(wId));
-    if (found) setSelectedIds(new Set(found.exercises.map((e) => e.exerciseId)));
+    setSelectedIds(new Set()); // always reset — user picks per session
   };
 
   const toggleExercise = (id: number) => {
@@ -103,12 +111,12 @@ function NewSessionForm() {
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to create session");
+        throw new Error(data.error || "Falha ao criar sessão");
       }
       const data = await res.json();
       router.push(`/patient/training/sessions/${data.session.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create session");
+      setError(err instanceof Error ? err.message : "Falha ao criar sessão");
     } finally {
       setLoading(false);
     }
@@ -135,7 +143,7 @@ function NewSessionForm() {
       </div>
 
       <div>
-        <label htmlFor="workout" className={labelCls}>Modelo de treino (opcional)</label>
+        <label htmlFor="workout" className={labelCls}>Modelo de treino</label>
         <select
           id="workout"
           value={workoutId}
@@ -150,30 +158,55 @@ function NewSessionForm() {
       </div>
 
       <div>
-        <label className={labelCls}>Exercícios *</label>
-        {exercises.length === 0 ? (
+        <div className="flex items-center justify-between mb-1.5">
+          <label className={labelCls + " mb-0"}>
+            Exercícios *
+          </label>
+          {displayedExercises.length > 0 && (
+            <span className="text-[12px] text-[#9CA3AF]">
+              {selectedIds.size} selecionado{selectedIds.size !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+
+        {displayedExercises.length === 0 && allExercises.length === 0 ? (
           <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-[13px] text-[#6B7280]">
             Nenhum exercício ainda.{" "}
             <Link href="/patient/training/exercises/create" className="text-[#2E8B5A] font-semibold hover:underline">
               Cadastre exercícios primeiro
             </Link>
           </div>
+        ) : displayedExercises.length === 0 ? (
+          <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 text-[13px] text-[#6B7280]">
+            Este modelo não tem exercícios. Adicione exercícios ao treino primeiro.
+          </div>
         ) : (
-          <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6] max-h-64 overflow-y-auto">
-            {exercises.map((ex) => (
-              <label
-                key={ex.id}
-                className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[#F9FAFB] transition-colors duration-100"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedIds.has(ex.id)}
-                  onChange={() => toggleExercise(ex.id)}
-                  className="w-4 h-4 accent-[#2E8B5A]"
-                />
-                <span className="flex-1 text-[13px] font-medium text-[#374151]">{ex.name}</span>
-              </label>
-            ))}
+          <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden divide-y divide-[#F3F4F6] max-h-72 overflow-y-auto">
+            {displayedExercises.map((ex) => {
+              const checked = selectedIds.has(ex.id);
+              return (
+                <label
+                  key={ex.id}
+                  className={[
+                    "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-100",
+                    checked ? "bg-[rgba(46,139,90,0.04)]" : "hover:bg-[#F9FAFB]",
+                  ].join(" ")}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleExercise(ex.id)}
+                    className="w-4 h-4 accent-[#2E8B5A]"
+                  />
+                  <span className={[
+                    "flex-1 text-[13px] font-medium",
+                    checked ? "text-[#111827]" : "text-[#374151]",
+                  ].join(" ")}>
+                    {ex.name}
+                  </span>
+                </label>
+              );
+            })}
           </div>
         )}
       </div>

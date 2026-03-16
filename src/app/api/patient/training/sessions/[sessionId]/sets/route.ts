@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { exerciseSets, sessionExercises, trainingSessions, patients } from "@/db/schema";
+import { exerciseSets, exercisePrs, sessionExercises, trainingSessions, patients } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { addSetSchema } from "@/lib/validation";
 import { eq, and, max } from "drizzle-orm";
@@ -86,7 +86,39 @@ export async function POST(
       })
       .returning();
 
-    return NextResponse.json({ set: newSet }, { status: 201 });
+    // Auto-detect PR: if this set's weight beats the current best, create a PR
+    let newPr = null;
+    if (result.data.weightKg !== undefined) {
+      const [prResult] = await db
+        .select({ maxWeight: max(exercisePrs.weightKg) })
+        .from(exercisePrs)
+        .where(
+          and(
+            eq(exercisePrs.exerciseId, sessionExercise.exerciseId),
+            eq(exercisePrs.patientId, patient.id)
+          )
+        );
+
+      const currentBest = prResult?.maxWeight ? parseFloat(prResult.maxWeight) : null;
+
+      if (currentBest === null || result.data.weightKg > currentBest) {
+        const today = new Date().toISOString().split("T")[0];
+        const [pr] = await db
+          .insert(exercisePrs)
+          .values({
+            exerciseId: sessionExercise.exerciseId,
+            patientId: patient.id,
+            weightKg: result.data.weightKg.toString(),
+            reps: result.data.reps,
+            date: today,
+            notes: "Registrado automaticamente durante sessão de treino",
+          })
+          .returning();
+        newPr = pr;
+      }
+    }
+
+    return NextResponse.json({ set: newSet, newPr }, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

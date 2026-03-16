@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
-  KeyRound,
   Settings,
   LogOut,
   ChefHat,
@@ -25,7 +24,6 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/professional/patients", icon: Users, label: "Pacientes" },
   { href: "/professional/appointments", icon: Calendar, label: "Consultas" },
   { href: "/professional/preparations", icon: ChefHat, label: "Preparações" },
-  { href: "/professional/invite-codes", icon: KeyRound, label: "Convites" },
   { href: "/professional/settings", icon: Settings, label: "Configurações" },
 ];
 
@@ -131,7 +129,7 @@ export function ProfessionalNav({ userEmail }: ProfessionalNavProps) {
 
       {/* ── Mobile bottom tab bar ─────────────────────── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-[#E5E7EB] z-40 flex items-center justify-around px-2">
-        {NAV_ITEMS.slice(0, 4).map(({ href, icon: Icon, label, exact }) => {
+        {NAV_ITEMS.map(({ href, icon: Icon, label, exact }) => {
           const active = isActive(href, exact);
           return (
             <Link
@@ -147,13 +145,6 @@ export function ProfessionalNav({ userEmail }: ProfessionalNavProps) {
             </Link>
           );
         })}
-        <button
-          onClick={handleLogout}
-          className="flex flex-col items-center gap-[3px] min-w-[44px] py-1 rounded-[8px] text-[#9CA3AF] transition-colors duration-150"
-        >
-          <LogOut size={20} strokeWidth={1.8} />
-          <span className="text-[10px] font-semibold">Sair</span>
-        </button>
       </nav>
     </>
   );

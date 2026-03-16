@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { patients, professionals, users } from "@/db/schema";
+import { patients, professionals, users, inviteCodes } from "@/db/schema";
 import { requireRole } from "@/lib/session";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 /**
  * GET /api/professional/patients
@@ -38,13 +38,38 @@ export async function GET() {
         createdAt: patients.createdAt,
         email: users.email,
         userCreatedAt: users.createdAt,
+        name: patients.name,
       })
       .from(patients)
       .innerJoin(users, eq(patients.userId, users.id))
       .where(eq(patients.professionalId, professional.id))
       .orderBy(patients.createdAt);
 
-    return NextResponse.json({ patients: patientsList });
+    // Get pending invites (unused, not expired) for this professional
+    const now = new Date();
+    const pendingInvites = await db
+      .select({
+        id: inviteCodes.id,
+        code: inviteCodes.code,
+        patientName: inviteCodes.patientName,
+        expiresAt: inviteCodes.expiresAt,
+        createdAt: inviteCodes.createdAt,
+      })
+      .from(inviteCodes)
+      .where(
+        and(
+          eq(inviteCodes.professionalId, professional.id),
+          eq(inviteCodes.used, false)
+        )
+      )
+      .orderBy(inviteCodes.createdAt);
+
+    // Filter out expired invites in JS (simpler than SQL null-safe comparison)
+    const activePendingInvites = pendingInvites.filter(
+      (inv) => !inv.expiresAt || new Date(inv.expiresAt) > now
+    );
+
+    return NextResponse.json({ patients: patientsList, pendingInvites: activePendingInvites });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

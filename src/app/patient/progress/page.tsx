@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, BarChart2 } from "lucide-react";
 import { DeltaIndicator } from "@/components/delta-indicator";
 import { Progress } from "@/types/progress";
 
@@ -12,6 +12,31 @@ function formatDate(dateString: string) {
     month: "short",
     day: "numeric",
   });
+}
+
+function EvolutionButton({ href, enabled }: { href: string; enabled: boolean }) {
+  const cls = [
+    "shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-semibold rounded-[8px] transition-colors duration-150",
+    enabled
+      ? "text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] hover:bg-[rgba(46,139,90,0.14)]"
+      : "text-[#9CA3AF] bg-[#F3F4F6] cursor-not-allowed pointer-events-none",
+  ].join(" ");
+
+  return (
+    <span title={!enabled ? "Você precisa de pelo menos 2 registros para comparar" : undefined}>
+      {enabled ? (
+        <Link href={href} className={cls}>
+          <BarChart2 size={14} strokeWidth={2.2} />
+          Ver evolução
+        </Link>
+      ) : (
+        <span className={cls}>
+          <BarChart2 size={14} strokeWidth={2.2} />
+          Ver evolução
+        </span>
+      )}
+    </span>
+  );
 }
 
 function SkeletonRow() {
@@ -48,17 +73,23 @@ export default function PatientProgressListPage() {
         ← Voltar ao painel
       </Link>
 
-      <div className="mb-6">
-        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
-          Histórico de Progresso
-        </h1>
-        {!loading && (
-          <p className="text-sm font-medium text-[#6B7280]">
-            {progress.length === 0
-              ? "Nenhum registro ainda"
-              : `${progress.length} registro${progress.length !== 1 ? "s" : ""}`}
-          </p>
-        )}
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
+            Histórico de Progresso
+          </h1>
+          {!loading && (
+            <p className="text-sm font-medium text-[#6B7280]">
+              {progress.length === 0
+                ? "Nenhum registro ainda"
+                : `${progress.length} registro${progress.length !== 1 ? "s" : ""}`}
+            </p>
+          )}
+        </div>
+        <EvolutionButton
+          href="/patient/progress/evolution"
+          enabled={!loading && progress.length >= 2}
+        />
       </div>
 
       {error && (

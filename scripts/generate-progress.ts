@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { select, confirm } from "@inquirer/prompts";
+import { input, confirm } from "@inquirer/prompts";
 import chalk from "chalk";
 import { db } from "../src/db";
 import { patients, progress, users } from "../src/db/schema";
@@ -113,32 +113,36 @@ async function generateProgress() {
   console.log(chalk.bold.blue("\n📊 Generate Progress Entries\n"));
 
   try {
-    // Fetch all patients with their user info
-    const patientsList = await db
-      .select({
-        id: patients.id,
-        email: users.email,
-        professionalId: patients.professionalId,
-      })
-      .from(patients)
-      .leftJoin(users, eq(patients.userId, users.id));
-
-    if (patientsList.length === 0) {
-      console.log(chalk.yellow("\n⚠ No patients found in the database\n"));
-      console.log(chalk.dim("Create a patient first before generating progress entries.\n"));
-      process.exit(0);
-    }
-
-    // Select patient
-    const selectedPatientId = await select({
-      message: "Select patient:",
-      choices: patientsList.map((p) => ({
-        name: `${p.email} (ID: ${p.id})`,
-        value: p.id,
-      })),
+    const email = await input({
+      message: "Patient email:",
+      validate: (v) => (v.includes("@") ? true : "Enter a valid email"),
     });
 
-    const selectedPatient = patientsList.find((p) => p.id === selectedPatientId);
+    // Look up patient by email
+    const [userRecord] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email.trim().toLowerCase()))
+      .limit(1);
+
+    if (!userRecord) {
+      console.log(chalk.red(`\n✗ No user found with email: ${email}\n`));
+      process.exit(1);
+    }
+
+    const [selectedPatient] = await db
+      .select({ id: patients.id, email: users.email })
+      .from(patients)
+      .leftJoin(users, eq(patients.userId, users.id))
+      .where(eq(patients.userId, userRecord.id))
+      .limit(1);
+
+    if (!selectedPatient) {
+      console.log(chalk.red(`\n✗ User ${email} exists but has no patient profile\n`));
+      process.exit(1);
+    }
+
+    const selectedPatientId = selectedPatient.id;
 
     console.log(chalk.dim(`\nSelected patient: ${selectedPatient?.email}`));
     console.log(chalk.dim("This will generate 5 progressive entries showing:\n"));
@@ -160,13 +164,13 @@ async function generateProgress() {
 
     console.log(chalk.dim("\nGenerating entries...\n"));
 
-    // Generate 5 entries with 1-week intervals
+    // Generate 5 entries with 1-month intervals (oldest first → most recent last)
     const baseDate = new Date();
     const entries = [];
 
     for (let i = 1; i <= 5; i++) {
       const entryDate = new Date(baseDate);
-      entryDate.setDate(baseDate.getDate() - ((5 - i) * 7)); // Space entries 1 week apart
+      entryDate.setMonth(baseDate.getMonth() - (5 - i)); // Space entries 1 month apart
 
       const measurements = generateProgressiveMeasurements(i);
 
