@@ -277,6 +277,8 @@ export const progress = pgTable("progress", {
   skinfoldThigh: decimal("skinfold_thigh", { precision: 5, scale: 2 }),
   skinfoldCalf: decimal("skinfold_calf", { precision: 5, scale: 2 }),
 
+  isDraft: boolean("is_draft").default(false).notNull(),
+
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

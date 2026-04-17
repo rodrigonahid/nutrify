@@ -26,7 +26,7 @@ export function DeltaIndicator({
   // Determine styling
   const isIncrease = delta > 0;
   const Icon = isIncrease ? ArrowUp : ArrowDown;
-  const colorClass = isIncrease ? "text-orange-600" : "text-green-600";
+  const colorClass = "text-[#6B7280]";
   const sign = isIncrease ? "+" : "";
 
   return (

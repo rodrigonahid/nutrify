@@ -1,31 +1,23 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { emailSchema } from "@/lib/validation";
+import { professionalSignupSchema } from "@/lib/validation";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 
-const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, "Senha obrigatória"),
-});
+type SignupFormData = z.infer<typeof professionalSignupSchema>;
 
-type LoginFormData = z.infer<typeof loginSchema>;
-
-function LoginForm() {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
-
+export default function CadastroPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  async function handleGoogleLogin() {
+  async function handleGoogleSignup() {
     setGoogleLoading(true);
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signInWithOAuth({
@@ -36,64 +28,33 @@ function LoginForm() {
     });
   }
 
-  // Check if user is already authenticated (also clears stale cookies via /api/auth/me)
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          const roleRedirects: Record<string, string> = {
-            admin: "/admin",
-            professional: "/professional",
-            patient: "/patient",
-          };
-          window.location.href = roleRedirects[data.user.role] || "/";
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(professionalSignupSchema),
   });
 
-  async function onSubmit(data: LoginFormData) {
+  const password = watch("password", "");
+  const strength = getPasswordStrength(password);
+
+  async function onSubmit(data: SignupFormData) {
     setError("");
     setLoading(true);
-
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/signup/professional", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
-        setError(result.error || "Falha no login");
+        setError(result.error || "Erro ao criar conta");
         return;
       }
-
-      // Redirect based on user role returned from API
-      // This avoids the redirect chain through the root page
-      const roleRedirects: Record<string, string> = {
-        admin: "/admin",
-        professional: "/professional",
-        patient: "/patient",
-      };
-
-      const destination = roleRedirects[result.user.role] || "/";
-
-      // If there was a specific redirect requested, use that instead
-      // But only if it's not the default "/" which would create a loop
-      const finalDestination = redirect !== "/" ? redirect : destination;
-
-      window.location.href = finalDestination;
+      window.location.href = "/professional";
     } catch {
       setError("Ocorreu um erro. Tente novamente.");
     } finally {
@@ -108,8 +69,6 @@ function LoginForm() {
         {/* Green header */}
         <div className="bg-[#236B47] p-0 relative overflow-hidden after:content-[''] after:absolute after:w-[260px] after:h-[260px] after:top-[-100px] after:right-[-80px] after:rounded-full after:bg-[radial-gradient(circle,rgba(255,255,255,0.08)_0%,transparent_65%)] after:pointer-events-none">
           <div className="px-10 pt-10 pb-0 flex flex-col items-center max-sm:px-7 max-sm:pt-16">
-
-            {/* Logo */}
             <div className="relative z-10 flex items-center gap-[11px] mb-[10px]">
               <div className="w-10 h-10 bg-white/[0.14] border-[1.5px] border-white/20 rounded-[12px] flex items-center justify-center flex-shrink-0">
                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
@@ -122,14 +81,10 @@ function LoginForm() {
                 Nutri<span className="opacity-55 font-semibold">fy</span>
               </span>
             </div>
-
-            {/* Tagline */}
             <p className="relative z-10 text-[13px] font-medium text-white/[0.48] mb-[26px]">
               Gestão nutricional para profissionais
             </p>
           </div>
-
-          {/* Concave arc */}
           <svg
             className="block w-full mb-[-2px] relative z-10"
             viewBox="0 0 428 72"
@@ -144,16 +99,15 @@ function LoginForm() {
         <div className="px-10 pt-0 pb-10 max-sm:px-7 max-sm:pb-12">
           <div className="mb-[26px]">
             <h1 className="text-[22px] font-extrabold text-[#111827] tracking-[-0.4px] mb-1">
-              Bem-vindo de volta
+              Criar sua conta
             </h1>
             <p className="text-sm font-medium text-[#6B7280]">
-              Entre para acessar seu painel
+              Grátis para começar, sem cartão de crédito
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col" noValidate>
 
-            {/* Error banner */}
             {error && (
               <div
                 className="flex items-center gap-[9px] bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] px-[14px] py-[11px] text-[13.5px] font-semibold text-[#DC2626] mb-[18px] animate-[rise_0.3s_cubic-bezier(0.16,1,0.3,1)_both]"
@@ -168,10 +122,41 @@ function LoginForm() {
               </div>
             )}
 
-            {/* Email field */}
+            {/* Name */}
             <div
               className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
-              style={{ animationDelay: "80ms" }}
+              style={{ animationDelay: "60ms" }}
+            >
+              <label htmlFor="name" className="text-[14px] font-semibold text-[#374151]">
+                Nome completo
+              </label>
+              <div className="group relative flex items-center">
+                <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.4"/>
+                    <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </span>
+                <input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  autoComplete="name"
+                  disabled={loading}
+                  aria-invalid={errors.name ? "true" : "false"}
+                  {...register("name")}
+                  className="w-full h-11 pl-[42px] pr-[13px] bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[15px] font-normal text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 hover:border-[#D1D5DB] hover:bg-[#F3F4F6] focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] aria-invalid:border-[#DC2626] aria-invalid:shadow-[0_0_0_3px_rgba(220,38,38,0.14)] disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+              </div>
+              {errors.name && (
+                <p className="text-xs font-medium text-[#DC2626]">{errors.name.message}</p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div
+              className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "100ms" }}
             >
               <label htmlFor="email" className="text-[14px] font-semibold text-[#374151]">
                 E-mail
@@ -199,23 +184,14 @@ function LoginForm() {
               )}
             </div>
 
-            {/* Password field */}
+            {/* Password */}
             <div
               className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
               style={{ animationDelay: "140ms" }}
             >
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
-                  Senha
-                </label>
-                <a
-                  href="#"
-                  className="text-[13px] font-semibold text-[#2E8B5A] hover:opacity-75 transition-opacity duration-150"
-                  tabIndex={-1}
-                >
-                  Esqueceu a senha?
-                </a>
-              </div>
+              <label htmlFor="password" className="text-[14px] font-semibold text-[#374151]">
+                Senha
+              </label>
               <div className="group relative flex items-center">
                 <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -227,8 +203,8 @@ function LoginForm() {
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="new-password"
                   disabled={loading}
                   aria-invalid={errors.password ? "true" : "false"}
                   {...register("password")}
@@ -252,19 +228,111 @@ function LoginForm() {
                   )}
                 </button>
               </div>
+              {/* Password strength bar */}
+              {password.length > 0 && (
+                <div className="flex gap-1 mt-[2px]">
+                  {[1, 2, 3, 4].map((level) => (
+                    <div
+                      key={level}
+                      className="h-[3px] flex-1 rounded-full transition-all duration-300"
+                      style={{
+                        backgroundColor:
+                          strength >= level
+                            ? strength <= 1 ? "#DC2626" : strength === 2 ? "#F59E0B" : strength === 3 ? "#3B82F6" : "#2E8B5A"
+                            : "#E5E7EB",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
               {errors.password && (
                 <p className="text-xs font-medium text-[#DC2626]">{errors.password.message}</p>
               )}
             </div>
 
-            <div className="h-[10px]" />
+            {/* Confirm password */}
+            <div
+              className="flex flex-col gap-[6px] mb-[14px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "180ms" }}
+            >
+              <label htmlFor="confirmPassword" className="text-[14px] font-semibold text-[#374151]">
+                Confirmar senha
+              </label>
+              <div className="group relative flex items-center">
+                <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="3" y="7.5" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+                    <path d="M5 7.5V5a3 3 0 016 0v2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                    <circle cx="8" cy="11" r="1" fill="currentColor"/>
+                  </svg>
+                </span>
+                <input
+                  id="confirmPassword"
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Repita a senha"
+                  autoComplete="new-password"
+                  disabled={loading}
+                  aria-invalid={errors.confirmPassword ? "true" : "false"}
+                  {...register("confirmPassword")}
+                  className="w-full h-11 pl-[42px] pr-[42px] bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[15px] font-normal text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 hover:border-[#D1D5DB] hover:bg-[#F3F4F6] focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] aria-invalid:border-[#DC2626] aria-invalid:shadow-[0_0_0_3px_rgba(220,38,38,0.14)] disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? "Ocultar senha" : "Mostrar senha"}
+                  className="absolute right-[11px] text-[#9CA3AF] hover:text-[#2E8B5A] p-[5px] rounded-[6px] transition-colors duration-150"
+                >
+                  {showConfirm ? (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 2l12 12M6.5 6.6A2 2 0 009.4 9.4M4.5 4.6C3 5.7 1 8 1 8s2.5 5 7 5c1.4 0 2.6-.4 3.6-1.1M9.8 9.8C11.2 8.8 15 8 15 8s-2.5-5-7-5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/>
+                      <circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.4"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-xs font-medium text-[#DC2626]">{errors.confirmPassword.message}</p>
+              )}
+            </div>
 
-            {/* Submit button */}
+            {/* CRN (optional) */}
+            <div
+              className="flex flex-col gap-[6px] mb-[10px] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{ animationDelay: "220ms" }}
+            >
+              <label htmlFor="crn" className="text-[14px] font-semibold text-[#374151] flex items-center gap-2">
+                CRN
+                <span className="text-[12px] font-medium text-[#9CA3AF]">opcional</span>
+              </label>
+              <div className="group relative flex items-center">
+                <span className="absolute left-[13px] text-[#9CA3AF] pointer-events-none flex transition-colors duration-150 group-focus-within:text-[#2E8B5A]">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="1.5" y="2.5" width="13" height="11" rx="2" stroke="currentColor" strokeWidth="1.4"/>
+                    <path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </span>
+                <input
+                  id="crn"
+                  type="text"
+                  placeholder="Ex: 1234/SP"
+                  disabled={loading}
+                  {...register("crn")}
+                  className="w-full h-11 pl-[42px] pr-[13px] bg-[#F9FAFB] border-[1.5px] border-[#E5E7EB] rounded-[10px] text-[15px] font-normal text-[#111827] placeholder:text-[#9CA3AF] outline-none transition-all duration-150 hover:border-[#D1D5DB] hover:bg-[#F3F4F6] focus:bg-white focus:border-[#2E8B5A] focus:shadow-[0_0_0_3px_rgba(46,139,90,0.16)] disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="h-[14px]" />
+
             <button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading}
               className="w-full h-11 bg-[#2E8B5A] hover:bg-[#277A4F] text-white text-[15px] font-bold rounded-[10px] border-none cursor-pointer flex items-center justify-center gap-2 mb-5 transition-all duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)] hover:-translate-y-px hover:shadow-[0_1px_3px_rgba(0,0,0,0.10),0_6px_18px_rgba(46,139,90,0.26)] active:translate-y-0 active:scale-[0.99] active:shadow-[0_1px_2px_rgba(0,0,0,0.08),0_2px_6px_rgba(46,139,90,0.18)] disabled:opacity-70 disabled:cursor-not-allowed opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
-              style={{ animationDelay: "200ms" }}
+              style={{ animationDelay: "260ms" }}
             >
               {loading ? (
                 <svg className="w-[17px] h-[17px] animate-spin shrink-0" viewBox="0 0 17 17" fill="none">
@@ -272,7 +340,7 @@ function LoginForm() {
                   <path d="M8.5 1.5a7 7 0 017 7" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               ) : (
-                "Entrar"
+                "Criar conta grátis"
               )}
             </button>
 
@@ -286,7 +354,7 @@ function LoginForm() {
             {/* Google button */}
             <button
               type="button"
-              onClick={handleGoogleLogin}
+              onClick={handleGoogleSignup}
               disabled={loading || googleLoading}
               className="w-full h-11 bg-white border-[1.5px] border-[#E5E7EB] hover:border-[#D1D5DB] hover:bg-[#F9FAFB] text-[#374151] text-[15px] font-semibold rounded-[10px] flex items-center justify-center gap-[10px] mb-5 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
             >
@@ -308,14 +376,14 @@ function LoginForm() {
 
             <p
               className="text-center text-[14px] font-medium text-[#6B7280] opacity-0 animate-[rise_0.5s_cubic-bezier(0.16,1,0.3,1)_both]"
-              style={{ animationDelay: "260ms" }}
+              style={{ animationDelay: "300ms" }}
             >
-              Não tem uma conta?{" "}
+              Já tem uma conta?{" "}
               <Link
-                href="/cadastro"
+                href="/login"
                 className="text-[#2E8B5A] font-bold hover:opacity-75 transition-opacity duration-150"
               >
-                Criar conta
+                Entrar
               </Link>
             </p>
 
@@ -326,14 +394,12 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-dvh flex items-center justify-center bg-[#F2F4F3]">
-        <div className="animate-pulse text-[#6B7280]">Carregando...</div>
-      </div>
-    }>
-      <LoginForm />
-    </Suspense>
-  );
+function getPasswordStrength(password: string): number {
+  if (password.length === 0) return 0;
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  return score;
 }

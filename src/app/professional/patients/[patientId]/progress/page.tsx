@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight, TrendingUp, Plus, BarChart2 } from "lucide-react";
-import { Progress } from "@/types";
+import Image from "next/image";
+import { ChevronRight, TrendingUp, Plus, BarChart2, Camera, X } from "lucide-react";
+import { Progress, ProgressImage } from "@/types";
+import { ProgressImages } from "@/components/progress-images";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -17,6 +19,7 @@ function formatDate(dateString: string) {
 function SkeletonRow() {
   return (
     <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
+      <div className="w-10 h-10 rounded-[8px] bg-[#F3F4F6] shrink-0" />
       <div className="flex-1 space-y-1.5">
         <div className="h-3.5 w-28 bg-[#F3F4F6] rounded" />
         <div className="h-3 w-48 bg-[#F3F4F6] rounded" />
@@ -34,6 +37,11 @@ export default function PatientProgressPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Modal state
+  const [modalEntry, setModalEntry] = useState<Progress | null>(null);
+  const [modalImages, setModalImages] = useState<ProgressImage[]>([]);
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetch(`/api/professional/patients/${patientId}/progress`)
       .then((r) => r.json())
@@ -41,6 +49,34 @@ export default function PatientProgressPage() {
       .catch(() => setError("Falha ao carregar progresso"))
       .finally(() => setLoading(false));
   }, [patientId]);
+
+  // Close modal on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") closeModal();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  function openModal(entry: Progress) {
+    setModalEntry(entry);
+    setModalImages(entry.images ?? []);
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    setModalEntry(null);
+    document.body.style.overflow = "";
+  }
+
+  function handleModalImagesChange(newImages: ProgressImage[]) {
+    setModalImages(newImages);
+    if (!modalEntry) return;
+    setProgress((prev) =>
+      prev.map((p) => (p.id === modalEntry.id ? { ...p, images: newImages } : p))
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-[900px]">
@@ -68,7 +104,6 @@ export default function PatientProgressPage() {
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {/* Ver evolução — always visible, disabled until 2+ entries */}
           <span title={!loading && progress.length < 2 ? "Você precisa de pelo menos 2 registros para comparar" : undefined}>
             {!loading && progress.length >= 2 ? (
               <Link
@@ -127,41 +162,128 @@ export default function PatientProgressPage() {
 
         {!loading && progress.length > 0 && (
           <div className="divide-y divide-[#F3F4F6]">
-            {progress.map((entry) => (
-              <Link
-                key={entry.id}
-                href={`/professional/patients/${patientId}/progress/${entry.id}`}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-semibold text-[#111827]">
-                    {formatDate(entry.createdAt)}
-                  </p>
-                  <div className="flex flex-wrap gap-x-3 mt-0.5">
-                    {entry.totalWeight && (
-                      <span className="text-[12px] text-[#9CA3AF]">{entry.totalWeight} kg</span>
+            {progress.map((entry) => {
+              const firstImage = entry.images?.[0];
+              const imageCount = entry.images?.length ?? 0;
+
+              return (
+                <div key={entry.id} className="flex items-center gap-3 px-4 py-3 hover:bg-[#F9FAFB] transition-colors duration-100 group">
+
+                  {/* Photo thumbnail / camera button */}
+                  <button
+                    type="button"
+                    onClick={() => openModal(entry)}
+                    title={imageCount > 0 ? `${imageCount} foto${imageCount !== 1 ? "s" : ""}` : "Adicionar fotos"}
+                    className="relative shrink-0 w-10 h-10 rounded-[8px] overflow-hidden border border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-center hover:border-[#2E8B5A] hover:bg-[rgba(46,139,90,0.04)] transition-colors duration-150"
+                  >
+                    {firstImage ? (
+                      <Image
+                        src={firstImage.url}
+                        alt="Foto de progresso"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                    ) : (
+                      <Camera size={15} className="text-[#C4C9D4] group-hover:text-[#9CA3AF] transition-colors duration-150" />
                     )}
-                    {entry.bmi && (
-                      <span className="text-[12px] text-[#9CA3AF]">IMC {entry.bmi}</span>
+                    {imageCount > 1 && (
+                      <span className="absolute bottom-0 right-0 bg-black/50 text-white text-[9px] font-bold px-1 leading-4 rounded-tl-[4px]">
+                        +{imageCount - 1}
+                      </span>
                     )}
-                    {entry.bodyFatPercentage && (
-                      <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% gordura</span>
-                    )}
-                    {entry.perimeterWaist && (
-                      <span className="text-[12px] text-[#9CA3AF]">cintura {entry.perimeterWaist} cm</span>
-                    )}
-                  </div>
+                  </button>
+
+                  {/* Row link → edit if draft, detail if published */}
+                  <Link
+                    href={
+                      entry.isDraft
+                        ? `/professional/patients/${patientId}/progress/${entry.id}/edit`
+                        : `/professional/patients/${patientId}/progress/${entry.id}`
+                    }
+                    className="flex-1 min-w-0 flex items-center gap-3"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[14px] font-semibold text-[#111827]">
+                          {formatDate(entry.createdAt)}
+                        </p>
+                        {entry.isDraft && (
+                          <span className="inline-flex items-center h-4 px-1.5 rounded-full bg-[#FEF9C3] border border-[#FDE047] text-[10px] font-semibold text-[#854D0E]">
+                            Rascunho
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 mt-0.5">
+                        {entry.totalWeight && (
+                          <span className="text-[12px] text-[#9CA3AF]">{entry.totalWeight} kg</span>
+                        )}
+                        {entry.bmi && (
+                          <span className="text-[12px] text-[#9CA3AF]">IMC {entry.bmi}</span>
+                        )}
+                        {entry.bodyFatPercentage && (
+                          <span className="text-[12px] text-[#9CA3AF]">{entry.bodyFatPercentage}% gordura</span>
+                        )}
+                        {entry.perimeterWaist && (
+                          <span className="text-[12px] text-[#9CA3AF]">cintura {entry.perimeterWaist} cm</span>
+                        )}
+                        {entry.isDraft && !entry.totalWeight && !entry.bmi && !entry.bodyFatPercentage && !entry.perimeterWaist && (
+                          <span className="text-[12px] text-[#C4C9D4]">Nenhuma medida ainda</span>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={2}
+                      className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors duration-100 shrink-0"
+                    />
+                  </Link>
+
                 </div>
-                <ChevronRight
-                  size={16}
-                  strokeWidth={2}
-                  className="text-[#D1D5DB] group-hover:text-[#9CA3AF] transition-colors duration-100 shrink-0"
-                />
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Image modal */}
+      {modalEntry && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+          onClick={closeModal}
+        >
+          <div
+            ref={modalRef}
+            className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#F3F4F6] shrink-0">
+              <div>
+                <p className="text-[15px] font-semibold text-[#111827]">Fotos</p>
+                <p className="text-[12px] text-[#9CA3AF]">{formatDate(modalEntry.createdAt)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#9CA3AF] hover:text-[#374151] hover:bg-[#F3F4F6] transition-colors duration-150"
+              >
+                <X size={17} />
+              </button>
+            </div>
+
+            {/* Modal body — scrollable */}
+            <div className="overflow-y-auto p-4">
+              <ProgressImages
+                images={modalImages}
+                uploadUrl={`/api/professional/patients/${patientId}/progress/${modalEntry.id}/images`}
+                deleteUrlBase={`/api/professional/patients/${patientId}/progress/${modalEntry.id}/images`}
+                onImagesChange={handleModalImagesChange}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

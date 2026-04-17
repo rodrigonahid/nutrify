@@ -26,11 +26,11 @@ export async function GET() {
       );
     }
 
-    // Get all progress entries for this patient, newest first
+    // Get all published progress entries for this patient, newest first
     const progressList = await db
       .select()
       .from(progress)
-      .where(eq(progress.patientId, patient.id))
+      .where(and(eq(progress.patientId, patient.id), eq(progress.isDraft, false)))
       .orderBy(desc(progress.createdAt));
 
     return NextResponse.json({ progress: progressList });

@@ -78,6 +78,12 @@ export interface Ingredient {
   orderIndex: number;
 }
 
+export interface ProgressImage {
+  id: number;
+  url: string;
+  createdAt: string;
+}
+
 // Progress Types
 export interface Progress {
   id: number;
@@ -128,7 +134,9 @@ export interface Progress {
   skinfoldThigh: string | null;
   skinfoldCalf: string | null;
 
+  isDraft?: boolean;
   createdAt: string;
+  images?: ProgressImage[];
 }
 
 export interface ProgressWithComparison {

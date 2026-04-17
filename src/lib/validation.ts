@@ -72,6 +72,25 @@ export const signupSchema = z.object({
 });
 
 /**
+ * Professional self-service signup validation
+ */
+export const professionalSignupSchema = z
+  .object({
+    name: z.string().min(1, "Nome obrigatório").max(255, "Nome muito longo"),
+    email: emailSchema,
+    password: z
+      .string()
+      .min(8, "Senha deve ter pelo menos 8 caracteres")
+      .max(100, "Senha muito longa"),
+    confirmPassword: z.string().min(1, "Confirmação de senha obrigatória"),
+    crn: z.string().max(20, "CRN muito longo").optional().or(z.literal("")),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
+/**
  * Nutritionist profile validation
  */
 export const nutritionistProfileSchema = z.object({

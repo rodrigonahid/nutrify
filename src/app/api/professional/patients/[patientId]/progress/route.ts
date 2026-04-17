@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { patients, professionals, progress } from "@/db/schema";
+import { patients, professionals, progress, progressImages } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { progressSchema } from "@/lib/validation";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 /**
  * GET /api/professional/patients/[patientId]/progress
@@ -50,14 +50,27 @@ export async function GET(
       );
     }
 
-    // Get all progress entries for this patient, newest first
+    // Get all progress entries (drafts + published), newest first
     const progressList = await db
       .select()
       .from(progress)
       .where(eq(progress.patientId, patient.id))
       .orderBy(desc(progress.createdAt));
 
-    return NextResponse.json({ progress: progressList });
+    // Batch-fetch images for all entries
+    const ids = progressList.map((p) => p.id);
+    const images = ids.length > 0
+      ? await db.select().from(progressImages).where(inArray(progressImages.progressId, ids)).orderBy(progressImages.createdAt)
+      : [];
+
+    const imagesByEntry = images.reduce<Record<number, typeof images>>((acc, img) => {
+      (acc[img.progressId] ??= []).push(img);
+      return acc;
+    }, {});
+
+    const result = progressList.map((p) => ({ ...p, images: imagesByEntry[p.id] ?? [] }));
+
+    return NextResponse.json({ progress: result });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -86,8 +99,8 @@ export async function POST(
     const { patientId } = await params;
     const body = await request.json();
 
-    // Extract the updatePatientProfile flag
-    const { updatePatientProfile, ...progressDataBody } = body;
+    // Extract flags
+    const { updatePatientProfile, isDraft, ...progressDataBody } = body;
 
     // Validate the request body
     const validationResult = progressSchema.safeParse(progressDataBody);
@@ -136,6 +149,7 @@ export async function POST(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const progressData: any = {
       patientId: patient.id,
+      isDraft: isDraft === true,
     };
 
     // Convert all numeric values to strings for database decimal fields
