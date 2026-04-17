@@ -36,6 +36,8 @@ export async function GET() {
         specialization: professionals.specialization,
         bio: professionals.bio,
         email: users.email,
+        avatarUrl: professionals.avatarUrl,
+        logoUrl: professionals.logoUrl,
         createdAt: professionals.createdAt,
       })
       .from(professionals)

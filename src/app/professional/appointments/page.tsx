@@ -226,27 +226,12 @@ export default function AgendaPage() {
   return (
     <div className="p-4 md:p-8 max-w-[900px]">
 
-      {/* Back link */}
-      <Link
-        href="/professional"
-        className="inline-flex items-center gap-1 text-[13px] text-[#9CA3AF] hover:text-[#374151] transition-colors duration-100 mb-6"
-      >
-        ← Voltar ao painel
-      </Link>
-
       {/* Page heading + controls */}
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-0.5">
             Consultas
           </h1>
-          {!loading && (
-            <p className="text-sm font-medium text-[#6B7280]">
-              {appointments.length === 0
-                ? "Nenhuma consulta"
-                : `${appointments.length} consulta${appointments.length !== 1 ? "s" : ""}`}
-            </p>
-          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">

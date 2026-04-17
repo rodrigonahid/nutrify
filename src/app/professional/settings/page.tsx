@@ -15,6 +15,11 @@ export default function ProfessionalSettingsPage() {
   const [bio, setBio] = useState("");
   const [professionalLicense, setProfessionalLicense] = useState("");
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState("");
@@ -31,6 +36,7 @@ export default function ProfessionalSettingsPage() {
         setSpecialization(profile.specialization ?? "");
         setBio(profile.bio ?? "");
         setProfessionalLicense(profile.professionalLicense ?? "");
+        setAvatarUrl(profile.avatarUrl ?? null);
         setLogoUrl(profile.logoUrl ?? null);
       } catch {
         setError("Falha ao carregar perfil.");
@@ -40,6 +46,26 @@ export default function ProfessionalSettingsPage() {
     }
     fetchProfile();
   }, []);
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarError("");
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/professional/avatar", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Falha ao enviar foto");
+      setAvatarUrl(data.url);
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : "Falha ao enviar foto");
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  }
 
   async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -131,6 +157,38 @@ export default function ProfessionalSettingsPage() {
           Perfil atualizado com sucesso.
         </div>
       )}
+
+      {/* Avatar */}
+      <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-4">
+        <p className={labelClass}>Foto de perfil</p>
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-full border-2 border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-center overflow-hidden shrink-0">
+            {avatarUploading ? (
+              <div className="w-5 h-5 border-2 border-[#2E8B5A] border-t-transparent rounded-full animate-spin" />
+            ) : avatarUrl ? (
+              <Image src={avatarUrl} alt="Foto de perfil" width={64} height={64} className="w-full h-full object-cover" unoptimized />
+            ) : (
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" strokeWidth="1.5">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+              </svg>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="h-9 px-4 rounded-[10px] border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#374151] hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
+            >
+              {avatarUploading ? "Enviando…" : avatarUrl ? "Alterar foto" : "Enviar foto"}
+            </button>
+            <p className="mt-1.5 text-[12px] text-[#9CA3AF]">JPG, PNG ou WebP · máx. 2 MB</p>
+            {avatarError && <p className="mt-1 text-[12px] font-semibold text-[#DC2626]">{avatarError}</p>}
+          </div>
+        </div>
+        <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
+      </div>
 
       {/* Logo */}
       <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 mb-4">

@@ -65,6 +65,7 @@ export const professionals = pgTable("professionals", {
   specialization: text("specialization"),
   bio: text("bio"),
   logoUrl: text("logo_url"),
+  avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -280,10 +281,28 @@ export const progress = pgTable("progress", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const progressRelations = relations(progress, ({ one }) => ({
+export const progressRelations = relations(progress, ({ one, many }) => ({
   patient: one(patients, {
     fields: [progress.patientId],
     references: [patients.id],
+  }),
+  images: many(progressImages),
+}));
+
+// Progress Images - photos attached to a progress entry
+export const progressImages = pgTable("progress_images", {
+  id: serial("id").primaryKey(),
+  progressId: integer("progress_id")
+    .notNull()
+    .references(() => progress.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const progressImagesRelations = relations(progressImages, ({ one }) => ({
+  progress: one(progress, {
+    fields: [progressImages.progressId],
+    references: [progress.id],
   }),
 }));
 

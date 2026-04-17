@@ -145,6 +145,8 @@ export interface Nutritionist {
   specialization: string | null;
   bio: string | null;
   email: string;
+  avatarUrl: string | null;
+  logoUrl: string | null;
   createdAt: string;
 }
 

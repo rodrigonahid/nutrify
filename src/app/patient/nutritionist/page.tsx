@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Nutritionist, PatientPlan } from "@/types";
 import { getPaymentSchedule, PaymentEntry } from "@/lib/payment-schedule";
 
@@ -165,69 +166,100 @@ export default function PatientNutritionistPage() {
       )}
 
       {/* Section 1 — Nutritionist Info */}
-      <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden mb-4">
-        <div className="px-4 py-3 border-b border-[#F3F4F6]">
-          <p className="text-[14px] font-semibold text-[#111827]">Informações do Nutricionista</p>
-        </div>
+      <div className="bg-white border border-[#E5E7EB] rounded-xl mb-4">
 
         {loading ? (
-          <div className="px-4 py-4">
-            <div className="flex items-center gap-3 mb-4 animate-pulse">
-              <div className="w-12 h-12 rounded-full bg-[#F3F4F6] shrink-0" />
-              <div className="space-y-2">
-                <div className="h-4 w-32 bg-[#F3F4F6] rounded" />
-                <div className="h-3 w-48 bg-[#F3F4F6] rounded" />
-              </div>
+          <div className="animate-pulse">
+            <div className="h-24 bg-[#F3F4F6] rounded-t-xl" />
+            <div className="px-4 pb-4">
+              <div className="w-16 h-16 rounded-full bg-[#E5E7EB] -mt-8 mb-3 border-4 border-white" />
+              <div className="h-4 w-36 bg-[#F3F4F6] rounded mb-2" />
+              <div className="h-3 w-48 bg-[#F3F4F6] rounded mb-5" />
+              <SkeletonRow />
+              <SkeletonRow />
             </div>
-            <SkeletonRow />
-            <SkeletonRow />
           </div>
         ) : nutritionist ? (
-          <div className="px-4 py-4">
-            {/* Avatar + name/email */}
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 rounded-full bg-[rgba(46,139,90,0.10)] flex items-center justify-center shrink-0">
-                <span className="text-[18px] font-bold text-[#2E8B5A] uppercase">{initial}</span>
+          <>
+            {/* Logo banner — overflow-hidden scoped here, not on outer card */}
+            <div className="relative h-24 rounded-t-xl bg-gradient-to-br from-[#236B47] to-[#2E8B5A] flex items-center justify-center overflow-hidden">
+              {nutritionist.logoUrl ? (
+                <Image
+                  src={nutritionist.logoUrl}
+                  alt="Logo"
+                  width={160}
+                  height={80}
+                  className="object-contain max-h-16"
+                  unoptimized
+                />
+              ) : (
+                /* decorative pattern when no logo */
+                <svg width="100%" height="100%" className="absolute inset-0 opacity-10" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="2" cy="2" r="1.5" fill="white" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#dots)" />
+                </svg>
+              )}
+            </div>
+
+            <div className="px-4 pb-4">
+              {/* Avatar straddling the banner edge */}
+              <div className="flex items-end gap-3 mb-4 mt-2">
+                <div className="relative z-10 w-16 h-16 rounded-full -mt-8 border-4 border-white bg-[rgba(46,139,90,0.10)] flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                  {nutritionist.avatarUrl ? (
+                    <Image
+                      src={nutritionist.avatarUrl}
+                      alt={displayName}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-[22px] font-bold text-[#2E8B5A] uppercase">{initial}</span>
+                  )}
+                </div>
+                <div className="pb-1">
+                  <p className="text-[16px] font-bold text-[#111827] leading-tight">{displayName}</p>
+                  {nutritionist.name && (
+                    <p className="text-[13px] text-[#9CA3AF]">{nutritionist.email}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-[15px] font-bold text-[#111827] leading-tight">
-                  {displayName}
-                </p>
-                {nutritionist.name && (
-                  <p className="text-[13px] text-[#9CA3AF]">{nutritionist.email}</p>
+
+              <div className="divide-y divide-[#F3F4F6]">
+                {nutritionist.phone && (
+                  <div className="flex items-start justify-between py-2.5">
+                    <span className="text-[13px] text-[#6B7280]">Telefone</span>
+                    <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.phone}</span>
+                  </div>
+                )}
+                {nutritionist.specialization && (
+                  <div className="flex items-start justify-between py-2.5">
+                    <span className="text-[13px] text-[#6B7280]">Especialização</span>
+                    <span className="text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2.5 py-0.5 rounded-full ml-4">
+                      {nutritionist.specialization}
+                    </span>
+                  </div>
+                )}
+                {nutritionist.professionalLicense && (
+                  <div className="flex items-start justify-between py-2.5">
+                    <span className="text-[13px] text-[#6B7280]">CRN</span>
+                    <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.professionalLicense}</span>
+                  </div>
+                )}
+                {nutritionist.bio && (
+                  <div className="py-2.5">
+                    <span className="text-[13px] text-[#6B7280] block mb-1.5">Sobre</span>
+                    <p className="text-[13px] text-[#374151] leading-relaxed">{nutritionist.bio}</p>
+                  </div>
                 )}
               </div>
             </div>
-
-            <div className="divide-y divide-[#F3F4F6]">
-              {nutritionist.phone && (
-                <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Telefone</span>
-                  <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.phone}</span>
-                </div>
-              )}
-              {nutritionist.specialization && (
-                <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">Especialização</span>
-                  <span className="text-[12px] font-semibold text-[#2E8B5A] bg-[rgba(46,139,90,0.08)] px-2.5 py-0.5 rounded-full ml-4">
-                    {nutritionist.specialization}
-                  </span>
-                </div>
-              )}
-              {nutritionist.professionalLicense && (
-                <div className="flex items-start justify-between py-2.5">
-                  <span className="text-[13px] text-[#6B7280]">CRN</span>
-                  <span className="text-[13px] font-medium text-[#111827] text-right ml-4">{nutritionist.professionalLicense}</span>
-                </div>
-              )}
-              {nutritionist.bio && (
-                <div className="py-2.5">
-                  <span className="text-[13px] text-[#6B7280] block mb-1.5">Sobre</span>
-                  <p className="text-[13px] text-[#374151] leading-relaxed">{nutritionist.bio}</p>
-                </div>
-              )}
-            </div>
-          </div>
+          </>
         ) : null}
       </div>
 

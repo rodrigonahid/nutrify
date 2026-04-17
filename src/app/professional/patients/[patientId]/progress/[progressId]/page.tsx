@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Plus } from "lucide-react";
 import { Progress } from "@/types";
+import { ProgressImages } from "@/components/progress-images";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -66,13 +66,18 @@ export default function ProgressDetailPage() {
   const [entry, setEntry] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [images, setImages] = useState<{ id: number; url: string; createdAt: string }[]>([]);
 
   useEffect(() => {
-    fetch(`/api/professional/patients/${patientId}/progress/${progressId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.progress) setEntry(data.progress);
+    const base = `/api/professional/patients/${patientId}/progress/${progressId}`;
+    Promise.all([
+      fetch(base).then((r) => r.json()),
+      fetch(`${base}/images`).then((r) => r.json()),
+    ])
+      .then(([progressData, imagesData]) => {
+        if (progressData.progress) setEntry(progressData.progress);
         else setError("Registro de progresso não encontrado");
+        if (imagesData.images) setImages(imagesData.images);
       })
       .catch(() => setError("Falha ao carregar registro de progresso"))
       .finally(() => setLoading(false));
@@ -103,13 +108,6 @@ export default function ProgressDetailPage() {
           </h1>
           <p className="text-sm font-medium text-[#6B7280]">Registro de medidas</p>
         </div>
-        <Link
-          href={`/professional/patients/${patientId}/progress/create`}
-          className="inline-flex items-center gap-1.5 h-9 px-4 bg-[#2E8B5A] text-white text-[13px] font-semibold rounded-[8px] hover:bg-[#277A4F] transition-colors duration-150 shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(46,139,90,0.22)]"
-        >
-          <Plus size={13} strokeWidth={2.5} />
-          Novo registro
-        </Link>
       </div>
 
       {/* Error */}
@@ -277,6 +275,14 @@ export default function ProgressDetailPage() {
               )}
             </Section>
           )}
+
+          {/* Photos */}
+          <ProgressImages
+            images={images}
+            uploadUrl={`/api/professional/patients/${patientId}/progress/${progressId}/images`}
+            deleteUrlBase={`/api/professional/patients/${patientId}/progress/${progressId}/images`}
+            onImagesChange={setImages}
+          />
 
           {/* No data recorded */}
           {!entry.bodyFatPercentage && !entry.height && !entry.totalWeight && !entry.bmi &&

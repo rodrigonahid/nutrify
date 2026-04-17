@@ -21,6 +21,7 @@ export async function GET() {
         specialization: professionals.specialization,
         bio: professionals.bio,
         logoUrl: professionals.logoUrl,
+        avatarUrl: professionals.avatarUrl,
         email: users.email,
         createdAt: professionals.createdAt,
         updatedAt: professionals.updatedAt,

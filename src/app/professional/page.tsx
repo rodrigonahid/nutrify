@@ -4,6 +4,7 @@ import { appointments, patients, professionals } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Users, Calendar, ChefHat } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
   confirmed:  { bg: "bg-[#DCFCE7]", text: "text-[#166534]", dot: "bg-[#16A34A]" },
@@ -111,11 +112,49 @@ export default async function ProfessionalDashboard() {
     <div className="p-4 md:p-8 max-w-[900px]">
 
       {/* Page heading */}
-      <div className="mb-8">
-        <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
-          Hoje
-        </h1>
-        <p className="text-sm font-medium text-[#6B7280]">{dateLabel}</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-[22px] font-extrabold text-[#111827] tracking-tight mb-1">
+            {professional?.name ? `Olá, ${professional.name.split(" ")[0]}` : "Hoje"}
+          </h1>
+          <p className="text-sm font-medium text-[#6B7280] capitalize">{dateLabel}</p>
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          {/* Logo */}
+          {professional?.logoUrl && (
+            <Link href="/professional/settings" className="shrink-0">
+              <Image
+                src={professional.logoUrl}
+                alt="Logo"
+                width={200}
+                height={64}
+                className="h-16 w-auto object-contain rounded-lg"
+                unoptimized
+              />
+            </Link>
+          )}
+
+          {/* Avatar */}
+          <Link href="/professional/settings" className="shrink-0">
+            {professional?.avatarUrl ? (
+              <Image
+                src={professional.avatarUrl}
+                alt="Foto de perfil"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover border-2 border-[#E5E7EB] hover:border-[#2E8B5A] transition-colors duration-150"
+                unoptimized
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[rgba(46,139,90,0.10)] border-2 border-[#E5E7EB] hover:border-[#2E8B5A] flex items-center justify-center transition-colors duration-150">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E8B5A" strokeWidth="1.8">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+                </svg>
+              </div>
+            )}
+          </Link>
+        </div>
       </div>
 
       {/* Today's appointments */}

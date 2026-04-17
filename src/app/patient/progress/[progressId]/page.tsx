@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { DeltaIndicator } from "@/components/delta-indicator";
 import { Progress } from "@/types/progress";
+import { ProgressImages } from "@/components/progress-images";
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString("pt-BR", {
@@ -57,11 +58,18 @@ export default function PatientProgressDetailPage() {
   const [previous, setPrevious] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [images, setImages] = useState<{ id: number; url: string; createdAt: string }[]>([]);
 
   useEffect(() => {
-    fetch(`/api/patient/progress/${progressId}`)
-      .then((r) => r.json())
-      .then((d) => { setProgress(d.progress); setPrevious(d.previous); })
+    Promise.all([
+      fetch(`/api/patient/progress/${progressId}`).then((r) => r.json()),
+      fetch(`/api/patient/progress/${progressId}/images`).then((r) => r.json()),
+    ])
+      .then(([d, imgData]) => {
+        setProgress(d.progress);
+        setPrevious(d.previous);
+        if (imgData.images) setImages(imgData.images);
+      })
       .catch(() => setError("Falha ao carregar dados de progresso"))
       .finally(() => setLoading(false));
   }, [progressId]);
@@ -137,6 +145,8 @@ export default function PatientProgressDetailPage() {
             <Row label="Coxa" current={progress.skinfoldThigh} prev={previous?.skinfoldThigh || null} unit="mm" />
             <Row label="Panturrilha" current={progress.skinfoldCalf} prev={previous?.skinfoldCalf || null} unit="mm" />
           </Section>
+
+          <ProgressImages images={images} />
         </div>
       )}
     </div>

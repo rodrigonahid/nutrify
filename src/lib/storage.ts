@@ -1,14 +1,16 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3 = new S3Client({
-  region: "us-east-1",
-  endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/s3`,
-  credentials: {
-    accessKeyId: process.env.SUPABASE_S3_KEY_ID!,
-    secretAccessKey: process.env.SUPABASE_S3_SECRET!,
-  },
-  forcePathStyle: true,
-});
+function getS3Client() {
+  return new S3Client({
+    region: "us-east-1",
+    endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/s3`,
+    credentials: {
+      accessKeyId: process.env.SUPABASE_S3_KEY_ID!,
+      secretAccessKey: process.env.SUPABASE_S3_SECRET!,
+    },
+    forcePathStyle: true,
+  });
+}
 
 export async function uploadFile(
   buffer: Buffer,
@@ -16,7 +18,7 @@ export async function uploadFile(
   contentType: string,
   bucket = "files"
 ): Promise<string> {
-  await s3.send(
+  await getS3Client().send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: path,
@@ -25,5 +27,5 @@ export async function uploadFile(
     })
   );
 
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  return `/api/storage?path=${bucket}/${path}`;
 }
